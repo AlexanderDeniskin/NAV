@@ -2,15 +2,15 @@ OBJECT Table 50000 Excel Buffer Extended
 {
   OBJECT-PROPERTIES
   {
-    Date=15.11.18;
-    Time=16:16:44;
+    Date=19.11.18;
+    Time=11:40:18;
     Modified=Yes;
-    Version List=NAVW110.00;
+    Version List=;
   }
   PROPERTIES
   {
-    CaptionML=[DEU=Excelpuffer;
-               ENU=Excel Buffer];
+    CaptionML=[DEU=Excelpuffer Erweitert;
+               ENU=Excel Buffer Extended];
   }
   FIELDS
   {
@@ -125,6 +125,14 @@ OBJECT Table 50000 Excel Buffer Extended
     { 50101;  ;Height              ;Integer       ;CaptionML=ENU=Height }
     { 50102;  ;Hidden              ;Boolean       ;CaptionML=ENU=Hidden }
     { 50103;  ;Outline Level       ;Integer       ;CaptionML=ENU=Outline Level }
+    { 51000;  ;Color               ;Option        ;FieldClass=FlowFilter;
+                                                   CaptionML=ENU=Color;
+                                                   OptionCaptionML=ENU=Black,White,Dark Red,Red,Orange,Yellow,Light Green,Green,Light Blue,Blue,Dark Blue,Purple;
+                                                   OptionString=Black,White,Dark Red,Red,Orange,Yellow,Light Green,Green,Light Blue,Blue,Dark Blue,Purple }
+    { 51001;  ;Property            ;Option        ;FieldClass=FlowFilter;
+                                                   CaptionML=ENU=Property;
+                                                   OptionCaptionML=ENU=Width,Height,Outline Level,Hidden;
+                                                   OptionString=Width,Height,Outline Level,Hidden }
   }
   KEYS
   {
@@ -137,8 +145,8 @@ OBJECT Table 50000 Excel Buffer Extended
   {
     VAR
       Text000@1000 : TextConst '@@@="{Locked=""Excel""}";DEU=Excel wurde nicht gefunden.;ENU=Excel not found.';
-      Text001@1001 : TextConst 'DEU=Sie mﾐピsen einen Dateinamen angeben.;ENU=You must enter a file name.';
-      Text002@1002 : TextConst '@@@="{Locked=""Excel""}";DEU=Sie mﾐピsen einen Exceltabellennamen angeben.;ENU=You must enter an Excel worksheet name.';
+      Text001@1001 : TextConst 'DEU=Sie m《sen einen Dateinamen angeben.;ENU=You must enter a file name.';
+      Text002@1002 : TextConst '@@@="{Locked=""Excel""}";DEU=Sie m《sen einen Exceltabellennamen angeben.;ENU=You must enter an Excel worksheet name.';
       Text003@1003 : TextConst 'DEU=Die Datei %1 ist nicht vorhanden.;ENU=The file %1 does not exist.';
       Text004@1004 : TextConst '@@@="{Locked=""Excel""}";DEU=Die Exceltabelle %1 ist nicht vorhanden.;ENU=The Excel worksheet %1 does not exist.';
       Text005@1005 : TextConst '@@@="{Locked=""Excel""}";DEU=Excel-Arbeitsbl. erstellen...\\;ENU=Creating Excel worksheet...\\';
@@ -192,7 +200,7 @@ OBJECT Table 50000 Excel Buffer Extended
       Text035@1040 : TextConst 'DEU=Der Vorgang wurde abgebrochen.;ENU=The operation was canceled.';
       Text036@1042 : TextConst '@@@="{Locked=""Excel""}";DEU=Die Excel-Tabelle ist nicht vorhanden.;ENU=The Excel workbook does not exist.';
       Text037@1047 : TextConst '@@@="{Locked=""Excel""}";DEU=Die Excel-Tabelle konnte nicht erstellt werden.;ENU=Could not create the Excel workbook.';
-      Text038@1048 : TextConst 'DEU=Die globale Variable ''%1'' ist nicht fﾐビ den Test enthalten.;ENU=Global variable %1 is not included for test.';
+      Text038@1048 : TextConst 'DEU=Die globale Variable ''%1'' ist nicht f〉 den Test enthalten.;ENU=Global variable %1 is not included for test.';
       Text039@1050 : TextConst 'DEU=Die Zellenart wurde nicht definiert.;ENU=Cell type has not been set.';
       Text040@1008 : TextConst '@@@="{Locked=""Excel""}";DEU=Excel-Datei exportieren;ENU=Export Excel File';
       SavingDocumentMsg@1010 : TextConst 'DEU=Das folgende Dokument wird gespeichert: %1.;ENU=Saving the following document: %1.';
@@ -334,6 +342,8 @@ OBJECT Table 50000 Excel Buffer Extended
       WriteAutoFilter;
       WriteMergedCells;
       WritePageSetup;
+
+      AddEmptyRows();
 
       IF FINDSET THEN
         REPEAT
@@ -1143,26 +1153,18 @@ OBJECT Table 50000 Excel Buffer Extended
       END;
     END;
 
-    PROCEDURE SetColumnsProperty@1000000007(FromColumnNo@1000000000 : Integer;ToColumnNo@1000000001 : Integer;Property@1000000006 : Variant;Value@1000000002 : Variant);
+    PROCEDURE SetColumnsProperty@1000000007(FromColumnNo@1000000000 : Integer;ToColumnNo@1000000001 : Integer;PropertyType@1000000004 : 'Width,,OutlineLevel,Hidden';Value@1000000002 : Variant);
     VAR
-      PropertyOption@1000000004 : 'Width,OutlineLevel,Hidden';
       I@1000000003 : Integer;
     BEGIN
-      IF Property.ISINTEGER THEN
-        PropertyOption := Property
-      ELSE IF Property.ISTEXT THEN
-        EVALUATE(PropertyOption, Property)
-      ELSE
-        EXIT;
-
       FOR I := FromColumnNo TO ToColumnNo DO BEGIN
         GetColumnRecord(I);
-        CASE PropertyOption OF
-          PropertyOption::Width:
+        CASE PropertyType OF
+          PropertyType::Width:
             TempColumnsExcelBuf.Width := Value;
-          PropertyOption::OutlineLevel:
+          PropertyType::OutlineLevel:
             TempColumnsExcelBuf."Outline Level" := Value;
-          PropertyOption::Hidden:
+          PropertyType::Hidden:
             TempColumnsExcelBuf.Hidden := Value;
         END;
         TempColumnsExcelBuf.MODIFY;
@@ -1184,26 +1186,18 @@ OBJECT Table 50000 Excel Buffer Extended
       END;
     END;
 
-    PROCEDURE SetRowsProperty@1000000012(FromRowNo@1000000000 : Integer;ToRowNo@1000000001 : Integer;Property@1000000005 : Variant;Value@1000000002 : Variant);
+    PROCEDURE SetRowsProperty@1000000012(FromRowNo@1000000000 : Integer;ToRowNo@1000000001 : Integer;PropertyType@1000000004 : ',Height,OutlineLevel,Hidden';Value@1000000002 : Variant);
     VAR
-      PropertyOption@1000000004 : 'Height,OutlineLevel,Hidden';
       I@1000000003 : Integer;
     BEGIN
-      IF Property.ISINTEGER THEN
-        PropertyOption := Property
-      ELSE IF Property.ISTEXT THEN
-        EVALUATE(PropertyOption, Property)
-      ELSE
-        EXIT;
-
       FOR I := FromRowNo TO ToRowNo DO BEGIN
         GetRowRecord(I);
-        CASE PropertyOption OF
-          PropertyOption::Height:
+        CASE PropertyType OF
+          PropertyType::Height:
             TempRowsExcelBuf.Height := Value;
-          PropertyOption::OutlineLevel:
+          PropertyType::OutlineLevel:
             TempRowsExcelBuf."Outline Level" := Value;
-          PropertyOption::Hidden:
+          PropertyType::Hidden:
             TempRowsExcelBuf.Hidden := Value;
         END;
         TempRowsExcelBuf.MODIFY;
@@ -1369,7 +1363,7 @@ OBJECT Table 50000 Excel Buffer Extended
           FontXMLString += STRSUBSTNO('<x:sz val="%1" />',"Font Size");
 
         IF "Font Color" <> '' THEN
-          FontXMLString += STRSUBSTNO('<x:color rgb="%1" />',GetRGBColorCode("Font Color"));
+          FontXMLString += STRSUBSTNO('<x:color rgb="%1" />',GetHEXColorCode("Font Color"));
 
         IF "Font Name" <> '' THEN
           FontXMLString += STRSUBSTNO('<x:name val="%1" />',"Font Name");
@@ -1385,7 +1379,7 @@ OBJECT Table 50000 Excel Buffer Extended
         EXIT;
 
       Decorator.Fill.InnerXml('<x:patternFill xmlns:x="http://schemas.openxmlformats.org/spreadsheetml/2006/main" patternType="solid">' +
-                               '<x:fgColor rgb="' + GetRGBColorCode("Background Color") + '" />' +
+                               '<x:fgColor rgb="' + GetHEXColorCode("Background Color") + '" />' +
                              '</x:patternFill>');
     END;
 
@@ -1410,7 +1404,7 @@ OBJECT Table 50000 Excel Buffer Extended
       Decorator.Border.InnerXml(BorderXMLString);
     END;
 
-    LOCAL PROCEDURE GetRGBColorCode@1119429001(ColorName@1119429000 : Text[10]) : Text[10];
+    LOCAL PROCEDURE GetHEXColorCode@1119429001(ColorName@1119429000 : Text[10]) : Text[10];
     BEGIN
       CASE LOWERCASE(ColorName) OF
         'black': EXIT('00000000');
@@ -1438,7 +1432,7 @@ OBJECT Table 50000 Excel Buffer Extended
         IF BorderColor = '' THEN
           XMLText += '<x:color auto="1" />'
         ELSE
-          XMLText += STRSUBSTNO('<x:color rgb="%1" />',GetRGBColorCode(BorderColor));
+          XMLText += STRSUBSTNO('<x:color rgb="%1" />',GetHEXColorCode(BorderColor));
         XMLText += STRSUBSTNO('</x:%1>', BorderName);
       END;
     END;
@@ -1490,6 +1484,23 @@ OBJECT Table 50000 Excel Buffer Extended
       XlWorkSheet.Save;
 
       MergedCellsList.Clear;
+    END;
+
+    LOCAL PROCEDURE AddEmptyRows@1000000038();
+    BEGIN
+      TempRowsExcelBuf.RESET;
+      IF TempRowsExcelBuf.FINDSET THEN
+        REPEAT
+          SETRANGE("Row No.", TempRowsExcelBuf."Row No.");
+          IF ISEMPTY THEN BEGIN
+            INIT;
+            VALIDATE("Row No.",TempRowsExcelBuf."Row No.");
+            VALIDATE("Column No.",1);
+            //"Cell Type" := CellType;
+            INSERT;
+          END;
+        UNTIL TempRowsExcelBuf.NEXT = 0;
+      SETRANGE("Row No.");
     END;
 
     LOCAL PROCEDURE WriteColumnsProperties@1000000006();
@@ -2440,3 +2451,4 @@ OBJECT Table 50000 Excel Buffer Extended
     END.
   }
 }
+
