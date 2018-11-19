@@ -1,0 +1,139 @@
+OBJECT Codeunit 50000 Excel Buffer Ext. Examples
+{
+  OBJECT-PROPERTIES
+  {
+    Date=19.11.18;
+    Time=11:47:43;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+            //GeneralFormatting();
+            UseProperties;
+            //ChangeRowsColumnsProperties;
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      xlBuf@1000000000 : TEMPORARY Record 50000;
+
+    LOCAL PROCEDURE GeneralFormatting@1000000001();
+    BEGIN
+      CLEAR(xlBuf);
+      xlBuf.VALIDATE("Row No.",1);
+      xlBuf.VALIDATE("Column No.",1);
+      xlBuf."Cell Value as Text" := 'Hello, world!';
+      xlBuf."Font Name" := 'Tahoma';
+      xlBuf."Font Color" := FORMAT(xlBuf.Color::Red);
+      xlBuf."Font Size" := 14;
+      xlBuf."Horizontal Alignment" := xlBuf."Horizontal Alignment"::Center;
+      xlBuf."Right Border Style" := xlBuf."Right Border Style"::Thick;
+      xlBuf."Right Border Color" := FORMAT(xlBuf.Color::Green);
+      xlBuf."Background Color" := 'FFEEEEEE';
+      xlBuf.INSERT;
+      xlBuf.CreateBookAndOpenExcel('','Sheet1','',COMPANYNAME,USERID);
+    END;
+
+    LOCAL PROCEDURE UseProperties@1000000000();
+    VAR
+      xlBufDefault@1000000000 : Record 50000;
+      I@1000000001 : Integer;
+      J@1000000002 : Integer;
+    BEGIN
+      CLEAR(xlBuf);
+
+      xlBufDefault.INIT;
+      xlBufDefault.Bold := TRUE;
+      xlBufDefault."Wrap Text" := TRUE;
+      xlBufDefault."Top Border Style" := xlBufDefault."Top Border Style"::Medium;
+      xlBufDefault."Bottom Border Style" := xlBufDefault."Bottom Border Style"::Medium;
+      xlBufDefault."Left Border Style" := xlBufDefault."Left Border Style"::Thin;
+      xlBufDefault."Right Border Style" := xlBufDefault."Right Border Style"::Thin;
+
+      // You can pass to this finction record "Excel Buffer Extended"
+      xlBuf.SetDefaultProperties(xlBufDefault);
+      { Or text
+      xlBuf.SetDefaultProperties('Bold;'+
+                                 'Top Border Style::Medium;'+
+                                 'Bottom Border Style:Medium;'+
+                                 'Left Border Style:Thin;'+
+                                 'Right Border Style:Thin;');
+      }
+
+      FOR I := 1 TO 5 DO
+        CASE I OF
+          1:
+            xlBuf.AddColumnPr(STRSUBSTNO('Column Header %1', I),FALSE,xlBuf."Cell Type"::Text,'Left Border Style:Medium');
+          5:
+            xlBuf.AddColumnPr(STRSUBSTNO('Column Header %1', I),FALSE,xlBuf."Cell Type"::Text,'Right Border Style:Medium');
+          ELSE
+            xlBuf.AddColumnPr(STRSUBSTNO('Column Header %1', I),FALSE,xlBuf."Cell Type"::Text,'');
+        END;
+
+      xlBufDefault.Bold := FALSE;
+      xlBufDefault."Wrap Text" := FALSE;
+      xlBufDefault."Top Border Style" := xlBufDefault."Top Border Style"::Thin;
+      xlBufDefault."Bottom Border Style" := xlBufDefault."Bottom Border Style"::Thin;
+      xlBuf.SetDefaultProperties(xlBufDefault);
+
+      FOR J := 2 TO 4 DO BEGIN
+        xlBuf.NewRow;
+        FOR I := 1 TO 5 DO
+          CASE I OF
+            1:
+              xlBuf.AddColumnPr(STRSUBSTNO('Cell R%1C%2', J, I),FALSE,xlBuf."Cell Type"::Text,'Left Border Style:Medium;Horizontal Alignment:Center');
+            5:
+              xlBuf.AddColumnPr(STRSUBSTNO('Cell R%1C%2', J, I),FALSE,xlBuf."Cell Type"::Text,'Right Border Style:Medium;Horizontal Alignment:Right');
+            ELSE
+              xlBuf.AddColumnPr(STRSUBSTNO('Cell R%1C%2', J, I),FALSE,xlBuf."Cell Type"::Text,'');
+          END;
+      END;
+
+      // Footer is without borders, it has only bold text. Top border is necessary to finish the border of the table
+      xlBuf.SetDefaultProperties('Bold;Top Border Style:Medium');
+      xlBuf.NewRow;
+      xlBuf.AddColumnPr('Rows count:',FALSE,xlBuf."Cell Type"::Text,'');
+      xlBuf.AddColumnPr('',FALSE,xlBuf."Cell Type"::Text,'');
+      xlBuf.AddColumnPr('',FALSE,xlBuf."Cell Type"::Text,'');
+      xlBuf.AddColumnPr('',FALSE,xlBuf."Cell Type"::Text,'');
+      xlBuf.MergeCells(STRSUBSTNO('A%1:D%1', xlBuf."Row No."));
+
+      xlBuf.SetCurrent(xlBuf."Row No.",4);
+      xlBuf.AddColumnPr(xlBuf."Row No."-1,FALSE,xlBuf."Cell Type"::Number,'');
+
+      xlBuf.CreateBookAndOpenExcel('','Sheet1','',COMPANYNAME,USERID);
+    END;
+
+    LOCAL PROCEDURE ChangeRowsColumnsProperties@1000000002();
+    BEGIN
+      CLEAR(xlBuf);
+      xlBuf.AddColumnPr('First column width is 250px',FALSE,xlBuf."Cell Type"::Text,'');
+      xlBuf.SetColumnsProperty(1,1,xlBuf.Property::Width,250);
+
+      xlBuf.AddColumnPr('Second column is hidden',FALSE,xlBuf."Cell Type"::Text,'');
+      xlBuf.SetColumnsProperty(2,2,xlBuf.Property::Hidden,TRUE);
+
+      // group columns
+      xlBuf.SetColumnsProperty(4,5,xlBuf.Property::"Outline Level",1);
+
+      xlBuf.SetCurrent(3,0);
+      xlBuf.AddColumnPr('Third row height is 30px',FALSE,xlBuf."Cell Type"::Text,'Vertical Alignment:Center');
+      xlBuf.SetRowsProperty(3,3,xlBuf.Property::Height, 30);
+
+      // Group and hide rows
+      xlBuf.SetRowsProperty(4,6,xlBuf.Property::"Outline Level", 1);
+      xlBuf.SetRowsProperty(4,6,xlBuf.Property::Hidden, TRUE);
+      xlBuf.SetSummaryAbove(TRUE);
+
+      xlBuf.CreateBookAndOpenExcel('','Sheet1','',COMPANYNAME,USERID);
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
