@@ -7,6 +7,7 @@ This tool allows to export data from NAV to Excel with additional formatting:
 <li>Make horizonal and vertical alignment</li>
 <li>Add comments to cells</li>
 <li>Add images</li>
+<li>Group rows and columns</li>
 </ul>
 
 ## Examples
