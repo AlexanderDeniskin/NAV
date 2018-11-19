@@ -1,6 +1,5 @@
 # Excel Buffer Extended
 
-## About
 This tool allows to export data from NAV to Excel with additional formatting:
 <ul>
 <li>Change font name, size and color</li>
@@ -9,3 +8,5 @@ This tool allows to export data from NAV to Excel with additional formatting:
 <li>Add comments to cells</li>
 <li>Add images</li>
 </ul>
+
+## Examples
