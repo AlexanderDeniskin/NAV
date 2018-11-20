@@ -11,3 +11,9 @@ This tool allows to export data from NAV to Excel with additional formatting:
 </ul>
 
 ## Examples
+
+File Examples.txt contains three functions that show how to use this tool.
+
+## Requirements
+
+Microsoft Dynamics NAV 2017
