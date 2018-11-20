@@ -35,11 +35,11 @@ xlBuf.CreateBookAndOpenExcel('','Sheet1','',COMPANYNAME,USERID);
 2. Function `UseProperties()` shows how to use functions `SetDefaultProperies` and `AddColumnPr`.
 This function generates a file of the following format:
 
-![](Img/RowsColsProperties.png)
+![](Img/UseProperties.png)
 
 3. Function `ChangeRowsColumnsProperties()` shows how to change row height and column width, how to hide and group rows and columns.
 
-![](Img/UseProperties.png)
+![](Img/RowsColsProperties.png)
 
 ## Requirements
 
