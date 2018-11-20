@@ -11,8 +11,8 @@ OBJECT Codeunit 50000 Excel Buffer Ext. Examples
   {
     OnRun=BEGIN
             //GeneralFormatting();
-            UseProperties;
-            //ChangeRowsColumnsProperties;
+            //UseProperties();
+            //ChangeRowsColumnsProperties();
           END;
 
   }
