@@ -2,8 +2,8 @@ OBJECT Codeunit 50000 Excel Buffer Ext. Examples
 {
   OBJECT-PROPERTIES
   {
-    Date=19.11.18;
-    Time=11:47:43;
+    Date=21.11.18;
+    Time=10:27:20;
     Modified=Yes;
     Version List=;
   }
@@ -11,8 +11,8 @@ OBJECT Codeunit 50000 Excel Buffer Ext. Examples
   {
     OnRun=BEGIN
             //GeneralFormatting();
-            //UseProperties();
-            //ChangeRowsColumnsProperties();
+            //UseProperties;
+            //ChangeRowsColumnsProperties;
           END;
 
   }
@@ -118,7 +118,7 @@ OBJECT Codeunit 50000 Excel Buffer Ext. Examples
       xlBuf.SetColumnsProperty(2,2,xlBuf.Property::Hidden,TRUE);
 
       // group columns
-      xlBuf.SetColumnsProperty(4,5,xlBuf.Property::"Outline Level",1);
+      xlBuf.SetColumnsProperty(5,6,xlBuf.Property::"Outline Level",1);
 
       xlBuf.SetCurrent(3,0);
       xlBuf.AddColumnPr('Third row height is 30px',FALSE,xlBuf."Cell Type"::Text,'Vertical Alignment:Center');
@@ -127,7 +127,7 @@ OBJECT Codeunit 50000 Excel Buffer Ext. Examples
       // Group and hide rows
       xlBuf.SetRowsProperty(4,6,xlBuf.Property::"Outline Level", 1);
       xlBuf.SetRowsProperty(4,6,xlBuf.Property::Hidden, TRUE);
-      xlBuf.SetSummaryAbove(TRUE);
+      xlBuf.SetRowsSummaryAbove(TRUE);
 
       xlBuf.CreateBookAndOpenExcel('','Sheet1','',COMPANYNAME,USERID);
     END;
@@ -136,4 +136,3 @@ OBJECT Codeunit 50000 Excel Buffer Ext. Examples
     END.
   }
 }
-
