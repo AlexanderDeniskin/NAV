@@ -2,8 +2,8 @@ OBJECT Table 50000 Excel Buffer Extended
 {
   OBJECT-PROPERTIES
   {
-    Date=19.11.18;
-    Time=11:40:18;
+    Date=21.11.18;
+    Time=10:31:49;
     Modified=Yes;
     Version List=;
   }
@@ -145,8 +145,8 @@ OBJECT Table 50000 Excel Buffer Extended
   {
     VAR
       Text000@1000 : TextConst '@@@="{Locked=""Excel""}";DEU=Excel wurde nicht gefunden.;ENU=Excel not found.';
-      Text001@1001 : TextConst 'DEU=Sie mssen einen Dateinamen angeben.;ENU=You must enter a file name.';
-      Text002@1002 : TextConst '@@@="{Locked=""Excel""}";DEU=Sie mssen einen Exceltabellennamen angeben.;ENU=You must enter an Excel worksheet name.';
+      Text001@1001 : TextConst 'DEU=Sie mÂssen einen Dateinamen angeben.;ENU=You must enter a file name.';
+      Text002@1002 : TextConst '@@@="{Locked=""Excel""}";DEU=Sie mÂssen einen Exceltabellennamen angeben.;ENU=You must enter an Excel worksheet name.';
       Text003@1003 : TextConst 'DEU=Die Datei %1 ist nicht vorhanden.;ENU=The file %1 does not exist.';
       Text004@1004 : TextConst '@@@="{Locked=""Excel""}";DEU=Die Exceltabelle %1 ist nicht vorhanden.;ENU=The Excel worksheet %1 does not exist.';
       Text005@1005 : TextConst '@@@="{Locked=""Excel""}";DEU=Excel-Arbeitsbl. erstellen...\\;ENU=Creating Excel worksheet...\\';
@@ -200,7 +200,7 @@ OBJECT Table 50000 Excel Buffer Extended
       Text035@1040 : TextConst 'DEU=Der Vorgang wurde abgebrochen.;ENU=The operation was canceled.';
       Text036@1042 : TextConst '@@@="{Locked=""Excel""}";DEU=Die Excel-Tabelle ist nicht vorhanden.;ENU=The Excel workbook does not exist.';
       Text037@1047 : TextConst '@@@="{Locked=""Excel""}";DEU=Die Excel-Tabelle konnte nicht erstellt werden.;ENU=Could not create the Excel workbook.';
-      Text038@1048 : TextConst 'DEU=Die globale Variable ''%1'' ist nicht fr den Test enthalten.;ENU=Global variable %1 is not included for test.';
+      Text038@1048 : TextConst 'DEU=Die globale Variable ''%1'' ist nicht fÂr den Test enthalten.;ENU=Global variable %1 is not included for test.';
       Text039@1050 : TextConst 'DEU=Die Zellenart wurde nicht definiert.;ENU=Cell type has not been set.';
       Text040@1008 : TextConst '@@@="{Locked=""Excel""}";DEU=Excel-Datei exportieren;ENU=Export Excel File';
       SavingDocumentMsg@1010 : TextConst 'DEU=Das folgende Dokument wird gespeichert: %1.;ENU=Saving the following document: %1.';
@@ -1171,7 +1171,7 @@ OBJECT Table 50000 Excel Buffer Extended
       END;
     END;
 
-    PROCEDURE SetSummaryColumnsToLeft@1000000008(Value@1000000000 : Boolean);
+    PROCEDURE SetColumnsSummaryToLeft@1000000008(Value@1000000000 : Boolean);
     BEGIN
       SummaryColumnsToLeft := Value;
     END;
@@ -1204,7 +1204,7 @@ OBJECT Table 50000 Excel Buffer Extended
       END;
     END;
 
-    PROCEDURE SetSummaryAbove@1000000004(Value@1000000000 : Boolean);
+    PROCEDURE SetRowsSummaryAbove@1000000004(Value@1000000000 : Boolean);
     BEGIN
       SummaryRowsAbove := Value;
     END;
@@ -1568,8 +1568,12 @@ OBJECT Table 50000 Excel Buffer Extended
           IF TempColumnsExcelBuf.Hidden THEN
             OpenXmlColumn.Hidden := OpenXmlBoolValue.BooleanValue(TRUE);
 
-          IF TempColumnsExcelBuf."Outline Level" > 0 THEN
+          IF TempColumnsExcelBuf."Outline Level" > 0 THEN BEGIN
             OpenXmlColumn.OutlineLevel := OpenXmlByteValue.FromByte(TempColumnsExcelBuf."Outline Level");
+
+            IF ISNULL(OpenXmlColumn.Width) THEN
+              OpenXmlColumn.Width := OpenXmlDoubleValue.FromDouble(64/7);
+          END;
 
           IF (TempColumnsExcelBuf.Width > 0) OR
              (TempColumnsExcelBuf.Hidden) OR
@@ -2451,4 +2455,3 @@ OBJECT Table 50000 Excel Buffer Extended
     END.
   }
 }
-
