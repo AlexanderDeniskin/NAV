@@ -39,7 +39,7 @@ This function generates a file of the following format:
 
 3. Function `ChangeRowsColumnsProperties()` shows how to change row height and column width, how to hide and group rows and columns.
 
-![](Img/RowsColsProperties.png)
+![](Img/RowsCols.png)
 
 ## Requirements
 
