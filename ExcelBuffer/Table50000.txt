@@ -2,8 +2,8 @@ OBJECT Table 50000 Excel Buffer Extended
 {
   OBJECT-PROPERTIES
   {
-    Date=21.11.18;
-    Time=10:31:49;
+    Date=27.11.18;
+    Time=13:01:30;
     Modified=Yes;
     Version List=;
   }
@@ -82,54 +82,54 @@ OBJECT Table 50000 Excel Buffer Extended
                                                    OptionString=Number,Text,Date,Time }
     { 16  ;   ;Double Underline    ;Boolean       ;CaptionML=[DEU=Doppelt unterstrichen;
                                                               ENU=Double Underline] }
-    { 50000;  ;Font Name           ;Text30        ;CaptionML=ENU=Font Name }
-    { 50001;  ;Font Size           ;Integer       ;CaptionML=ENU=Font Size }
-    { 50002;  ;Font Color          ;Text10        ;CaptionML=ENU=Font Color }
-    { 50003;  ;Background Color    ;Text10        ;CaptionML=ENU=Background Color }
-    { 50004;  ;Left Border Style   ;Option        ;CaptionML=ENU=Left Border Style;
+    { 20  ;   ;Font Name           ;Text30        ;CaptionML=ENU=Font Name }
+    { 21  ;   ;Font Size           ;Integer       ;CaptionML=ENU=Font Size }
+    { 22  ;   ;Font Color          ;Text10        ;CaptionML=ENU=Font Color }
+    { 23  ;   ;Background Color    ;Text10        ;CaptionML=ENU=Background Color }
+    { 30  ;   ;Left Border Style   ;Option        ;CaptionML=ENU=Left Border Style;
                                                    OptionCaptionML=ENU=None,Thin,Medium,Dashed,Dotted,Thick,Double,Hair,MediumDashed,DashDot,MediumDashDot,DashDotDot,MediumDashDotDot,SlantDashDot;
                                                    OptionString=None,Thin,Medium,Dashed,Dotted,Thick,Double,Hair,MediumDashed,DashDot,MediumDashDot,DashDotDot,MediumDashDotDot,SlantDashDot }
-    { 50005;  ;Left Border Color   ;Text10        ;CaptionML=ENU=Left Border Color }
-    { 50006;  ;Right Border Style  ;Option        ;CaptionML=ENU=Right Border Style;
+    { 31  ;   ;Left Border Color   ;Text10        ;CaptionML=ENU=Left Border Color }
+    { 32  ;   ;Right Border Style  ;Option        ;CaptionML=ENU=Right Border Style;
                                                    OptionCaptionML=ENU=None,Thin,Medium,Dashed,Dotted,Thick,Double,Hair,MediumDashed,DashDot,MediumDashDot,DashDotDot,MediumDashDotDot,SlantDashDot;
                                                    OptionString=None,Thin,Medium,Dashed,Dotted,Thick,Double,Hair,MediumDashed,DashDot,MediumDashDot,DashDotDot,MediumDashDotDot,SlantDashDot }
-    { 50007;  ;Right Border Color  ;Text10        ;CaptionML=ENU=Right Border Color }
-    { 50008;  ;Top Border Style    ;Option        ;CaptionML=ENU=Top Border Style;
+    { 33  ;   ;Right Border Color  ;Text10        ;CaptionML=ENU=Right Border Color }
+    { 34  ;   ;Top Border Style    ;Option        ;CaptionML=ENU=Top Border Style;
                                                    OptionCaptionML=ENU=None,Thin,Medium,Dashed,Dotted,Thick,Double,Hair,MediumDashed,DashDot,MediumDashDot,DashDotDot,MediumDashDotDot,SlantDashDot;
                                                    OptionString=None,Thin,Medium,Dashed,Dotted,Thick,Double,Hair,MediumDashed,DashDot,MediumDashDot,DashDotDot,MediumDashDotDot,SlantDashDot }
-    { 50009;  ;Top Border Color    ;Text10        ;CaptionML=ENU=Top Border Color }
-    { 50010;  ;Bottom Border Style ;Option        ;CaptionML=ENU=Bottom Border Style;
+    { 35  ;   ;Top Border Color    ;Text10        ;CaptionML=ENU=Top Border Color }
+    { 36  ;   ;Bottom Border Style ;Option        ;CaptionML=ENU=Bottom Border Style;
                                                    OptionCaptionML=ENU=None,Thin,Medium,Dashed,Dotted,Thick,Double,Hair,MediumDashed,DashDot,MediumDashDot,DashDotDot,MediumDashDotDot,SlantDashDot;
                                                    OptionString=None,Thin,Medium,Dashed,Dotted,Thick,Double,Hair,MediumDashed,DashDot,MediumDashDot,DashDotDot,MediumDashDotDot,SlantDashDot }
-    { 50011;  ;Bottom Border Color ;Text10        ;CaptionML=ENU=Bottom Border Color }
-    { 50012;  ;Diagonal Border Style;Option       ;CaptionML=ENU=Diagonal Border Style;
+    { 37  ;   ;Bottom Border Color ;Text10        ;CaptionML=ENU=Bottom Border Color }
+    { 38  ;   ;Diagonal Border Style;Option       ;CaptionML=ENU=Diagonal Border Style;
                                                    OptionCaptionML=ENU=None,Thin,Medium,Dashed,Dotted,Thick,Double,Hair,MediumDashed,DashDot,MediumDashDot,DashDotDot,MediumDashDotDot,SlantDashDot;
                                                    OptionString=None,Thin,Medium,Dashed,Dotted,Thick,Double,Hair,MediumDashed,DashDot,MediumDashDot,DashDotDot,MediumDashDotDot,SlantDashDot }
-    { 50013;  ;Diagonal Border Color;Text10       ;CaptionML=ENU=Diagonal Border Color }
-    { 50014;  ;Horizontal Alignment;Option        ;CaptionML=ENU=Horizontal Alignment;
+    { 39  ;   ;Diagonal Border Color;Text10       ;CaptionML=ENU=Diagonal Border Color }
+    { 50  ;   ;Horizontal Alignment;Option        ;CaptionML=ENU=Horizontal Alignment;
                                                    OptionCaptionML=ENU=Automatic,Left,Center,Right,Fill,Justify,CenterAcrossSelection,Distributed,JustifyDistributed;
                                                    OptionString=Automatic,Left,Center,Right,Fill,Justify,CenterAcrossSelection,Distributed,JustifyDistributed }
-    { 50015;  ;Vertical Alignment  ;Option        ;CaptionML=ENU=Vertical Alignment;
+    { 51  ;   ;Vertical Alignment  ;Option        ;CaptionML=ENU=Vertical Alignment;
                                                    OptionCaptionML=ENU=Automatic,Top,Center,Bottom,Justify,Distributed,JustifyDistributed;
                                                    OptionString=Automatic,Top,Center,Bottom,Justify,Distributed,JustifyDistributed }
-    { 50016;  ;Indent              ;Integer       ;CaptionML=ENU=Indent }
-    { 50017;  ;Reading Order       ;Option        ;CaptionML=ENU=Reading Order;
+    { 52  ;   ;Indent              ;Integer       ;CaptionML=ENU=Indent }
+    { 53  ;   ;Reading Order       ;Option        ;CaptionML=ENU=Reading Order;
                                                    OptionCaptionML=ENU=Context,Left-to-Right,Right-to-Left;
                                                    OptionString=Context,Left-to-Right,Right-to-Left }
-    { 50018;  ;Relative Indent     ;Integer       ;CaptionML=ENU=Relative Indent }
-    { 50019;  ;Shrink To Fit       ;Boolean       ;CaptionML=ENU=Shrink To Fit }
-    { 50020;  ;Text Rotation       ;Integer       ;CaptionML=ENU=Text Rotation }
-    { 50021;  ;Wrap Text           ;Boolean       ;CaptionML=ENU=Wrap Text }
-    { 50022;  ;Justify Last Line   ;Boolean       ;CaptionML=ENU=Justify Last Line }
-    { 50100;  ;Width               ;Integer       ;CaptionML=ENU=Width }
-    { 50101;  ;Height              ;Integer       ;CaptionML=ENU=Height }
-    { 50102;  ;Hidden              ;Boolean       ;CaptionML=ENU=Hidden }
-    { 50103;  ;Outline Level       ;Integer       ;CaptionML=ENU=Outline Level }
-    { 51000;  ;Color               ;Option        ;FieldClass=FlowFilter;
+    { 54  ;   ;Relative Indent     ;Integer       ;CaptionML=ENU=Relative Indent }
+    { 55  ;   ;Shrink To Fit       ;Boolean       ;CaptionML=ENU=Shrink To Fit }
+    { 56  ;   ;Text Rotation       ;Integer       ;CaptionML=ENU=Text Rotation }
+    { 57  ;   ;Wrap Text           ;Boolean       ;CaptionML=ENU=Wrap Text }
+    { 58  ;   ;Justify Last Line   ;Boolean       ;CaptionML=ENU=Justify Last Line }
+    { 100 ;   ;Width               ;Integer       ;CaptionML=ENU=Width }
+    { 101 ;   ;Height              ;Integer       ;CaptionML=ENU=Height }
+    { 102 ;   ;Hidden              ;Boolean       ;CaptionML=ENU=Hidden }
+    { 103 ;   ;Outline Level       ;Integer       ;CaptionML=ENU=Outline Level }
+    { 1000;   ;Color               ;Option        ;FieldClass=FlowFilter;
                                                    CaptionML=ENU=Color;
                                                    OptionCaptionML=ENU=Black,White,Dark Red,Red,Orange,Yellow,Light Green,Green,Light Blue,Blue,Dark Blue,Purple;
                                                    OptionString=Black,White,Dark Red,Red,Orange,Yellow,Light Green,Green,Light Blue,Blue,Dark Blue,Purple }
-    { 51001;  ;Property            ;Option        ;FieldClass=FlowFilter;
+    { 1001;   ;Property            ;Option        ;FieldClass=FlowFilter;
                                                    CaptionML=ENU=Property;
                                                    OptionCaptionML=ENU=Width,Height,Outline Level,Hidden;
                                                    OptionString=Width,Height,Outline Level,Hidden }
