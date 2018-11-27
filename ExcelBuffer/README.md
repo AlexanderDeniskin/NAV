@@ -10,6 +10,12 @@ This tool allows to export data from NAV to Excel with extended formatting:
 
 No additional or external components required.
 
+## Instalation
+
+1. Download file [Table50000.txt](Table50000.txt).
+2. If you want to change object id then Open file in text editor and replace all instances of the "50000" with the new object id.
+3. Import file to Nav 2017 and compile it. 
+
 ## Examples
 
 File [Examples.txt](Examples.txt) contains three functions that show how to use this tool.
