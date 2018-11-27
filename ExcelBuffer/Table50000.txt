@@ -3,7 +3,7 @@ OBJECT Table 50000 Excel Buffer Extended
   OBJECT-PROPERTIES
   {
     Date=27.11.18;
-    Time=13:01:30;
+    Time=17:04:38;
     Modified=Yes;
     Version List=;
   }
@@ -797,9 +797,9 @@ OBJECT Table 50000 Excel Buffer Extended
       INSERT;
     END;
 
-    PROCEDURE AddAutoFilter@1000000025(Value@1000000000 : Text);
+    PROCEDURE AddAutoFilter@1000000025(RangeText@1000000000 : Text);
     BEGIN
-      AutoFilterRange := Value;
+      AutoFilterRange := RangeText;
     END;
 
     PROCEDURE AddFreezePane@1000000027(RowNo@1000000000 : Integer;ColNo@1000000001 : Integer);
