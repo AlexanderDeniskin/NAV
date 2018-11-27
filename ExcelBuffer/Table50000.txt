@@ -3,7 +3,7 @@ OBJECT Table 50000 Excel Buffer Extended
   OBJECT-PROPERTIES
   {
     Date=27.11.18;
-    Time=17:04:38;
+    Time=17:26:34;
     Modified=Yes;
     Version List=;
   }
@@ -133,6 +133,10 @@ OBJECT Table 50000 Excel Buffer Extended
                                                    CaptionML=ENU=Property;
                                                    OptionCaptionML=ENU=Width,Height,Outline Level,Hidden;
                                                    OptionString=Width,Height,Outline Level,Hidden }
+    { 1002;   ;Fit To Page         ;Option        ;FieldClass=FlowFilter;
+                                                   CaptionML=ENU=Fit To Page;
+                                                   OptionCaptionML=ENU=NoScale,Sheet,Columns,Rows;
+                                                   OptionString=NoScale,Sheet,Columns,Rows }
   }
   KEYS
   {
