@@ -1,0 +1,2988 @@
+OBJECT Page 50001 Item List DataGrid
+{
+  OBJECT-PROPERTIES
+  {
+    Date=16.11.18;
+    Time=17:35:18;
+    Modified=Yes;
+    Version List=NAVW110.00.00.15052,NAVDACH10.00.00.15052;
+  }
+  PROPERTIES
+  {
+    Editable=No;
+    CaptionML=[DEU=Artikelbersicht;
+               ENU=Item List];
+    SourceTable=Table27;
+    PageType=List;
+    CardPageID=Item Card;
+    RefreshOnActivate=Yes;
+    PromotedActionCategoriesML=[DEU=Neu,Verarbeiten,Melden,Artikel,Historie,Son&derpreise und -rabatte,Genehmigung anfordern,Periodische Aktivit„ten,Lager,Attribute;
+                                ENU=New,Process,Report,Item,History,Special Prices & Discounts,Request Approval,Periodic Activities,Inventory,Attributes];
+    OnOpenPage=VAR
+                 CRMIntegrationManagement@1000 : Codeunit 5330;
+               BEGIN
+                 CRMIntegrationEnabled := CRMIntegrationManagement.IsCRMIntegrationEnabled;
+                 IsFoundationEnabled := ApplicationAreaSetup.IsFoundationEnabled;
+                 SetWorkflowManagementEnabledState;
+               END;
+
+    OnAfterGetRecord=BEGIN
+                       SetSocialListeningFactboxVisibility;
+                       EnableControls;
+                     END;
+
+    OnAfterGetCurrRecord=VAR
+                           CRMCouplingManagement@1001 : Codeunit 5331;
+                         BEGIN
+                           SetSocialListeningFactboxVisibility;
+
+                           CRMIsCoupledToRecord :=
+                             CRMCouplingManagement.IsRecordCoupledToCRM(RECORDID) AND CRMIntegrationEnabled;
+
+                           OpenApprovalEntriesExist := ApprovalsMgmt.HasOpenApprovalEntries(RECORDID);
+
+                           CanCancelApprovalForRecord := ApprovalsMgmt.CanCancelApprovalForRecord(RECORDID);
+                           CurrPage.ItemAttributesFactBox.PAGE.LoadItemAttributesData("No.");
+
+                           SetWorkflowManagementEnabledState;
+                         END;
+
+    ActionList=ACTIONS
+    {
+      { 1900000004;0 ;ActionContainer;
+                      ActionContainerType=ActionItems }
+      { 64      ;1   ;ActionGroup;
+                      CaptionML=[DEU=Artikel;
+                                 ENU=Item];
+                      Image=DataEntry }
+      { 25      ;2   ;Action    ;
+                      CaptionML=[DEU=&Einheiten;
+                                 ENU=&Units of Measure];
+                      ToolTipML=[DEU=Richten Sie verschiedene Einheiten ein, in denen der ausgew„hlte Artikel gehandelt werden kann, wie Stck, Karton oder Stunde.;
+                                 ENU=Set up the different units that the selected item can be traded in, such as piece, box, or hour.];
+                      RunObject=Page 5404;
+                      RunPageLink=Item No.=FIELD(No.);
+                      Image=UnitOfMeasure;
+                      PromotedCategory=Category4;
+                      Scope=Repeater }
+      { 137     ;2   ;Action    ;
+                      Name=Attributes;
+                      AccessByPermission=TableData 7500=R;
+                      CaptionML=[DEU=Attribute;
+                                 ENU=Attributes];
+                      ToolTipML=[DEU=Zeigt die Attribute des Artikels wie Farbe, Gr”áe oder andere Eigenschaften, die bei der Beschreibung helfen, an oder bearbeitet diese.;
+                                 ENU=View or edit the item's attributes, such as color, size, or other characteristics that help to describe the item.];
+                      Image=Category;
+                      PromotedCategory=Category4;
+                      Scope=Repeater;
+                      OnAction=BEGIN
+                                 PAGE.RUNMODAL(PAGE::"Item Attribute Value Editor",Rec);
+                                 CurrPage.SAVERECORD;
+                                 CurrPage.ItemAttributesFactBox.PAGE.LoadItemAttributesData("No.");
+                               END;
+                                }
+      { 138     ;2   ;Action    ;
+                      Name=FilterByAttributes;
+                      AccessByPermission=TableData 7500=R;
+                      CaptionML=[DEU=Nach Attributen filtern;
+                                 ENU=Filter by Attributes];
+                      ToolTipML=[DEU=Sucht Artikel, die bestimmten Attributen entsprechen.;
+                                 ENU=Find items that match specific attributes.];
+                      ApplicationArea=#Basic,#Suite;
+                      Promoted=Yes;
+                      Image=EditFilter;
+                      PromotedCategory=Category10;
+                      PromotedOnly=Yes;
+                      OnAction=VAR
+                                 TempFilteredItem@1005 : TEMPORARY Record 27;
+                                 ItemAttributeManagement@1002 : Codeunit 7500;
+                                 TypeHelper@1006 : Codeunit 10;
+                                 CloseAction@1003 : Action;
+                                 FilterText@1001 : Text;
+                                 FilterPageID@1000 : Integer;
+                                 ParameterCount@1004 : Integer;
+                               BEGIN
+                                 FilterPageID := PAGE::"Filter Items by Attribute";
+                                 IF CURRENTCLIENTTYPE = CLIENTTYPE::Phone THEN
+                                   FilterPageID := PAGE::"Filter Items by Att. Phone";
+
+                                 CloseAction := PAGE.RUNMODAL(FilterPageID,TempFilterItemAttributesBuffer);
+                                 IF (CURRENTCLIENTTYPE <> CLIENTTYPE::Phone) AND (CloseAction <> ACTION::LookupOK) THEN
+                                   EXIT;
+
+                                 ItemAttributeManagement.FindItemsByAttributes(TempFilterItemAttributesBuffer,TempFilteredItem);
+                                 FilterText := ItemAttributeManagement.GetItemNoFilterText(TempFilteredItem,ParameterCount);
+
+                                 IF ParameterCount < TypeHelper.GetMaxNumberOfParametersInSQLQuery - 100 THEN BEGIN
+                                   FILTERGROUP(0);
+                                   MARKEDONLY(FALSE);
+                                   SETFILTER("No.",FilterText);
+                                 END ELSE
+                                   IF TempFilteredItem.FINDSET THEN BEGIN
+                                     CLEARMARKS;
+                                     RESET;
+                                     REPEAT
+                                       GET(TempFilteredItem."No.");
+                                       MARK(TRUE);
+                                     UNTIL TempFilteredItem.NEXT = 0;
+                                     TempFilteredItem.FINDFIRST;
+                                     GET(TempFilteredItem."No.");
+                                     MARKEDONLY(TRUE);
+                                   END;
+                               END;
+                                }
+      { 139     ;2   ;Action    ;
+                      Name=ClearAttributes;
+                      AccessByPermission=TableData 7500=R;
+                      CaptionML=[DEU=Attributefilter l”schen;
+                                 ENU=Clear Attributes Filter];
+                      ToolTipML=[DEU=Entfernt den Filter fr bestimmte Artikelattribute.;
+                                 ENU=Remove the filter for specific item attributes.];
+                      ApplicationArea=#Basic,#Suite;
+                      Promoted=Yes;
+                      Image=RemoveFilterLines;
+                      PromotedCategory=Category10;
+                      PromotedOnly=Yes;
+                      OnAction=BEGIN
+                                 CLEARMARKS;
+                                 MARKEDONLY(FALSE);
+                                 TempFilterItemAttributesBuffer.RESET;
+                                 TempFilterItemAttributesBuffer.DELETEALL;
+                                 FILTERGROUP(0);
+                                 SETRANGE("No.");
+                               END;
+                                }
+      { 82      ;2   ;Action    ;
+                      CaptionML=[DEU=Re&ferenzen;
+                                 ENU=Cross Re&ferences];
+                      ToolTipML=[DEU=Richtet eine eigene Benutzereinrichtung des Debitors oder Kreditors fr den ausgew„hlten Artikel ein. Querverweise auf die Artikelnummer des Debitors bedeuten, dass ihre Artikelnummer automatisch anstelle der von Ihnen verwendeten Nummer auf den Verkaufsbelegen angezeigt wird.;
+                                 ENU=Set up a customer's or vendor's own identification of the selected item. Cross-references to the customer's item number means that the item number is automatically shown on sales documents instead of the number that you use.];
+                      ApplicationArea=#Basic,#Suite;
+                      RunObject=Page 5721;
+                      RunPageLink=Item No.=FIELD(No.);
+                      Promoted=Yes;
+                      Image=Change;
+                      PromotedCategory=Category4;
+                      PromotedOnly=Yes;
+                      Scope=Repeater }
+      { 28      ;2   ;Action    ;
+                      CaptionML=[DEU=&Textbausteine;
+                                 ENU=E&xtended Texts];
+                      ToolTipML=[DEU=Richten Sie einen zus„tzlichen Text fr die Beschreibung des ausgew„hlten Artikels ein. Erweiterter Text kann im Feld "Beschreibung" in Belegzeilen fr den Artikel eingefgt werden.;
+                                 ENU=Set up additional text for the description of the selected item. Extended text can be inserted under the Description field on document lines for the item.];
+                      RunObject=Page 391;
+                      RunPageView=SORTING(Table Name,No.,Language Code,All Language Codes,Starting Date,Ending Date);
+                      RunPageLink=Table Name=CONST(Item),
+                                  No.=FIELD(No.);
+                      Image=Text;
+                      Scope=Repeater }
+      { 27      ;2   ;Action    ;
+                      CaptionML=[DEU=šbersetzungen;
+                                 ENU=Translations];
+                      ToolTipML=[DEU=Richten Sie bersetzte Artikelbeschreibungen fr den ausgew„hlten Artikel ein. šbersetzte Artikelbeschreibungen werden automatisch gem„á dem Sprachcode in Belege eingefgt.;
+                                 ENU=Set up translated item descriptions for the selected item. Translated item descriptions are automatically inserted on documents according to the language code.];
+                      RunObject=Page 35;
+                      RunPageLink=Item No.=FIELD(No.),
+                                  Variant Code=CONST();
+                      Image=Translations;
+                      PromotedCategory=Category4;
+                      Scope=Repeater }
+      { 145     ;2   ;ActionGroup;
+                      Visible=False }
+      { 90      ;3   ;Action    ;
+                      Name=AdjustInventory;
+                      CaptionML=[DEU=Lager regulieren;
+                                 ENU=Adjust Inventory];
+                      ToolTipML=[DEU=Erh”hen oder senken Sie die Lagerbestandsmenge des Artikels manuell, indem Sie eine neue Menge eingeben. Das manuelle Regulieren des Lagerbestands ist m”glicherweise nach einer physischen Z„hlung relevant, oder falls keine erworbenen Mengen erfasst wurden.;
+                                 ENU=Increase or decrease the item's inventory quantity manually by entering a new quantity. Adjusting the inventory quantity manually may be relevant after a physical count or if you do not record purchased quantities.];
+                      ApplicationArea=#Basic,#Suite;
+                      Promoted=Yes;
+                      Visible=IsFoundationEnabled;
+                      Enabled=InventoryItemEditable;
+                      Image=InventoryCalculation;
+                      PromotedCategory=Category4;
+                      PromotedOnly=Yes;
+                      Scope=Repeater;
+                      OnAction=BEGIN
+                                 COMMIT;
+                                 PAGE.RUNMODAL(PAGE::"Adjust Inventory",Rec)
+                               END;
+                                }
+      { 94      ;2   ;ActionGroup;
+                      CaptionML=[DEU=Dimensionen;
+                                 ENU=Dimensions];
+                      Image=Dimensions }
+      { 184     ;3   ;Action    ;
+                      ShortCutKey=Shift+Ctrl+D;
+                      CaptionML=[DEU=Zuordnung fr aktuellen Datensatz;
+                                 ENU=Dimensions-Single];
+                      RunObject=Page 540;
+                      RunPageLink=Table ID=CONST(27),
+                                  No.=FIELD(No.);
+                      Image=Dimensions;
+                      Scope=Repeater }
+      { 93      ;3   ;Action    ;
+                      AccessByPermission=TableData 348=R;
+                      CaptionML=[DEU=Zuordnung fr &markierte Datens„tze;
+                                 ENU=Dimensions-&Multiple];
+                      Image=DimensionSets;
+                      OnAction=VAR
+                                 Item@1001 : Record 27;
+                                 DefaultDimMultiple@1002 : Page 542;
+                               BEGIN
+                                 CurrPage.SETSELECTIONFILTER(Item);
+                                 DefaultDimMultiple.SetMultiItem(Item);
+                                 DefaultDimMultiple.RUNMODAL;
+                               END;
+                                }
+      { 56      ;1   ;ActionGroup;
+                      CaptionML=[DEU=Historie;
+                                 ENU=History];
+                      Image=History }
+      { 84      ;2   ;ActionGroup;
+                      CaptionML=[DEU=&Posten;
+                                 ENU=E&ntries];
+                      Image=Entries }
+      { 14      ;3   ;Action    ;
+                      ShortCutKey=Ctrl+F7;
+                      CaptionML=[DEU=&Posten;
+                                 ENU=Ledger E&ntries];
+                      ToolTipML=[DEU=Zeigen Sie die Historie der positiven und negativen Bestands„nderungen an, die Transaktionen mit dem ausgew„hlten Artikel widerspiegeln.;
+                                 ENU=View the history of positive and negative inventory changes that reflect transactions with the selected item.];
+                      RunObject=Page 38;
+                      RunPageView=SORTING(Item No.)
+                                  ORDER(Descending);
+                      RunPageLink=Item No.=FIELD(No.);
+                      Image=ItemLedger;
+                      PromotedCategory=Category5;
+                      Scope=Repeater }
+      { 23      ;3   ;Action    ;
+                      CaptionML=[DEU=&Inventurposten;
+                                 ENU=&Phys. Inventory Ledger Entries];
+                      RunObject=Page 390;
+                      RunPageView=SORTING(Item No.);
+                      RunPageLink=Item No.=FIELD(No.);
+                      Image=PhysicalInventoryLedger;
+                      PromotedCategory=Category5;
+                      Scope=Repeater }
+      { 120     ;1   ;ActionGroup;
+                      Name=PricesandDiscounts;
+                      CaptionML=[DEU=Preise und Rabatte;
+                                 ENU=Prices and Discounts] }
+      { 1901240604;2 ;Action    ;
+                      Name=Prices_Prices;
+                      CaptionML=[DEU=Sonderpreise;
+                                 ENU=Special Prices];
+                      ToolTipML=[DEU=Richten Sie verschiedene Preise fr den ausgew„hlten Artikel ein. Ein Artikelpreis wird automatisch in Rechnungszeilen verwendet, wenn die angegebenen Kriterien erfllt sind, wie Debitor, Menge oder Enddatum.;
+                                 ENU=Set up different prices for the selected item. An item price is automatically used on invoice lines when the specified criteria are met, such as customer, quantity, or ending date.];
+                      RunObject=Page 7002;
+                      RunPageView=SORTING(Item No.);
+                      RunPageLink=Item No.=FIELD(No.);
+                      Image=Price;
+                      PromotedCategory=Category6;
+                      Scope=Repeater }
+      { 1900869004;2 ;Action    ;
+                      Name=Prices_LineDiscounts;
+                      CaptionML=[DEU=Sonderrabatte;
+                                 ENU=Special Discounts];
+                      ToolTipML=[DEU=Richten Sie verschiedene Rabatte fr den ausgew„hlten Artikel ein. Ein Artikelrabatt wird automatisch in Rechnungszeilen gew„hrt, wenn die angegebenen Kriterien erfllt sind, wie Debitor, Menge oder Enddatum.;
+                                 ENU=Set up different discounts for the selected item. An item discount is automatically granted on invoice lines when the specified criteria are met, such as customer, quantity, or ending date.];
+                      RunObject=Page 7004;
+                      RunPageView=SORTING(Type,Code);
+                      RunPageLink=Type=CONST(Item),
+                                  Code=FIELD(No.);
+                      Image=LineDiscount;
+                      PromotedCategory=Category6;
+                      Scope=Repeater }
+      { 133     ;2   ;Action    ;
+                      Name=PricesDiscountsOverview;
+                      CaptionML=[DEU=šbersicht ber Sonderpreise und -rabatte;
+                                 ENU=Special Prices & Discounts Overview];
+                      Image=PriceWorksheet;
+                      PromotedCategory=Category6;
+                      OnAction=VAR
+                                 SalesPriceAndLineDiscounts@1000 : Page 1345;
+                               BEGIN
+                                 SalesPriceAndLineDiscounts.InitPage(TRUE);
+                                 SalesPriceAndLineDiscounts.LoadItem(Rec);
+                                 SalesPriceAndLineDiscounts.RUNMODAL;
+                               END;
+                                }
+      { 92      ;2   ;Action    ;
+                      CaptionML=[DEU=VK-Preisvorschlag;
+                                 ENU=Sales Price Worksheet];
+                      RunObject=Page 7023;
+                      Image=PriceWorksheet;
+                      PromotedCategory=Category6 }
+      { 117     ;1   ;ActionGroup;
+                      CaptionML=[DEU=Periodische Aktivit„ten;
+                                 ENU=Periodic Activities] }
+      { 1907108104;2 ;Action    ;
+                      CaptionML=[DEU=Lagerreg. fakt. Einst. Preise;
+                                 ENU=Adjust Cost - Item Entries];
+                      ToolTipML=[DEU=Reguliert Lagerwerte in Wertposten, sodass Sie fr das Aktualisieren der Finanzbuchhaltung die richtigen regulierten Lagerwerte verwenden k”nnen und die Verkaufs- und Gewinnstatistiken auf dem neuesten Stand sind.;
+                                 ENU=Adjust inventory values in value entries so that you use the correct adjusted cost for updating the general ledger and so that sales and profit statistics are up to date.];
+                      ApplicationArea=#Basic,#Suite;
+                      RunObject=Report 795;
+                      Image=AdjustEntries;
+                      PromotedCategory=Category8 }
+      { 96      ;2   ;Action    ;
+                      CaptionML=[DEU=Lagerreg. buchen;
+                                 ENU=Post Inventory Cost to G/L];
+                      ToolTipML=[DEU=Buchen Sie die Mengen- und Wert„nderungen des Lagerbestands in den Artikelposten bzw. Wertposten, wenn Sie Lagerbestandstransaktionen wie Verkaufslieferungen oder Einkaufslieferungen buchen.;
+                                 ENU=Post the quantity and value changes to the inventory in the item ledger entries and the value entries when you post inventory transactions, such as sales shipments or purchase receipts.];
+                      ApplicationArea=#Basic,#Suite;
+                      RunObject=Report 1002;
+                      Image=PostInventoryToGL;
+                      PromotedCategory=Category8 }
+      { 98      ;2   ;Action    ;
+                      CaptionML=[DEU=Inventur Buch.-Blatt;
+                                 ENU=Physical Inventory Journal];
+                      ToolTipML=[DEU=W„hlen Sie aus, wie Sie eine aktuelle Erfassung Ihres Lagerbestand in unterschiedlichen Lagerorten erreichen m”chten.;
+                                 ENU=Select how you want to maintain an up-to-date record of your inventory at different locations.];
+                      ApplicationArea=#Basic,#Suite;
+                      RunObject=Page 392;
+                      Image=PhysicalInventory;
+                      PromotedCategory=Category8 }
+      { 119     ;2   ;Action    ;
+                      CaptionML=[DEU=Neubewertung Buch.-Blatt;
+                                 ENU=Revaluation Journal];
+                      ToolTipML=[DEU=Zeigen Sie den Lagerwert von Artikeln an, den Sie z.ÿB. nach einer Inventur „ndern k”nnen, oder bearbeiten Sie ihn.;
+                                 ENU=View or edit the inventory value of items, which you can change, such as after doing a physical inventory.];
+                      ApplicationArea=#Basic,#Suite;
+                      RunObject=Page 5803;
+                      Image=Journal;
+                      PromotedCategory=Category8 }
+      { 88      ;1   ;ActionGroup;
+                      CaptionML=[DEU=Genehmigungsanforderung;
+                                 ENU=Request Approval];
+                      Image=SendApprovalRequest }
+      { 87      ;2   ;Action    ;
+                      Name=SendApprovalRequest;
+                      CaptionML=[DEU=&Genehmigungsanforderung senden;
+                                 ENU=Send A&pproval Request];
+                      ToolTipML=[DEU=Sendet eine Genehmigungsanforderung.;
+                                 ENU=Send an approval request.];
+                      Promoted=Yes;
+                      Enabled=(NOT OpenApprovalEntriesExist) AND EnabledApprovalWorkflowsExist;
+                      Image=SendApprovalRequest;
+                      PromotedCategory=Category7;
+                      OnAction=VAR
+                                 ApprovalsMgmt@1001 : Codeunit 1535;
+                               BEGIN
+                                 IF ApprovalsMgmt.CheckItemApprovalsWorkflowEnabled(Rec) THEN
+                                   ApprovalsMgmt.OnSendItemForApproval(Rec);
+                               END;
+                                }
+      { 86      ;2   ;Action    ;
+                      Name=CancelApprovalRequest;
+                      CaptionML=[DEU=&Genehmigungsanforderung stornieren;
+                                 ENU=Cancel Approval Re&quest];
+                      ToolTipML=[DEU=Storniert die Genehmigungsanforderung.;
+                                 ENU=Cancel the approval request.];
+                      Promoted=Yes;
+                      Enabled=CanCancelApprovalForRecord;
+                      Image=CancelApprovalRequest;
+                      PromotedCategory=Category7;
+                      OnAction=VAR
+                                 ApprovalsMgmt@1001 : Codeunit 1535;
+                               BEGIN
+                                 ApprovalsMgmt.OnCancelItemApprovalRequest(Rec);
+                               END;
+                                }
+      { 135     ;1   ;ActionGroup;
+                      CaptionML=[DEU=Workflow;
+                                 ENU=Workflow] }
+      { 134     ;2   ;Action    ;
+                      Name=CreateApprovalWorkflow;
+                      CaptionML=[DEU=Genehmigungsworkflow erstellen;
+                                 ENU=Create Approval Workflow];
+                      ToolTipML=[DEU=Richten Sie einen Genehmigungsworkflow fr das Erstellen oder Žndern von Artikeln ein, in dem Sie einige Seiten zur Anleitung durchgehen.;
+                                 ENU=Set up an approval workflow for creating or changing items, by going through a few pages that will guide you.];
+                      ApplicationArea=#Suite;
+                      Enabled=NOT EnabledApprovalWorkflowsExist;
+                      Image=CreateWorkflow;
+                      OnAction=BEGIN
+                                 PAGE.RUNMODAL(PAGE::"Item Approval WF Setup Wizard");
+                               END;
+                                }
+      { 20      ;2   ;Action    ;
+                      Name=ManageApprovalWorkflow;
+                      CaptionML=[DEU=Genehmigungsworkflow verwalten;
+                                 ENU=Manage Approval Workflow];
+                      ToolTipML=[DEU=Zeigen Sie vorhandene Genehmigungsworkflows fr das Erstellen oder Žndern von Artikeln an, oder bearbeiten Sie sie.;
+                                 ENU=View or edit existing approval workflows for creating or changing items.];
+                      ApplicationArea=#Suite;
+                      Enabled=EnabledApprovalWorkflowsExist;
+                      Image=WorkflowSetup;
+                      OnAction=VAR
+                                 WorkflowManagement@1000 : Codeunit 1501;
+                               BEGIN
+                                 WorkflowManagement.NavigateToWorkflows(DATABASE::Item,EventFilter);
+                               END;
+                                }
+      { 110     ;1   ;ActionGroup;
+                      CaptionML=[DEU=F&unktion;
+                                 ENU=F&unctions];
+                      Image=Action }
+      { 111     ;2   ;Action    ;
+                      AccessByPermission=TableData 5700=R;
+                      CaptionML=[DEU=&Lagerhaltungsdaten erstellen;
+                                 ENU=&Create Stockkeeping Unit];
+                      Image=CreateSKU;
+                      OnAction=VAR
+                                 Item@1001 : Record 27;
+                               BEGIN
+                                 Item.SETRANGE("No.","No.");
+                                 REPORT.RUNMODAL(REPORT::"Create Stockkeeping Unit",TRUE,FALSE,Item);
+                               END;
+                                }
+      { 7380    ;2   ;Action    ;
+                      AccessByPermission=TableData 7380=R;
+                      CaptionML=[DEU=&Inventurh„ufigkeit berechnen;
+                                 ENU=C&alculate Counting Period];
+                      Image=CalculateCalendar;
+                      OnAction=VAR
+                                 Item@1001 : Record 27;
+                                 PhysInvtCountMgt@1000 : Codeunit 7380;
+                               BEGIN
+                                 CurrPage.SETSELECTIONFILTER(Item);
+                                 PhysInvtCountMgt.UpdateItemPhysInvtCount(Item);
+                               END;
+                                }
+      { 1000000 ;2   ;Action    ;
+                      Name=CopyItem;
+                      CaptionML=[DEU=Artikel k&opieren;
+                                 ENU=C&opy Item];
+                      ApplicationArea=#Basic,#Suite;
+                      OnAction=VAR
+                                 CopyItem@1000001 : Report 11511;
+                                 ReturnItem@1000000 : Record 27;
+                               BEGIN
+                                 CopyItem.ItemDef(Rec);
+                                 CopyItem.RUNMODAL;
+                                 IF CopyItem.ItemReturn(ReturnItem) THEN
+                                   IF CONFIRM(Text11500,TRUE) THEN
+                                     Rec := ReturnItem;
+                               END;
+                                }
+      { 1905370404;1 ;Action    ;
+                      CaptionML=[DEU=Bestellvorschlag;
+                                 ENU=Requisition Worksheet];
+                      RunObject=Page 291;
+                      Image=Worksheet }
+      { 1904344904;1 ;Action    ;
+                      CaptionML=[DEU=Artikel Buch.-Blatt;
+                                 ENU=Item Journal];
+                      RunObject=Page 40;
+                      Promoted=Yes;
+                      Image=Journals;
+                      PromotedCategory=Process }
+      { 1906716204;1 ;Action    ;
+                      CaptionML=[DEU=Artikel Umlag. Buch.-Blatt;
+                                 ENU=Item Reclassification Journal];
+                      RunObject=Page 393;
+                      Promoted=Yes;
+                      Image=Journals;
+                      PromotedCategory=Process }
+      { 1902532604;1 ;Action    ;
+                      CaptionML=[DEU=Artikelablaufverfolgung;
+                                 ENU=Item Tracing];
+                      RunObject=Page 6520;
+                      Image=ItemTracing }
+      { 1900805004;1 ;Action    ;
+                      CaptionML=[DEU=Artikelpreise justieren;
+                                 ENU=Adjust Item Cost/Price];
+                      RunObject=Report 794;
+                      Image=AdjustItemCost }
+      { 1900000006;0 ;ActionContainer;
+                      ActionContainerType=Reports }
+      { 127     ;1   ;ActionGroup;
+                      CaptionML=[DEU=Montage/Produktion;
+                                 ENU=Assembly/Production] }
+      { 18      ;2   ;Action    ;
+                      CaptionML=[DEU=Auftragsmontage - Verkauf;
+                                 ENU=Assemble to Order - Sales];
+                      RunObject=Report 915;
+                      Image=Report }
+      { 1902353206;2 ;Action    ;
+                      CaptionML=[DEU=Teileverwendung (Struktur);
+                                 ENU=Where-Used (Top Level)];
+                      RunObject=Report 99000757;
+                      Image=Report }
+      { 1907778006;2 ;Action    ;
+                      CaptionML=[DEU=Strukturstckliste;
+                                 ENU=Quantity Explosion of BOM];
+                      RunObject=Report 99000753;
+                      Image=Report }
+      { 132     ;2   ;ActionGroup;
+                      CaptionML=[DEU=Bewertung;
+                                 ENU=Costing];
+                      Image=ItemCosts }
+      { 1907928706;3 ;Action    ;
+                      CaptionML=[DEU=Lagerbewertung - Aktiviert;
+                                 ENU=Inventory Valuation - WIP];
+                      RunObject=Report 5802;
+                      Image=Report }
+      { 1905889606;3 ;Action    ;
+                      CaptionML=[DEU=Kostenanteilsanalyse;
+                                 ENU=Cost Shares Breakdown];
+                      RunObject=Report 5848;
+                      Image=Report }
+      { 1901374406;3 ;Action    ;
+                      CaptionML=[DEU=Detailkalkulation;
+                                 ENU=Detailed Calculation];
+                      RunObject=Report 99000756;
+                      Image=Report }
+      { 1900812706;3 ;Action    ;
+                      CaptionML=[DEU=Kosten der Strukturstckliste;
+                                 ENU=Rolled-up Cost Shares];
+                      RunObject=Report 99000754;
+                      Image=Report }
+      { 1901316306;3 ;Action    ;
+                      CaptionML=[DEU=Kosten pro Artikel;
+                                 ENU=Single-Level Cost Shares];
+                      RunObject=Report 99000755;
+                      Image=Report }
+      { 128     ;1   ;ActionGroup;
+                      CaptionML=[DEU=Lagerbestand;
+                                 ENU=Inventory] }
+      { 1900907306;2 ;Action    ;
+                      CaptionML=[DEU=Lager - Liste;
+                                 ENU=Inventory - List];
+                      RunObject=Report 701;
+                      Image=Report }
+      { 1906212206;2 ;Action    ;
+                      CaptionML=[DEU=Lager - Verfgbarkeitsplan;
+                                 ENU=Inventory - Availability Plan];
+                      RunObject=Report 707;
+                      Image=ItemAvailability }
+      { 1900430206;2 ;Action    ;
+                      CaptionML=[DEU=Artikel/Lieferanten Katalog;
+                                 ENU=Item/Vendor Catalog];
+                      RunObject=Report 720;
+                      Image=Report }
+      { 1907644006;2 ;Action    ;
+                      CaptionML=[DEU=Inventurliste;
+                                 ENU=Phys. Inventory List];
+                      RunObject=Report 722;
+                      Image=Report }
+      { 1907253406;2 ;Action    ;
+                      CaptionML=[DEU=Katalogartikel Verkauf;
+                                 ENU=Nonstock Item Sales];
+                      RunObject=Report 5700;
+                      Image=Report }
+      { 1905753506;2 ;Action    ;
+                      CaptionML=[DEU=Ersatzartikel;
+                                 ENU=Item Substitutions];
+                      ToolTipML=[DEU=Zeigt oder bearbeitet eingerichtete Ersatzartikel, die gegen den Artikel ausgetauscht werden, falls er nicht verfgbar ist.;
+                                 ENU=View or edit any substitute items that are set up to be traded instead of the item in case it is not available.];
+                      ApplicationArea=#Suite;
+                      RunObject=Report 5701;
+                      Image=Report }
+      { 1905572506;2 ;Action    ;
+                      CaptionML=[DEU=VK-Preisliste;
+                                 ENU=Price List];
+                      ToolTipML=[DEU=Zeigen Sie eine Liste Ihrer Artikel und deren Preise an, drucken oder speichern Sie sie, um sie beispielsweise an Debitoren zu senden. Sie k”nnen die Liste fr spezifische Debitoren, Kampagnen, W„hrungen oder andere Kriterien erstellen.;
+                                 ENU=View, print, or save a list of your items and their prices, for example, to send to customers. You can create the list for specific customers, campaigns, currencies, or other criteria.];
+                      ApplicationArea=#Basic,#Suite;
+                      RunObject=Report 715;
+                      Promoted=Yes;
+                      Image=Report;
+                      PromotedCategory=Category9 }
+      { 1900128906;2 ;Action    ;
+                      CaptionML=[DEU=Lager - EK-/VK-Preisliste;
+                                 ENU=Inventory Cost and Price List];
+                      ToolTipML=[DEU=Zeigen Sie eine Liste Ihrer Artikel und Informationen zu deren VK/EK an, drucken oder speichern Sie sie. Der Bericht gibt Einstandspreis, EK-Preis (neuester), VK-Preis, Deckungsbeitrag in Prozent und Deckungsbeitrag an.;
+                                 ENU=View, print, or save a list of your items and their price and cost information. The report specifies direct unit cost, last direct cost, unit price, profit percentage, and profit.];
+                      RunObject=Report 716;
+                      Image=Report }
+      { 1901091106;2 ;Action    ;
+                      CaptionML=[DEU=Lager - Verfgbarkeit;
+                                 ENU=Inventory Availability];
+                      ToolTipML=[DEU=Zeigen Sie eine Zusammenfassung der historischen Lagertransaktionen mit ausgew„hlten Artikeln an, drucken oder speichern Sie sie, um beispielsweise zu entscheiden, wann die Artikel gekauft werden sollen. Der Bericht gibt Folgendes an: Menge in Verkaufsauftr„gen, Menge in Einkaufsbestellungen, Bestellrckstand bei Kreditoren, Minimalbestand und ob eine Wiederbestellung vorliegt.;
+                                 ENU=View, print, or save a summary of historical inventory transactions with selected items, for example, to decide when to purchase the items. The report specifies quantity on sales order, quantity on purchase order, back orders from vendors, minimum inventory, and whether there are reorders.];
+                      RunObject=Report 705;
+                      Image=Report }
+      { 131     ;2   ;ActionGroup;
+                      CaptionML=[DEU=Artikeljournal;
+                                 ENU=Item Register];
+                      Image=ItemRegisters }
+      { 1907629906;3 ;Action    ;
+                      CaptionML=[DEU=Artikeljournal - Menge;
+                                 ENU=Item Register - Quantity];
+                      RunObject=Report 703;
+                      Image=Report }
+      { 1902962906;3 ;Action    ;
+                      CaptionML=[DEU=Artikeljournal - Wert;
+                                 ENU=Item Register - Value];
+                      RunObject=Report 5805;
+                      Image=Report }
+      { 130     ;2   ;ActionGroup;
+                      CaptionML=[DEU=Bewertung;
+                                 ENU=Costing];
+                      Image=ItemCosts }
+      { 1900730006;3 ;Action    ;
+                      CaptionML=[DEU=Lager - Einst.-Preisabweichung;
+                                 ENU=Inventory - Cost Variance];
+                      RunObject=Report 721;
+                      Image=ItemCosts }
+      { 1904299906;3 ;Action    ;
+                      CaptionML=[DEU=Lagerbew.-Einst.-Pr.-Ermittl.;
+                                 ENU=Invt. Valuation - Cost Spec.];
+                      RunObject=Report 5801;
+                      Image=Report }
+      { 1907846806;3 ;Action    ;
+                      CaptionML=[DEU=Vergleichsliste;
+                                 ENU=Compare List];
+                      RunObject=Report 99000758;
+                      Image=Report }
+      { 100     ;2   ;ActionGroup;
+                      CaptionML=[DEU=Lagerbestand;
+                                 ENU=Inventory Details];
+                      Image=Report }
+      { 1904068306;3 ;Action    ;
+                      CaptionML=[DEU=Lager - Kontoblatt;
+                                 ENU=Inventory - Transaction Detail];
+                      RunObject=Report 704;
+                      Image=Report }
+      { 1900461506;3 ;Action    ;
+                      CaptionML=[DEU=Artikel Zu-/Abschl. - Spezif.;
+                                 ENU=Item Charges - Specification];
+                      RunObject=Report 5806;
+                      Image=Report }
+      { 1900111206;3 ;Action    ;
+                      CaptionML=[DEU=Artikellagerzeit - Menge;
+                                 ENU=Item Age Composition - Qty.];
+                      ToolTipML=[DEU=Zeigen Sie einen šberblick ber die aktuelle Lagerzeit von ausgew„hlten Artikeln in Ihrem Lager an, drucken oder speichern Sie sie.;
+                                 ENU=View, print, or save an overview of the current age composition of selected items in your inventory.];
+                      ApplicationArea=#Basic,#Suite;
+                      RunObject=Report 5807;
+                      Image=Report }
+      { 1906747006;3 ;Action    ;
+                      CaptionML=[DEU=Artikelablauf - Menge;
+                                 ENU=Item Expiration - Quantity];
+                      RunObject=Report 5809;
+                      Image=Report }
+      { 102     ;2   ;ActionGroup;
+                      Name=Reports;
+                      CaptionML=[DEU=Lagerstatistik;
+                                 ENU=Inventory Statistics];
+                      Image=Report }
+      { 1900762706;3 ;Action    ;
+                      CaptionML=[DEU=Lager - Verkaufsstatistik;
+                                 ENU=Inventory - Sales Statistics];
+                      ToolTipML=[DEU=Zeigen Sie eine Zusammenfassung der Verk„ufe der ausgew„hlten Artikel pro Debitor an, um beispielsweise den Deckungsbeitrag fr einzelne Artikel oder Trends bei Einnahmen und Deckungsbeitrag zu analysieren. Der Bericht gibt Einstandspreis, Verkaufspreis, Verkaufsmenge, Verk„ufe in MW, Deckungsbeitrag in Prozent und Deckungsbeitrag an.;
+                                 ENU=View, print, or save a summary of selected items' sales per customer, for example, to analyze the profit on individual items or trends in revenues and profit. The report specifies direct unit cost, unit price, sales quantity, sales in LCY, profit percentage, and profit.];
+                      ApplicationArea=#Suite;
+                      RunObject=Report 712;
+                      Image=Report }
+      { 1904034006;3 ;Action    ;
+                      CaptionML=[DEU=Lager - Debitorenverk„ufe;
+                                 ENU=Inventory - Customer Sales];
+                      ToolTipML=[DEU=Zeigen Sie eine Liste der Debitoren an, drucken oder speichern Sie sie, die ausgew„hlte Artikel innerhalb einer ausgew„hlten Periode gekauft haben, um beispielsweise Kaufmuster der Kunden zu analysieren. Der Bericht gibt Menge, Betrag, Rabatt, Deckungsbeitrag in Prozent und Deckungsbeitrag an.;
+                                 ENU=View, print, or save a list of customers that have purchased selected items within a selected period, for example, to analyze customers' purchasing patterns. The report specifies quantity, amount, discount, profit percentage, and profit.];
+                      ApplicationArea=#Suite;
+                      RunObject=Report 713;
+                      Image=Report }
+      { 1907930606;3 ;Action    ;
+                      CaptionML=[DEU=Artikel - Top 10 Liste;
+                                 ENU=Inventory - Top 10 List];
+                      ToolTipML=[DEU=Zeigen Sie eine Liste der wichtigsten Artikel nach Verkauf, Lagerbestand oder Lagerwert an, drucken oder speichern Sie sie. Der Bericht beinhaltet ein Balkendiagramm zum Rang der Artikel.;
+                                 ENU=View, print, or save a list of the top items by sales, quantity on hand, or inventory value. The report includes a bar graph to show you how the items rank.];
+                      ApplicationArea=#Basic,#Suite;
+                      RunObject=Report 711;
+                      Image=Report }
+      { 104     ;2   ;ActionGroup;
+                      CaptionML=[DEU=Finanzberichte;
+                                 ENU=Finance Reports];
+                      Image=Report }
+      { 1906316306;3 ;Action    ;
+                      CaptionML=[DEU=Lagerwert berechnen;
+                                 ENU=Inventory Valuation];
+                      ToolTipML=[DEU=Zeigen Sie eine Liste der Werte des Lagerbestands fr jeden Lagerartikel an, drucken oder speichern Sie sie.;
+                                 ENU=View, print, or save a list of the values of the on-hand quantity of each inventory item.];
+                      ApplicationArea=#Basic,#Suite;
+                      RunObject=Report 1001;
+                      Image=Report }
+      { 1901254106;3 ;Action    ;
+                      CaptionML=[DEU=Status;
+                                 ENU=Status];
+                      ToolTipML=[DEU=Zeigen Sie den Status teilweise erfllter oder nicht erfllter Auftr„ge an, drucken oder speichern Sie ihn, sodass Sie bestimmen k”nnen, wie sich die Erfllung dieser Auftr„ge auf den Lagerbestand auswirkt.;
+                                 ENU=View, print, or save the status of partially filled or unfilled orders so you can determine what effect filling these orders may have on your inventory.];
+                      ApplicationArea=#Basic,#Suite;
+                      RunObject=Report 706;
+                      Image=Report }
+      { 1903496006;3 ;Action    ;
+                      CaptionML=[DEU=Artikellagerzeit - Wert;
+                                 ENU=Item Age Composition - Value];
+                      ToolTipML=[DEU=Zeigen Sie einen šberblick ber die aktuelle Lagerzeit von ausgew„hlten Artikeln in Ihrem Lager an, drucken oder speichern Sie sie.;
+                                 ENU=View, print, or save an overview of the current age composition of selected items in your inventory.];
+                      RunObject=Report 5808;
+                      Image=Report }
+      { 129     ;1   ;ActionGroup;
+                      CaptionML=[DEU=Auftr„ge;
+                                 ENU=Orders] }
+      { 1903262806;2 ;Action    ;
+                      CaptionML=[DEU=Lager - Auftragsbestand;
+                                 ENU=Inventory Order Details];
+                      RunObject=Report 708;
+                      Image=Report }
+      { 1904739806;2 ;Action    ;
+                      CaptionML=[DEU=Lager - Bestellungen;
+                                 ENU=Inventory Purchase Orders];
+                      RunObject=Report 709;
+                      Image=Report }
+      { 1906231806;2 ;Action    ;
+                      CaptionML=[DEU=Lager - Kreditoreneink„ufe;
+                                 ENU=Inventory - Vendor Purchases];
+                      RunObject=Report 714;
+                      Image=Report }
+      { 1906101206;2 ;Action    ;
+                      CaptionML=[DEU=Lager - Wiederbestellung;
+                                 ENU=Inventory - Reorders];
+                      RunObject=Report 717;
+                      Promoted=Yes;
+                      Image=Report;
+                      PromotedCategory=Report }
+      { 1900210306;2 ;Action    ;
+                      CaptionML=[DEU=Lager - Verkaufsrckst„nde;
+                                 ENU=Inventory - Sales Back Orders];
+                      RunObject=Report 718;
+                      Promoted=Yes;
+                      Image=Report;
+                      PromotedCategory=Report }
+      { 1900000003;0 ;ActionContainer;
+                      ActionContainerType=RelatedInformation }
+      { 126     ;1   ;ActionGroup;
+                      CaptionML=[DEU=Artikel;
+                                 ENU=Item] }
+      { 123     ;2   ;Action    ;
+                      Name=ApprovalEntries;
+                      AccessByPermission=TableData 454=R;
+                      CaptionML=[DEU=Genehmigungen;
+                                 ENU=Approvals];
+                      ToolTipML=[DEU=Zeigt eine Liste der Datens„tze an, die noch genehmigt werden mssen. Beispielsweise wird angezeigt, wer die Genehmigung des Datensatzes angefordert hat, wann er gesendet wurde und bis wann er genehmigt sein muss.;
+                                 ENU=View a list of the records that are waiting to be approved. For example, you can see who requested the record to be approved, when it was sent, and when it is due to be approved.];
+                      ApplicationArea=#Suite;
+                      Promoted=Yes;
+                      Image=Approvals;
+                      PromotedCategory=Category4;
+                      PromotedOnly=Yes;
+                      OnAction=BEGIN
+                                 ApprovalsMgmt.OpenApprovalEntriesPage(RECORDID);
+                               END;
+                                }
+      { 10      ;1   ;ActionGroup;
+                      CaptionML=[DEU=Verfgbarkeit;
+                                 ENU=Availability];
+                      Image=Item }
+      { 73      ;2   ;Action    ;
+                      AccessByPermission=TableData 14=R;
+                      CaptionML=[DEU=&Artikel nach Lagerort;
+                                 ENU=Items b&y Location];
+                      ToolTipML=[DEU=Zeigt eine Liste der Elemente an, angeordnet nach Speicherort.;
+                                 ENU=Show a list of items grouped by location.];
+                      Image=ItemAvailbyLoc;
+                      OnAction=BEGIN
+                                 PAGE.RUN(PAGE::"Items by Location",Rec);
+                               END;
+                                }
+      { 79      ;2   ;ActionGroup;
+                      CaptionML=[DEU=Artikelverf&gbarkeit nach;
+                                 ENU=&Item Availability by];
+                      Image=ItemAvailability }
+      { 5       ;3   ;Action    ;
+                      Name=<Action5>;
+                      CaptionML=[DEU=Ereignis;
+                                 ENU=Event];
+                      Image=Event;
+                      OnAction=BEGIN
+                                 ItemAvailFormsMgt.ShowItemAvailFromItem(Rec,ItemAvailFormsMgt.ByEvent);
+                               END;
+                                }
+      { 21      ;3   ;Action    ;
+                      CaptionML=[DEU=Periode;
+                                 ENU=Period];
+                      RunObject=Page 157;
+                      RunPageLink=No.=FIELD(No.),
+                                  Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                                  Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                                  Location Filter=FIELD(Location Filter),
+                                  Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                                  Variant Filter=FIELD(Variant Filter);
+                      Image=Period }
+      { 80      ;3   ;Action    ;
+                      CaptionML=[DEU=Variante;
+                                 ENU=Variant];
+                      RunObject=Page 5414;
+                      RunPageLink=No.=FIELD(No.),
+                                  Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                                  Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                                  Location Filter=FIELD(Location Filter),
+                                  Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                                  Variant Filter=FIELD(Variant Filter);
+                      Image=ItemVariant }
+      { 78      ;3   ;Action    ;
+                      CaptionML=[DEU=Lagerort;
+                                 ENU=Location];
+                      RunObject=Page 492;
+                      RunPageLink=No.=FIELD(No.),
+                                  Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                                  Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                                  Location Filter=FIELD(Location Filter),
+                                  Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                                  Variant Filter=FIELD(Variant Filter);
+                      Image=Warehouse }
+      { 13      ;3   ;Action    ;
+                      CaptionML=[DEU=Stcklistenebene;
+                                 ENU=BOM Level];
+                      Image=BOMLevel;
+                      OnAction=BEGIN
+                                 ItemAvailFormsMgt.ShowItemAvailFromItem(Rec,ItemAvailFormsMgt.ByBOM);
+                               END;
+                                }
+      { 19      ;3   ;Action    ;
+                      CaptionML=[DEU=Zeitachse;
+                                 ENU=Timeline];
+                      Image=Timeline;
+                      OnAction=BEGIN
+                                 ShowTimelineFromItem(Rec);
+                               END;
+                                }
+      { 83      ;1   ;ActionGroup;
+                      Name=ActionGroupCRM;
+                      CaptionML=[DEU=Dynamics CRM;
+                                 ENU=Dynamics CRM];
+                      Visible=CRMIntegrationEnabled }
+      { 75      ;2   ;Action    ;
+                      Name=CRMGoToProduct;
+                      CaptionML=[DEU=Produkt;
+                                 ENU=Product];
+                      ToolTipML=[DEU=™ffnen Sie das gekoppelte Microsoft Dynamics CRM-Produkt.;
+                                 ENU=Open the coupled Microsoft Dynamics CRM product.];
+                      ApplicationArea=#All;
+                      Image=CoupledItem;
+                      OnAction=VAR
+                                 CRMIntegrationManagement@1000 : Codeunit 5330;
+                               BEGIN
+                                 CRMIntegrationManagement.ShowCRMEntityFromRecordID(RECORDID);
+                               END;
+                                }
+      { 72      ;2   ;Action    ;
+                      Name=CRMSynchronizeNow;
+                      AccessByPermission=TableData 5331=IM;
+                      CaptionML=[DEU=Jetzt synchronisieren;
+                                 ENU=Synchronize Now];
+                      ToolTipML=[DEU=Senden Sie die aktualisierten Daten an Microsoft Dynamics CRM.;
+                                 ENU=Send updated data to Microsoft Dynamics CRM.];
+                      ApplicationArea=#All;
+                      Image=Refresh;
+                      OnAction=VAR
+                                 Item@1000 : Record 27;
+                                 CRMIntegrationManagement@1001 : Codeunit 5330;
+                                 ItemRecordRef@1003 : RecordRef;
+                               BEGIN
+                                 CurrPage.SETSELECTIONFILTER(Item);
+                                 Item.NEXT;
+
+                                 IF Item.COUNT = 1 THEN
+                                   CRMIntegrationManagement.UpdateOneNow(Item.RECORDID)
+                                 ELSE BEGIN
+                                   ItemRecordRef.GETTABLE(Item);
+                                   CRMIntegrationManagement.UpdateMultipleNow(ItemRecordRef);
+                                 END
+                               END;
+                                }
+      { 70      ;2   ;ActionGroup;
+                      Name=Coupling;
+                      CaptionML=[@@@=Coupling is a noun;
+                                 DEU=Kopplung;
+                                 ENU=Coupling];
+                      ToolTipML=[DEU=Erstellt, „ndert oder l”scht eine Kopplung zwischen dem Microsoft Dynamics NAV-Datensatz und einem Microsoft Dynamics CRM-Datensatz.;
+                                 ENU=Create, change, or delete a coupling between the Microsoft Dynamics NAV record and a Microsoft Dynamics CRM record.];
+                      Image=LinkAccount }
+      { 68      ;3   ;Action    ;
+                      Name=ManageCRMCoupling;
+                      AccessByPermission=TableData 5331=IM;
+                      CaptionML=[DEU=Kopplung einrichten;
+                                 ENU=Set Up Coupling];
+                      ToolTipML=[DEU=Erstellen oder „ndern Sie die Kopplung mit einem Microsoft Dynamics CRM-Produkt.;
+                                 ENU=Create or modify the coupling to a Microsoft Dynamics CRM product.];
+                      ApplicationArea=#All;
+                      Image=LinkAccount;
+                      OnAction=VAR
+                                 CRMIntegrationManagement@1000 : Codeunit 5330;
+                               BEGIN
+                                 CRMIntegrationManagement.DefineCoupling(RECORDID);
+                               END;
+                                }
+      { 66      ;3   ;Action    ;
+                      Name=DeleteCRMCoupling;
+                      AccessByPermission=TableData 5331=IM;
+                      CaptionML=[DEU=Kopplung l”schen;
+                                 ENU=Delete Coupling];
+                      ToolTipML=[DEU=L”schen Sie die Kopplung mit einem Microsoft Dynamics CRM-Produkt.;
+                                 ENU=Delete the coupling to a Microsoft Dynamics CRM product.];
+                      ApplicationArea=#All;
+                      Enabled=CRMIsCoupledToRecord;
+                      Image=UnLinkAccount;
+                      OnAction=VAR
+                                 CRMCouplingManagement@1000 : Codeunit 5331;
+                               BEGIN
+                                 CRMCouplingManagement.RemoveCoupling(RECORDID);
+                               END;
+                                }
+      { 30      ;2   ;Action    ;
+                      CaptionML=[DEU=Varia&nten;
+                                 ENU=Va&riants];
+                      RunObject=Page 5401;
+                      RunPageLink=Item No.=FIELD(No.);
+                      Image=ItemVariant }
+      { 500     ;2   ;Action    ;
+                      CaptionML=[DEU=Ersat&zartikel;
+                                 ENU=Substituti&ons];
+                      ApplicationArea=#Suite;
+                      RunObject=Page 5716;
+                      RunPageLink=Type=CONST(Item),
+                                  No.=FIELD(No.);
+                      Image=ItemSubstitution }
+      { 121     ;2   ;Action    ;
+                      CaptionML=[DEU=Artikelbarcodes;
+                                 ENU=Identifiers];
+                      RunObject=Page 7706;
+                      RunPageView=SORTING(Item No.,Variant Code,Unit of Measure Code);
+                      RunPageLink=Item No.=FIELD(No.);
+                      Image=BarCode }
+      { 54      ;1   ;ActionGroup;
+                      Name=Assembly/Production;
+                      CaptionML=[DEU=Montage/Produktion;
+                                 ENU=Assembly/Production];
+                      Image=Production }
+      { 52      ;2   ;Action    ;
+                      CaptionML=[DEU=Struktur;
+                                 ENU=Structure];
+                      Image=Hierarchy;
+                      OnAction=VAR
+                                 BOMStructure@1000 : Page 5870;
+                               BEGIN
+                                 BOMStructure.InitItem(Rec);
+                                 BOMStructure.RUN;
+                               END;
+                                }
+      { 50      ;2   ;Action    ;
+                      CaptionML=[DEU=Kostenanteile;
+                                 ENU=Cost Shares];
+                      Image=CostBudget;
+                      OnAction=VAR
+                                 BOMCostShares@1000 : Page 5872;
+                               BEGIN
+                                 BOMCostShares.InitItem(Rec);
+                                 BOMCostShares.RUN;
+                               END;
+                                }
+      { 49      ;2   ;ActionGroup;
+                      CaptionML=[DEU=Mo&ntage;
+                                 ENU=Assemb&ly];
+                      Image=AssemblyBOM }
+      { 48      ;3   ;Action    ;
+                      Name=<Action32>;
+                      CaptionML=[DEU=Montagestckliste;
+                                 ENU=Assembly BOM];
+                      RunObject=Page 36;
+                      RunPageLink=Parent Item No.=FIELD(No.);
+                      Image=BOM }
+      { 47      ;3   ;Action    ;
+                      CaptionML=[DEU=Verwendung;
+                                 ENU=Where-Used];
+                      RunObject=Page 37;
+                      RunPageView=SORTING(Type,No.);
+                      RunPageLink=Type=CONST(Item),
+                                  No.=FIELD(No.);
+                      Image=Track }
+      { 46      ;3   ;Action    ;
+                      AccessByPermission=TableData 90=R;
+                      CaptionML=[DEU=Stckl. Einst.-Preis &berechnen;
+                                 ENU=Calc. Stan&dard Cost];
+                      Image=CalculateCost;
+                      OnAction=BEGIN
+                                 CalculateStdCost.CalcItem("No.",TRUE);
+                               END;
+                                }
+      { 44      ;3   ;Action    ;
+                      AccessByPermission=TableData 90=R;
+                      CaptionML=[DEU=Ber. VK-Preis;
+                                 ENU=Calc. Unit Price];
+                      Image=SuggestItemPrice;
+                      OnAction=BEGIN
+                                 CalculateStdCost.CalcAssemblyItemPrice("No.");
+                               END;
+                                }
+      { 41      ;2   ;ActionGroup;
+                      CaptionML=[DEU=Produktion;
+                                 ENU=Production];
+                      Image=Production }
+      { 32      ;3   ;Action    ;
+                      CaptionML=[DEU=Fertigungsstckliste;
+                                 ENU=Production BOM];
+                      RunObject=Page 99000786;
+                      RunPageLink=No.=FIELD(Production BOM No.);
+                      Image=BOM }
+      { 29      ;3   ;Action    ;
+                      AccessByPermission=TableData 90=R;
+                      CaptionML=[DEU=Verwendung;
+                                 ENU=Where-Used];
+                      Image=Where-Used;
+                      OnAction=VAR
+                                 ProdBOMWhereUsed@1001 : Page 99000811;
+                               BEGIN
+                                 ProdBOMWhereUsed.SetItem(Rec,WORKDATE);
+                                 ProdBOMWhereUsed.RUNMODAL;
+                               END;
+                                }
+      { 24      ;3   ;Action    ;
+                      AccessByPermission=TableData 99000771=R;
+                      CaptionML=[DEU=Stckl. Einst.-Preis &berechnen;
+                                 ENU=Calc. Stan&dard Cost];
+                      Image=CalculateCost;
+                      OnAction=BEGIN
+                                 CalculateStdCost.CalcItem("No.",FALSE);
+                               END;
+                                }
+      { 77      ;3   ;Action    ;
+                      CaptionML=[DEU=&Reservierungsposten;
+                                 ENU=&Reservation Entries];
+                      RunObject=Page 497;
+                      RunPageView=SORTING(Item No.,Variant Code,Location Code,Reservation Status);
+                      RunPageLink=Reservation Status=CONST(Reservation),
+                                  Item No.=FIELD(No.);
+                      Image=ReservationLedger }
+      { 5800    ;3   ;Action    ;
+                      CaptionML=[DEU=&Wertposten;
+                                 ENU=&Value Entries];
+                      RunObject=Page 5802;
+                      RunPageView=SORTING(Item No.);
+                      RunPageLink=Item No.=FIELD(No.);
+                      Image=ValueLedger }
+      { 6500    ;3   ;Action    ;
+                      CaptionML=[DEU=Artikel&verfolgungsposten;
+                                 ENU=Item &Tracking Entries];
+                      Image=ItemTrackingLedger;
+                      OnAction=VAR
+                                 ItemTrackingDocMgt@1000 : Codeunit 6503;
+                               BEGIN
+                                 ItemTrackingDocMgt.ShowItemTrackingForMasterData(3,'',"No.",'','','','');
+                               END;
+                                }
+      { 7       ;3   ;Action    ;
+                      CaptionML=[DEU=&Lagerplatzposten;
+                                 ENU=&Warehouse Entries];
+                      RunObject=Page 7318;
+                      RunPageView=SORTING(Item No.,Bin Code,Location Code,Variant Code,Unit of Measure Code,Lot No.,Serial No.,Entry Type,Dedicated);
+                      RunPageLink=Item No.=FIELD(No.);
+                      Image=BinLedger }
+      { 85      ;2   ;ActionGroup;
+                      CaptionML=[DEU=Statistik;
+                                 ENU=Statistics];
+                      Image=Statistics }
+      { 16      ;3   ;Action    ;
+                      ShortCutKey=F7;
+                      CaptionML=[DEU=Statistik;
+                                 ENU=Statistics];
+                      Image=Statistics;
+                      OnAction=VAR
+                                 ItemStatistics@1001 : Page 5827;
+                               BEGIN
+                                 ItemStatistics.SetItem(Rec);
+                                 ItemStatistics.RUNMODAL;
+                               END;
+                                }
+      { 17      ;3   ;Action    ;
+                      CaptionML=[DEU=Buchungsstatistik;
+                                 ENU=Entry Statistics];
+                      RunObject=Page 304;
+                      RunPageLink=No.=FIELD(No.),
+                                  Date Filter=FIELD(Date Filter),
+                                  Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                                  Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                                  Location Filter=FIELD(Location Filter),
+                                  Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                                  Variant Filter=FIELD(Variant Filter);
+                      Image=EntryStatistics }
+      { 22      ;3   ;Action    ;
+                      CaptionML=[DEU=&Umsatz;
+                                 ENU=T&urnover];
+                      RunObject=Page 158;
+                      RunPageLink=No.=FIELD(No.),
+                                  Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                                  Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                                  Location Filter=FIELD(Location Filter),
+                                  Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                                  Variant Filter=FIELD(Variant Filter);
+                      Image=Turnover }
+      { 15      ;2   ;Action    ;
+                      CaptionML=[DEU=Be&merkungen;
+                                 ENU=Co&mments];
+                      RunObject=Page 124;
+                      RunPageLink=Table Name=CONST(Item),
+                                  No.=FIELD(No.);
+                      Image=ViewComments }
+      { 33      ;1   ;ActionGroup;
+                      CaptionML=[DEU=&Verkauf;
+                                 ENU=S&ales];
+                      Image=Sales }
+      { 36      ;2   ;Action    ;
+                      Name=Sales_Prices;
+                      CaptionML=[DEU=Preise;
+                                 ENU=Prices];
+                      RunObject=Page 7002;
+                      RunPageView=SORTING(Item No.);
+                      RunPageLink=Item No.=FIELD(No.);
+                      Image=Price }
+      { 34      ;2   ;Action    ;
+                      Name=Sales_LineDiscounts;
+                      CaptionML=[DEU=Zeilenrabatte;
+                                 ENU=Line Discounts];
+                      RunObject=Page 7004;
+                      RunPageView=SORTING(Type,Code);
+                      RunPageLink=Type=CONST(Item),
+                                  Code=FIELD(No.);
+                      Image=LineDiscount }
+      { 124     ;2   ;Action    ;
+                      CaptionML=[DEU=&Vorauszahlungsprozents„tze;
+                                 ENU=Prepa&yment Percentages];
+                      RunObject=Page 664;
+                      RunPageLink=Item No.=FIELD(No.);
+                      Image=PrepaymentPercentages }
+      { 37      ;2   ;Action    ;
+                      CaptionML=[DEU=Auftr„ge;
+                                 ENU=Orders];
+                      RunObject=Page 48;
+                      RunPageView=SORTING(Document Type,Type,No.);
+                      RunPageLink=Type=CONST(Item),
+                                  No.=FIELD(No.);
+                      Image=Document }
+      { 114     ;2   ;Action    ;
+                      CaptionML=[DEU=Reklamationen;
+                                 ENU=Returns Orders];
+                      RunObject=Page 6633;
+                      RunPageView=SORTING(Document Type,Type,No.);
+                      RunPageLink=Type=CONST(Item),
+                                  No.=FIELD(No.);
+                      Image=ReturnOrder }
+      { 38      ;1   ;ActionGroup;
+                      CaptionML=[DEU=&Einkauf;
+                                 ENU=&Purchases];
+                      Image=Purchasing }
+      { 118     ;2   ;Action    ;
+                      CaptionML=[DEU=&Lieferanten;
+                                 ENU=Ven&dors];
+                      RunObject=Page 114;
+                      RunPageView=SORTING(Item No.);
+                      RunPageLink=Item No.=FIELD(No.);
+                      Image=Vendor }
+      { 39      ;2   ;Action    ;
+                      CaptionML=[DEU=Preise;
+                                 ENU=Prices];
+                      RunObject=Page 7012;
+                      RunPageView=SORTING(Item No.);
+                      RunPageLink=Item No.=FIELD(No.);
+                      Image=Price }
+      { 42      ;2   ;Action    ;
+                      CaptionML=[DEU=Zeilenrabatte;
+                                 ENU=Line Discounts];
+                      RunObject=Page 7014;
+                      RunPageView=SORTING(Item No.);
+                      RunPageLink=Item No.=FIELD(No.);
+                      Image=LineDiscount }
+      { 125     ;2   ;Action    ;
+                      CaptionML=[DEU=&Vorauszahlungsprozents„tze;
+                                 ENU=Prepa&yment Percentages];
+                      RunObject=Page 665;
+                      RunPageLink=Item No.=FIELD(No.);
+                      Image=PrepaymentPercentages }
+      { 40      ;2   ;Action    ;
+                      CaptionML=[DEU=Bestellungen;
+                                 ENU=Orders];
+                      ApplicationArea=#Suite;
+                      RunObject=Page 56;
+                      RunPageView=SORTING(Document Type,Type,No.);
+                      RunPageLink=Type=CONST(Item),
+                                  No.=FIELD(No.);
+                      Image=Document }
+      { 115     ;2   ;Action    ;
+                      CaptionML=[DEU=Reklamationen;
+                                 ENU=Return Orders];
+                      RunObject=Page 6643;
+                      RunPageView=SORTING(Document Type,Type,No.);
+                      RunPageLink=Type=CONST(Item),
+                                  No.=FIELD(No.);
+                      Image=ReturnOrder }
+      { 76      ;2   ;Action    ;
+                      CaptionML=[DEU=Katalogart&ikel;
+                                 ENU=Nonstoc&k Items];
+                      ApplicationArea=#Basic,#Suite;
+                      RunObject=Page 5726;
+                      Image=NonStockItem }
+      { 58      ;1   ;ActionGroup;
+                      CaptionML=[DEU=Lager;
+                                 ENU=Warehouse];
+                      Image=Warehouse }
+      { 116     ;2   ;Action    ;
+                      CaptionML=[DEU=Lagerplatzin&halt;
+                                 ENU=&Bin Contents];
+                      RunObject=Page 7379;
+                      RunPageView=SORTING(Item No.);
+                      RunPageLink=Item No.=FIELD(No.);
+                      Image=BinContent }
+      { 81      ;2   ;Action    ;
+                      CaptionML=[DEU=Lagerhalt&ungsdaten;
+                                 ENU=Stockkeepin&g Units];
+                      RunObject=Page 5701;
+                      RunPageView=SORTING(Item No.);
+                      RunPageLink=Item No.=FIELD(No.);
+                      Image=SKU }
+      { 60      ;1   ;ActionGroup;
+                      CaptionML=[DEU=Service;
+                                 ENU=Service];
+                      Image=ServiceItem }
+      { 103     ;2   ;Action    ;
+                      CaptionML=[DEU=Ser&viceartikel;
+                                 ENU=Ser&vice Items];
+                      RunObject=Page 5988;
+                      RunPageView=SORTING(Item No.);
+                      RunPageLink=Item No.=FIELD(No.);
+                      Image=ServiceItem }
+      { 11      ;2   ;Action    ;
+                      AccessByPermission=TableData 5900=R;
+                      CaptionML=[DEU=L”sungsanleitung;
+                                 ENU=Troubleshooting];
+                      Image=Troubleshoot;
+                      OnAction=VAR
+                                 TroubleshootingHeader@1000 : Record 5943;
+                               BEGIN
+                                 TroubleshootingHeader.ShowForItem(Rec);
+                               END;
+                                }
+      { 105     ;2   ;Action    ;
+                      CaptionML=[DEU=L”sungsanleitung Einrichtung;
+                                 ENU=Troubleshooting Setup];
+                      RunObject=Page 5993;
+                      RunPageLink=Type=CONST(Item),
+                                  No.=FIELD(No.);
+                      Image=Troubleshoot }
+      { 62      ;1   ;ActionGroup;
+                      CaptionML=[DEU=Ressourcen;
+                                 ENU=Resources];
+                      Image=Resource }
+      { 107     ;2   ;ActionGroup;
+                      CaptionML=[DEU=Ressour&cen;
+                                 ENU=R&esource];
+                      Image=Resource }
+      { 108     ;3   ;Action    ;
+                      CaptionML=[DEU=&Ressourcenqualifikationen;
+                                 ENU=Resource &Skills];
+                      ToolTipML=[DEU=Zeigt die Zuweisung von Qualifikationen zu Ressourcen, Artikeln, Serviceartikelgruppen und Serviceartikeln an. Sie k”nnen Qualifikationscodes verwenden, um den Serviceartikeln oder Artikeln, fr deren Wartung spezielle Qualifikationen erforderlich sind, qualifizierte Ressourcen zuzuordnen.;
+                                 ENU=View the assignment of skills to resources, items, service item groups, and service items. You can use skill codes to allocate skilled resources to service items or items that need special skills for servicing.];
+                      ApplicationArea=#Jobs;
+                      RunObject=Page 6019;
+                      RunPageLink=Type=CONST(Item),
+                                  No.=FIELD(No.);
+                      Image=ResourceSkills }
+      { 109     ;3   ;Action    ;
+                      AccessByPermission=TableData 5900=R;
+                      CaptionML=[DEU=&Qualifizierte Ressourcen;
+                                 ENU=Skilled R&esources];
+                      ToolTipML=[DEU=Zeigt eine šbersicht aller Ressourcen mit Informationen darber an, ob sie ber die erforderlichen Qualifikationen verfgen, um die bestimmte Serviceartikelgruppe, den Artikel oder den Serviceartikel zu bearbeiten.;
+                                 ENU=View a list of all registered resources with information about whether they have the skills required to service the particular service item group, item, or service item.];
+                      ApplicationArea=#Jobs;
+                      Image=ResourceSkills;
+                      OnAction=VAR
+                                 ResourceSkill@1001 : Record 5956;
+                               BEGIN
+                                 CLEAR(SkilledResourceList);
+                                 SkilledResourceList.Initialize(ResourceSkill.Type::Item,"No.",Description);
+                                 SkilledResourceList.RUNMODAL;
+                               END;
+                                }
+    }
+  }
+  CONTROLS
+  {
+    { 1900000001;0;Container;
+                ContainerType=ContentArea }
+
+    { 1   ;1   ;Group     ;
+                CaptionML=[DEU=Artikel;
+                           ENU=Item];
+                GroupType=Repeater }
+
+    { 2   ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die Nummer des Artikels an.;
+                           ENU=Specifies the number of the item.];
+                ApplicationArea=#All;
+                SourceExpr="No." }
+
+    { 4   ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt eine Beschreibung des Artikels an.;
+                           ENU=Specifies a description of the item.];
+                ApplicationArea=#All;
+                SourceExpr=Description }
+
+    { 106 ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt an, ob die Artikelkarte einen physischen Artikel (Inventory) oder Service (Service) repr„sentiert.;
+                           ENU=Specifies if the item card represents a physical item (Inventory) or a service (Service).];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr=Type }
+
+    { 113 ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt an, wie viele Einheiten (z.ÿB. Stck, Schachteln oder Dosen) eines Artikels am Lager verfgbar sind.;
+                           ENU=Specifies how many units, such as pieces, boxes, or cans, of the item are in inventory.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr=Inventory;
+                HideValue=IsService }
+
+    { 95  ;2   ;Field     ;
+                SourceExpr="Created From Nonstock Item";
+                Visible=FALSE }
+
+    { 97  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt an, dass ein Ersatzartikel fr diesen Artikel vorhanden ist.;
+                           ENU=Specifies that a substitute exists for this item.];
+                ApplicationArea=#Suite;
+                SourceExpr="Substitutes Exist" }
+
+    { 112 ;2   ;Field     ;
+                SourceExpr="Stockkeeping Unit Exists";
+                Visible=FALSE }
+
+    { 8   ;2   ;Field     ;
+                SourceExpr="Assembly BOM" }
+
+    { 99  ;2   ;Field     ;
+                SourceExpr="Production BOM No." }
+
+    { 101 ;2   ;Field     ;
+                SourceExpr="Routing No." }
+
+    { 6   ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die Einheit an, in der der Artikel im Lager gefhrt wird.;
+                           ENU=Specifies the unit in which the item is held in inventory.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Base Unit of Measure" }
+
+    { 43  ;2   ;Field     ;
+                SourceExpr="Shelf No.";
+                Visible=FALSE }
+
+    { 45  ;2   ;Field     ;
+                SourceExpr="Costing Method";
+                Visible=FALSE }
+
+    { 122 ;2   ;Field     ;
+                SourceExpr="Cost is Adjusted" }
+
+    { 51  ;2   ;Field     ;
+                SourceExpr="Standard Cost";
+                Visible=FALSE }
+
+    { 53  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt den Lagerwert pro Einheit des Artikels an.;
+                           ENU=Specifies the cost per unit of the item.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Unit Cost" }
+
+    { 55  ;2   ;Field     ;
+                SourceExpr="Last Direct Cost";
+                Visible=FALSE }
+
+    { 57  ;2   ;Field     ;
+                SourceExpr="Price/Profit Calculation";
+                Visible=FALSE }
+
+    { 59  ;2   ;Field     ;
+                SourceExpr="Profit %";
+                Visible=FALSE }
+
+    { 61  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt den Preis einer Einheit des Artikels in MW an.;
+                           ENU=Specifies the price for one unit of the item, in LCY.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Unit Price" }
+
+    { 63  ;2   ;Field     ;
+                SourceExpr="Inventory Posting Group";
+                Visible=FALSE }
+
+    { 12  ;2   ;Field     ;
+                SourceExpr="Gen. Prod. Posting Group";
+                Visible=FALSE }
+
+    { 74  ;2   ;Field     ;
+                SourceExpr="VAT Prod. Posting Group";
+                Visible=FALSE }
+
+    { 35  ;2   ;Field     ;
+                SourceExpr="Item Disc. Group";
+                Visible=FALSE }
+
+    { 65  ;2   ;Field     ;
+                SourceExpr="Vendor No." }
+
+    { 67  ;2   ;Field     ;
+                SourceExpr="Vendor Item No.";
+                Visible=FALSE }
+
+    { 69  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt einen Code fr die Zollposition des Artikels an.;
+                           ENU=Specifies a code for the item's tariff number.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Tariff No.";
+                Visible=FALSE }
+
+    { 71  ;2   ;Field     ;
+                SourceExpr="Search Description" }
+
+    { 91  ;2   ;Field     ;
+                SourceExpr="Overhead Rate";
+                Visible=FALSE }
+
+    { 89  ;2   ;Field     ;
+                SourceExpr="Indirect Cost %";
+                Visible=FALSE }
+
+    { 1102601000;2;Field  ;
+                SourceExpr="Item Category Code";
+                Visible=FALSE }
+
+    { 1102601002;2;Field  ;
+                SourceExpr="Product Group Code";
+                Visible=FALSE }
+
+    { 1102601004;2;Field  ;
+                SourceExpr=Blocked;
+                Visible=FALSE }
+
+    { 1102601006;2;Field  ;
+                SourceExpr="Last Date Modified";
+                Visible=FALSE }
+
+    { 1102601010;2;Field  ;
+                SourceExpr="Sales Unit of Measure";
+                Visible=FALSE }
+
+    { 1102601012;2;Field  ;
+                SourceExpr="Replenishment System";
+                Visible=FALSE }
+
+    { 1102601016;2;Field  ;
+                SourceExpr="Purch. Unit of Measure";
+                Visible=FALSE }
+
+    { 1102601018;2;Field  ;
+                SourceExpr="Lead Time Calculation";
+                Visible=FALSE }
+
+    { 1102601020;2;Field  ;
+                SourceExpr="Manufacturing Policy";
+                Visible=FALSE }
+
+    { 1102601024;2;Field  ;
+                SourceExpr="Flushing Method";
+                Visible=FALSE }
+
+    { 9   ;2   ;Field     ;
+                SourceExpr="Assembly Policy";
+                Visible=FALSE }
+
+    { 1102601026;2;Field  ;
+                SourceExpr="Item Tracking Code";
+                Visible=FALSE }
+
+    { 31  ;2   ;Field     ;
+                CaptionML=[DEU=Standard-Abgrenzungsvorlage;
+                           ENU=Default Deferral Template];
+                ToolTipML=[DEU=Gibt die Standardvorlage an, die regelt, wie Einnahmen und Ausgaben von den Perioden des Auftretens abgegrenzt werden.;
+                           ENU=Specifies the default template that governs how to defer revenues and expenses to the periods when they occurred.];
+                ApplicationArea=#Suite;
+                SourceExpr="Default Deferral Template Code";
+                Importance=Additional }
+
+    { 1000000000;1;Field  ;
+                ControlAddIn=[Microsoft.Dynamics.Nav.Client.PageReady;PublicKeyToken=31bf3856ad364e35];
+                ShowCaption=No }
+
+    { 1900000007;0;Container;
+                ContainerType=FactBoxArea }
+
+    { 3   ;1   ;Part      ;
+                ApplicationArea=#All;
+                SubPageLink=Source Type=CONST(Item),
+                            Source No.=FIELD(No.);
+                PagePartID=Page875;
+                Visible=SocialListeningVisible;
+                PartType=Page }
+
+    { 26  ;1   ;Part      ;
+                ApplicationArea=#All;
+                SubPageLink=Source Type=CONST(Item),
+                            Source No.=FIELD(No.);
+                PagePartID=Page876;
+                Visible=SocialListeningSetupVisible;
+                PartType=Page;
+                UpdatePropagation=Both }
+
+    { 1901314507;1;Part   ;
+                SubPageLink=No.=FIELD(No.),
+                            Date Filter=FIELD(Date Filter),
+                            Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                            Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                            Location Filter=FIELD(Location Filter),
+                            Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                            Bin Filter=FIELD(Bin Filter),
+                            Variant Filter=FIELD(Variant Filter),
+                            Lot No. Filter=FIELD(Lot No. Filter),
+                            Serial No. Filter=FIELD(Serial No. Filter);
+                PagePartID=Page9089;
+                PartType=Page }
+
+    { 1903326807;1;Part   ;
+                SubPageLink=No.=FIELD(No.),
+                            Date Filter=FIELD(Date Filter),
+                            Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                            Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                            Location Filter=FIELD(Location Filter),
+                            Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                            Bin Filter=FIELD(Bin Filter),
+                            Variant Filter=FIELD(Variant Filter),
+                            Lot No. Filter=FIELD(Lot No. Filter),
+                            Serial No. Filter=FIELD(Serial No. Filter);
+                PagePartID=Page9090;
+                Visible=FALSE;
+                PartType=Page }
+
+    { 1906840407;1;Part   ;
+                SubPageLink=No.=FIELD(No.),
+                            Date Filter=FIELD(Date Filter),
+                            Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                            Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                            Location Filter=FIELD(Location Filter),
+                            Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                            Bin Filter=FIELD(Bin Filter),
+                            Variant Filter=FIELD(Variant Filter),
+                            Lot No. Filter=FIELD(Lot No. Filter),
+                            Serial No. Filter=FIELD(Serial No. Filter);
+                PagePartID=Page9091;
+                PartType=Page }
+
+    { 1901796907;1;Part   ;
+                SubPageLink=No.=FIELD(No.),
+                            Date Filter=FIELD(Date Filter),
+                            Global Dimension 1 Filter=FIELD(Global Dimension 1 Filter),
+                            Global Dimension 2 Filter=FIELD(Global Dimension 2 Filter),
+                            Location Filter=FIELD(Location Filter),
+                            Drop Shipment Filter=FIELD(Drop Shipment Filter),
+                            Bin Filter=FIELD(Bin Filter),
+                            Variant Filter=FIELD(Variant Filter),
+                            Lot No. Filter=FIELD(Lot No. Filter),
+                            Serial No. Filter=FIELD(Serial No. Filter);
+                PagePartID=Page9109;
+                Visible=FALSE;
+                PartType=Page }
+
+    { 136 ;1   ;Part      ;
+                Name=ItemAttributesFactBox;
+                ApplicationArea=#Basic,#Suite;
+                PagePartID=Page9110;
+                PartType=Page }
+
+    { 1900383207;1;Part   ;
+                PartType=System;
+                SystemPartID=RecordLinks }
+
+    { 1905767507;1;Part   ;
+                PartType=System;
+                SystemPartID=Notes }
+
+  }
+  CODE
+  {
+    VAR
+      TempFilterItemAttributesBuffer@1014 : TEMPORARY Record 7506;
+      ApplicationAreaSetup@1015 : Record 9178;
+      CalculateStdCost@1005 : Codeunit 5812;
+      ItemAvailFormsMgt@1000 : Codeunit 353;
+      Text11500@1140000 : TextConst 'DEU=M”chten Sie den neuen Artikel bearbeiten?;ENU=Do you want to edit the new item?';
+      ApprovalsMgmt@1008 : Codeunit 1535;
+      SkilledResourceList@1001 : Page 6023;
+      IsFoundationEnabled@1016 : Boolean;
+      SocialListeningSetupVisible@1003 : Boolean INDATASET;
+      SocialListeningVisible@1002 : Boolean INDATASET;
+      CRMIntegrationEnabled@1006 : Boolean;
+      CRMIsCoupledToRecord@1004 : Boolean;
+      OpenApprovalEntriesExist@1007 : Boolean;
+      IsService@1009 : Boolean INDATASET;
+      InventoryItemEditable@1010 : Boolean INDATASET;
+      EnabledApprovalWorkflowsExist@1011 : Boolean;
+      CanCancelApprovalForRecord@1013 : Boolean;
+      EventFilter@1012 : Text;
+      CurrForm@1000000002 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.Form" RUNONCLIENT;
+      BusinessGridView@1000000001 : DotNet "'Microsoft.Dynamics.Framework.UI.WinForms.Controls, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Framework.UI.WinForms.Controls.BusinessGridView" RUNONCLIENT;
+
+    PROCEDURE GetSelectionFilter@3() : Text;
+    VAR
+      Item@1001 : Record 27;
+      SelectionFilterManagement@1002 : Codeunit 46;
+    BEGIN
+      CurrPage.SETSELECTIONFILTER(Item);
+      EXIT(SelectionFilterManagement.GetSelectionFilterForItem(Item));
+    END;
+
+    PROCEDURE SetSelection@1(VAR Item@1000 : Record 27);
+    BEGIN
+      CurrPage.SETSELECTIONFILTER(Item);
+    END;
+
+    LOCAL PROCEDURE SetSocialListeningFactboxVisibility@2();
+    VAR
+      SocialListeningMgt@1000 : Codeunit 871;
+    BEGIN
+      SocialListeningMgt.GetItemFactboxVisibility(Rec,SocialListeningSetupVisible,SocialListeningVisible);
+    END;
+
+    LOCAL PROCEDURE EnableControls@4();
+    BEGIN
+      IsService := (Type = Type::Service);
+      InventoryItemEditable := Type = Type::Inventory;
+    END;
+
+    LOCAL PROCEDURE SetWorkflowManagementEnabledState@9();
+    VAR
+      WorkflowManagement@1001 : Codeunit 1501;
+      WorkflowEventHandling@1000 : Codeunit 1520;
+    BEGIN
+      EventFilter := WorkflowEventHandling.RunWorkflowOnSendItemForApprovalCode + '|' +
+        WorkflowEventHandling.RunWorkflowOnItemChangedCode;
+
+      EnabledApprovalWorkflowsExist := WorkflowManagement.EnabledWorkflowExist(DATABASE::Item,EventFilter);
+    END;
+
+    LOCAL PROCEDURE ChangeHeaderStyle@1119429000();
+    VAR
+      FileMngt@1119429002 : Codeunit 419;
+      ArrayOfControls@1000000003 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Array" RUNONCLIENT;
+      Application@1119429001 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.Application" RUNONCLIENT;
+      FormCollection@1119429000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.FormCollection" RUNONCLIENT;
+      Style@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellStyle" RUNONCLIENT;
+      Column@1000000002 : DotNet "'Microsoft.Dynamics.Framework.UI.WinForms.Controls, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Framework.UI.WinForms.Controls.BusinessGridViewColumn" RUNONCLIENT;
+      Color@1119429006 : DotNet "'System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.System.Drawing.Color" RUNONCLIENT;
+      Font@1000000001 : DotNet "'System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.System.Drawing.Font" RUNONCLIENT;
+      FontStyle@1119429009 : DotNet "'System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.System.Drawing.FontStyle" RUNONCLIENT;
+    BEGIN
+      IF NOT FileMngt.CanRunDotNetOnClient THEN
+        EXIT;
+
+      FormCollection := Application.OpenForms;
+      CurrForm := FormCollection.Item(FormCollection.Count-1);
+
+      ArrayOfControls := CurrForm.Controls.Find('_DataGrid', TRUE);
+      IF ArrayOfControls.Length = 0 THEN EXIT;
+      BusinessGridView := ArrayOfControls.GetValue(0);
+
+      FOREACH Column IN BusinessGridView.Columns DO BEGIN
+        CASE Column.HeaderText OF
+          FIELDCAPTION("No."):         // It will be bold
+            BEGIN
+              Style := Column.HeaderCell.Style;
+              Style.Font := Font.Font(BusinessGridView.ColumnHeadersDefaultCellStyle.Font.FontFamily,
+                                      BusinessGridView.ColumnHeadersDefaultCellStyle.Font.Size,
+                                      FontStyle.Bold);
+            END;
+          FIELDCAPTION(Description):  // It will be brown
+            BEGIN
+              Style := Column.HeaderCell.Style;
+              Style.ForeColor := Color.Brown;
+            END;
+        END;
+      END;
+
+      // Change all headers cells color
+      {
+      Style := BusinessGridView.ColumnHeadersDefaultCellStyle;
+      Style.ForeColor := Color.Green;
+      }
+    END;
+
+    EVENT Control1000000000@-1000000000::AddInReady@0();
+    BEGIN
+      ChangeHeaderStyle();
+    END;
+
+    EVENT BusinessGridView@1000000001::UserChangedColumnWidth@324(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewColumnEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnHeadersHeightInLinesChanged@325(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::BeforeDisposed@326(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::PostHandleCreated@327(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::EnterStopLeave@328(sender@1000000001 : Variant;e@1000000000 : DotNet "'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.ComponentModel.HandledEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::HorizontalScrollBarVisibleChanged@329(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::DataLoadedStatusNeeded@330(sender@1000000001 : Variant;e@1000000000 : DotNet "'Microsoft.Dynamics.Framework.UI.WinForms.Controls, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Framework.UI.WinForms.Controls.BusinessGridViewDataLoadedStatusNeededEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CanSelectRow@331(sender@1000000001 : Variant;e@1000000000 : DotNet "'Microsoft.Dynamics.Framework.UI.WinForms.Controls, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Framework.UI.WinForms.Controls.BusinessGridViewCellCancelEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::UserFlipsHardSelectionState@332(sender@1000000001 : Variant;e@1000000000 : DotNet "'Microsoft.Dynamics.Framework.UI.WinForms.Controls, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Framework.UI.WinForms.Controls.BusinessGridViewHardSelectionChangedEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CurrentCellChanging@333(sender@1000000001 : Variant;e@1000000000 : DotNet "'Microsoft.Dynamics.Framework.UI.WinForms.Controls, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Framework.UI.WinForms.Controls.BusinessGridViewCellCancelEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellMouseHover@334(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::UserDeletesSelectedRows@335(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::PreprocessingOfKey@336(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.KeyEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::PostProcessingOfKey@337(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.KeyEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::PerformCellAction@338(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellSelectedForFilterAsYouType@339(sender@1000000001 : Variant;e@1000000000 : DotNet "'Microsoft.Dynamics.Framework.UI.WinForms.Controls, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Framework.UI.WinForms.Controls.BusinessGridViewCellCancelEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::SuspendRowCountUpdate@340(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ResumeRowCountUpdate@341(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::SuspendCurrentCellAddressUpdate@342(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ResumeCurrentCellAddressUpdate@343(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::SuspendCurrentCellReadOnlyUpdate@344(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ResumeCurrentCellReadOnlyUpdate@345(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::UserResetsSelection@346(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::UserSetsSelection@347(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::UserSelectsAll@348(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::UserChangingSelection@349(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::UserChangedSelection@350(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::PreUserCopyRows@351(sender@1000000001 : Variant;e@1000000000 : DotNet "'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.ComponentModel.HandledEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::UserCopyRows@352(sender@1000000001 : Variant;e@1000000000 : DotNet "'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.ComponentModel.HandledEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::UserCopyCell@353(sender@1000000001 : Variant;e@1000000000 : DotNet "'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.ComponentModel.HandledEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::UseAlternatingRowColorChanged@354(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::DrawHorizontalLineChanged@355(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::UseInactiveSelectionColorChanged@356(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::AllowUserToAddRowsChanged@357(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::AllowUserToDeleteRowsChanged@358(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::AllowUserToOrderColumnsChanged@359(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::AllowUserToResizeColumnsChanged@360(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::AllowUserToResizeRowsChanged@361(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::AlternatingRowsDefaultCellStyleChanged@362(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::AutoGenerateColumnsChanged@363(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::AutoSizeColumnsModeChanged@364(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewAutoSizeColumnsModeEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::AutoSizeRowsModeChanged@365(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewAutoSizeModeEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::BackColorChanged@366(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::BackgroundColorChanged@367(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::BackgroundImageChanged@368(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::BackgroundImageLayoutChanged@369(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::BorderStyleChanged@370(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellBorderStyleChanged@371(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnHeadersBorderStyleChanged@372(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnHeadersDefaultCellStyleChanged@373(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnHeadersHeightChanged@374(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnHeadersHeightSizeModeChanged@375(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewAutoSizeModeEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::DataMemberChanged@376(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::DataSourceChanged@377(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::DefaultCellStyleChanged@378(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::EditModeChanged@379(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ForeColorChanged@380(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::FontChanged@381(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::GridColorChanged@382(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::MultiSelectChanged@383(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::PaddingChanged@384(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ReadOnlyChanged@385(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowHeadersBorderStyleChanged@386(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowHeadersDefaultCellStyleChanged@387(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowHeadersWidthChanged@388(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowHeadersWidthSizeModeChanged@389(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewAutoSizeModeEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowsDefaultCellStyleChanged@390(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::TextChanged@391(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::AutoSizeColumnModeChanged@392(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewAutoSizeColumnModeEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CancelRowEdit@393(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.QuestionEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellBeginEdit@394(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellCancelEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellClick@395(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellContentClick@396(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellContentDoubleClick@397(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellContextMenuStripChanged@398(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellContextMenuStripNeeded@399(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellContextMenuStripNeededEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellDoubleClick@400(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellEndEdit@401(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellEnter@402(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellErrorTextChanged@403(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellErrorTextNeeded@404(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellErrorTextNeededEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellFormatting@405(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellFormattingEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellLeave@406(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellMouseClick@407(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellMouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellMouseDoubleClick@408(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellMouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellMouseDown@409(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellMouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellMouseEnter@410(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellMouseLeave@411(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellMouseMove@412(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellMouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellMouseUp@413(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellMouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellPainting@414(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellPaintingEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellParsing@415(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellParsingEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellStateChanged@416(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellStateChangedEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellStyleChanged@417(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellStyleContentChanged@418(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellStyleContentChangedEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellToolTipTextChanged@419(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellToolTipTextNeeded@420(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellToolTipTextNeededEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellValidated@421(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellValidating@422(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellValidatingEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellValueChanged@423(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellValueNeeded@424(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellValueEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CellValuePushed@425(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellValueEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnAdded@426(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewColumnEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnContextMenuStripChanged@427(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewColumnEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnDataPropertyNameChanged@428(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewColumnEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnDefaultCellStyleChanged@429(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewColumnEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnDisplayIndexChanged@430(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewColumnEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnDividerDoubleClick@431(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewColumnDividerDoubleClickEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnDividerWidthChanged@432(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewColumnEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnHeaderMouseClick@433(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellMouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnHeaderMouseDoubleClick@434(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellMouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnHeaderCellChanged@435(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewColumnEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnMinimumWidthChanged@436(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewColumnEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnNameChanged@437(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewColumnEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnRemoved@438(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewColumnEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnSortModeChanged@439(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewColumnEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnStateChanged@440(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewColumnStateChangedEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnToolTipTextChanged@441(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewColumnEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ColumnWidthChanged@442(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewColumnEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CurrentCellChanged@443(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CurrentCellDirtyStateChanged@444(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::DataBindingComplete@445(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewBindingCompleteEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::DataError@446(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewDataErrorEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::DefaultValuesNeeded@447(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::EditingControlShowing@448(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewEditingControlShowingEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::NewRowNeeded@449(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowContextMenuStripChanged@450(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowContextMenuStripNeeded@451(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowContextMenuStripNeededEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowDefaultCellStyleChanged@452(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowDirtyStateNeeded@453(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.QuestionEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowDividerDoubleClick@454(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowDividerDoubleClickEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowDividerHeightChanged@455(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowEnter@456(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowErrorTextChanged@457(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowErrorTextNeeded@458(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowErrorTextNeededEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowHeaderMouseClick@459(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellMouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowHeaderMouseDoubleClick@460(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellMouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowHeaderCellChanged@461(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowHeightChanged@462(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowHeightInfoNeeded@463(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowHeightInfoNeededEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowHeightInfoPushed@464(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowHeightInfoPushedEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowLeave@465(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowMinimumHeightChanged@466(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowPostPaint@467(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowPostPaintEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowPrePaint@468(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowPrePaintEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowsAdded@469(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowsAddedEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowsRemoved@470(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowsRemovedEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowStateChanged@471(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowStateChangedEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowUnshared@472(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowValidated@473(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RowValidating@474(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewCellCancelEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::Scroll@475(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.ScrollEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::SelectionChanged@476(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::SortCompare@477(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewSortCompareEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::Sorted@478(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::StyleChanged@479(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::UserAddedRow@480(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::UserDeletedRow@481(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::UserDeletingRow@482(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DataGridViewRowCancelEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::AutoSizeChanged@483(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::BindingContextChanged@484(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CausesValidationChanged@485(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ClientSizeChanged@486(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ContextMenuChanged@487(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ContextMenuStripChanged@488(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::CursorChanged@489(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::DockChanged@490(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::EnabledChanged@491(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::LocationChanged@492(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::MarginChanged@493(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RegionChanged@494(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::RightToLeftChanged@495(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::SizeChanged@496(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::TabIndexChanged@497(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::TabStopChanged@498(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::VisibleChanged@499(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::Click@500(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ControlAdded@501(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.ControlEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ControlRemoved@502(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.ControlEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::DragDrop@503(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DragEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::DragEnter@504(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DragEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::DragOver@505(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DragEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::DragLeave@506(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::GiveFeedback@507(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.GiveFeedbackEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::HandleCreated@508(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::HandleDestroyed@509(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::HelpRequested@510(sender@1000000001 : Variant;hlpevent@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.HelpEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::Invalidated@511(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.InvalidateEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::Paint@512(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.PaintEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::QueryContinueDrag@513(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.QueryContinueDragEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::QueryAccessibilityHelp@514(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.QueryAccessibilityHelpEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::DoubleClick@515(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::Enter@516(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::GotFocus@517(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::KeyDown@518(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.KeyEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::KeyPress@519(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.KeyPressEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::KeyUp@520(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.KeyEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::Layout@521(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.LayoutEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::Leave@522(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::LostFocus@523(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::MouseClick@524(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.MouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::MouseDoubleClick@525(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.MouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::MouseCaptureChanged@526(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::MouseDown@527(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.MouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::MouseEnter@528(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::MouseLeave@529(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::DpiChangedBeforeParent@530(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::DpiChangedAfterParent@531(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::MouseHover@532(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::MouseMove@533(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.MouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::MouseUp@534(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.MouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::MouseWheel@535(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.MouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::Move@536(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::PreviewKeyDown@537(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.PreviewKeyDownEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::Resize@538(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ChangeUICues@539(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.UICuesEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::SystemColorsChanged@540(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::Validating@541(sender@1000000001 : Variant;e@1000000000 : DotNet "'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.ComponentModel.CancelEventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::Validated@542(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ParentChanged@543(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::ImeModeChanged@544(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT BusinessGridView@1000000001::Disposed@545(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::AutoSizeChanged@225(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::AutoValidateChanged@226(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::HelpButtonClicked@227(sender@1000000001 : Variant;e@1000000000 : DotNet "'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.ComponentModel.CancelEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::MaximizedBoundsChanged@228(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::MaximumSizeChanged@229(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::MarginChanged@230(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::MinimumSizeChanged@231(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::TabIndexChanged@232(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::TabStopChanged@233(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::Activated@234(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::Closing@235(sender@1000000001 : Variant;e@1000000000 : DotNet "'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.ComponentModel.CancelEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::Closed@236(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::Deactivate@237(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::FormClosing@238(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.FormClosingEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::FormClosed@239(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.FormClosedEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::Load@240(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::MdiChildActivate@241(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::MenuComplete@242(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::MenuStart@243(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::InputLanguageChanged@244(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.InputLanguageChangedEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::InputLanguageChanging@245(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.InputLanguageChangingEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::RightToLeftLayoutChanged@246(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::Shown@247(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::DpiChanged@248(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DpiChangedEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::ResizeBegin@249(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::ResizeEnd@250(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::Scroll@251(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.ScrollEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::BackColorChanged@252(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::BackgroundImageChanged@253(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::BackgroundImageLayoutChanged@254(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::BindingContextChanged@255(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::CausesValidationChanged@256(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::ClientSizeChanged@257(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::ContextMenuChanged@258(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::ContextMenuStripChanged@259(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::CursorChanged@260(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::DockChanged@261(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::EnabledChanged@262(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::FontChanged@263(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::ForeColorChanged@264(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::LocationChanged@265(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::RegionChanged@266(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::RightToLeftChanged@267(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::SizeChanged@268(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::TextChanged@269(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::VisibleChanged@270(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::Click@271(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::ControlAdded@272(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.ControlEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::ControlRemoved@273(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.ControlEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::DragDrop@274(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DragEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::DragEnter@275(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DragEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::DragOver@276(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DragEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::DragLeave@277(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::GiveFeedback@278(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.GiveFeedbackEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::HandleCreated@279(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::HandleDestroyed@280(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::HelpRequested@281(sender@1000000001 : Variant;hlpevent@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.HelpEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::Invalidated@282(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.InvalidateEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::PaddingChanged@283(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::Paint@284(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.PaintEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::QueryContinueDrag@285(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.QueryContinueDragEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::QueryAccessibilityHelp@286(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.QueryAccessibilityHelpEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::DoubleClick@287(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::Enter@288(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::GotFocus@289(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::KeyDown@290(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.KeyEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::KeyPress@291(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.KeyPressEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::KeyUp@292(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.KeyEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::Layout@293(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.LayoutEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::Leave@294(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::LostFocus@295(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::MouseClick@296(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.MouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::MouseDoubleClick@297(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.MouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::MouseCaptureChanged@298(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::MouseDown@299(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.MouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::MouseEnter@300(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::MouseLeave@301(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::DpiChangedBeforeParent@302(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::DpiChangedAfterParent@303(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::MouseHover@304(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::MouseMove@305(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.MouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::MouseUp@306(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.MouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::MouseWheel@307(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.MouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::Move@308(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::PreviewKeyDown@309(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.PreviewKeyDownEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::Resize@310(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::ChangeUICues@311(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.UICuesEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::StyleChanged@312(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::SystemColorsChanged@313(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::Validating@314(sender@1000000001 : Variant;e@1000000000 : DotNet "'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.ComponentModel.CancelEventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::Validated@315(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::ParentChanged@316(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::ImeModeChanged@317(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT CurrForm@1000000002::Disposed@318(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    BEGIN
+    END.
+  }
+}
