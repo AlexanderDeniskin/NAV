@@ -50,6 +50,6 @@ LOCAL PROCEDURE ChangeHeaderStyle();
 
     END;
 ```
-4. Run `ChangeHeaderStyle()` on AddInReady of `Microsoft.Dynamics.Nav.Client.PageReady` field
+4. Run `ChangeHeaderStyle()` on AddInReady of `Microsoft.Dynamics.Nav.Client.PageReady` field.
 
 File [Page50001.txt](Page50001.txt) contains example for Item List. It's a copy of standard `Item List` page with changed formatting for `No.` and `Description`.
