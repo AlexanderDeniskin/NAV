@@ -1,0 +1,375 @@
+OBJECT Page 50002 Input Dialog
+{
+  OBJECT-PROPERTIES
+  {
+    Date=04.12.18;
+    Time=15:13:58;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    CaptionML=[DEU=Input Dialog;
+               ENU=Input Dialog];
+    LinksAllowed=No;
+    DataCaptionExpr=HeaderText;
+    PageType=StandardDialog;
+    ShowFilter=No;
+    OnInit=BEGIN
+             CLEARALL;
+           END;
+
+  }
+  CONTROLS
+  {
+    { 1119429000;0;Container;
+                ContainerType=ContentArea }
+
+    { 1119429041;1;Group  ;
+                GroupType=Group }
+
+    { 1000000000;2;Group  ;
+                GroupType=FixedLayout }
+
+    { 1000000002;3;Group  ;
+                GroupType=Group }
+
+    { 1000000001;4;Field  ;
+                SourceExpr=HeaderText;
+                Visible=HeaderText<>'';
+                Style=Strong;
+                StyleExpr=TRUE;
+                ColumnSpan=2;
+                ShowCaption=No }
+
+    { 1119429014;2;Group  ;
+                Visible=GroupVisible1;
+                GroupType=Group }
+
+    { 1119429002;3;Field  ;
+                SourceExpr=TextField[1];
+                CaptionClass=GetCaptionClass(1);
+                Visible=FieldType1 = FieldType1::Text;
+                OnLookup=BEGIN
+                           EXIT(LookupText(1,Text));
+                         END;
+                          }
+
+    { 1119429003;3;Field  ;
+                SourceExpr=IntField[1];
+                CaptionClass=GetCaptionClass(1);
+                Visible=FieldType1 = FieldType1::Integer }
+
+    { 1119429004;3;Field  ;
+                SourceExpr=DecField[1];
+                CaptionClass=GetCaptionClass(1);
+                Visible=FieldType1 = FieldType1::Decimal }
+
+    { 1119429005;3;Field  ;
+                SourceExpr=DateField[1];
+                CaptionClass=GetCaptionClass(1);
+                Visible=FieldType1 = FieldType1::Date }
+
+    { 1119429006;3;Field  ;
+                SourceExpr=TimeField[1];
+                CaptionClass=GetCaptionClass(1);
+                Visible=FieldType1 = FieldType1::Time;
+                ShowCaption=No }
+
+    { 1119429007;3;Field  ;
+                SourceExpr=DateTimeField[1];
+                CaptionClass=GetCaptionClass(1);
+                Visible=FieldType1 = FieldType1::DateTime }
+
+    { 1119429008;3;Field  ;
+                SourceExpr=BoolField[1];
+                CaptionClass=GetCaptionClass(1);
+                Visible=FieldType1 = FieldType1::Boolean }
+
+    { 1119429040;2;Group  ;
+                Visible=GroupVisible2;
+                GroupType=Group }
+
+    { 1119429033;3;Field  ;
+                SourceExpr=TextField[2];
+                CaptionClass=GetCaptionClass(2);
+                Visible=FieldType2 = FieldType2::Text;
+                OnLookup=BEGIN
+                           EXIT(LookupText(2,Text));
+                         END;
+                          }
+
+    { 1119429031;3;Field  ;
+                SourceExpr=IntField[2];
+                CaptionClass=GetCaptionClass(2);
+                Visible=FieldType2 = FieldType2::Integer }
+
+    { 1119429029;3;Field  ;
+                SourceExpr=DecField[2];
+                CaptionClass=GetCaptionClass(2);
+                Visible=FieldType2 = FieldType2::Decimal }
+
+    { 1119429027;3;Field  ;
+                SourceExpr=DateField[2];
+                CaptionClass=GetCaptionClass(2);
+                Visible=FieldType2 = FieldType2::Date }
+
+    { 1119429025;3;Field  ;
+                SourceExpr=TimeField[2];
+                CaptionClass=GetCaptionClass(2);
+                Visible=FieldType2 = FieldType2::Time }
+
+    { 1119429023;3;Field  ;
+                SourceExpr=DateTimeField[2];
+                CaptionClass=GetCaptionClass(2);
+                Visible=FieldType2 = FieldType2::DateTime }
+
+    { 1119429021;3;Field  ;
+                SourceExpr=BoolField[2];
+                CaptionClass=GetCaptionClass(2);
+                Visible=FieldType2 = FieldType2::Boolean }
+
+    { 1119429061;2;Group  ;
+                Visible=GroupVisible3;
+                GroupType=Group }
+
+    { 1119429054;3;Field  ;
+                SourceExpr=TextField[3];
+                CaptionClass=GetCaptionClass(3);
+                Visible=FieldType3 = FieldType3::Text;
+                OnLookup=BEGIN
+                           EXIT(LookupText(3,Text));
+                         END;
+                          }
+
+    { 1119429052;3;Field  ;
+                SourceExpr=IntField[3];
+                CaptionClass=GetCaptionClass(3);
+                Visible=FieldType3 = FieldType3::Integer }
+
+    { 1119429050;3;Field  ;
+                SourceExpr=DecField[3];
+                CaptionClass=GetCaptionClass(3);
+                Visible=FieldType3 = FieldType3::Decimal }
+
+    { 1119429048;3;Field  ;
+                SourceExpr=DateField[3];
+                CaptionClass=GetCaptionClass(3);
+                Visible=FieldType3 = FieldType3::Date }
+
+    { 1119429046;3;Field  ;
+                SourceExpr=TimeField[3];
+                CaptionClass=GetCaptionClass(3);
+                Visible=FieldType3 = FieldType3::Time }
+
+    { 1119429044;3;Field  ;
+                SourceExpr=DateTimeField[3];
+                CaptionClass=GetCaptionClass(3);
+                Visible=FieldType3 = FieldType3::DateTime }
+
+    { 1119429042;3;Field  ;
+                SourceExpr=BoolField[3];
+                CaptionClass=GetCaptionClass(3);
+                Visible=FieldType3 = FieldType3::Boolean }
+
+    { 1119429063;2;Group  ;
+                Visible=GroupVisible4;
+                GroupType=Group }
+
+    { 1119429062;3;Field  ;
+                SourceExpr=BigTextField;
+                CaptionClass=GetCaptionClass(4);
+                MultiLine=Yes;
+                ColumnSpan=2 }
+
+  }
+  CODE
+  {
+    VAR
+      CaptionText@1119429011 : ARRAY [4] OF Text[100];
+      TextField@1119429000 : ARRAY [3] OF Text[250];
+      IntField@1119429002 : ARRAY [3] OF BigInteger;
+      DecField@1119429003 : ARRAY [3] OF Decimal;
+      DateField@1119429001 : ARRAY [3] OF Date;
+      TimeField@1119429004 : ARRAY [3] OF Time;
+      DateTimeField@1119429005 : ARRAY [3] OF DateTime;
+      BoolField@1119429006 : ARRAY [3] OF Boolean;
+      TableRelation@1000000000 : ARRAY [3] OF Integer;
+      TableRelationView@1000000001 : ARRAY [3] OF Text;
+      GroupVisible1@1119429007 : Boolean;
+      GroupVisible2@1119429012 : Boolean;
+      GroupVisible3@1119429013 : Boolean;
+      GroupVisible4@1119429015 : Boolean;
+      FieldType1@1119429008 : 'Text,Integer,Decimal,Date,Time,DateTime,Boolean';
+      FieldType2@1119429009 : 'Text,Integer,Decimal,Date,Time,DateTime,Boolean';
+      FieldType3@1119429010 : 'Text,Integer,Decimal,Date,Time,DateTime,Boolean';
+      BigTextField@1119429014 : Text;
+      TEXT001@1119429017 : TextConst 'ENU=FieldNo can only be between 1 and 4';
+      HeaderText@1000000002 : Text;
+      TEXT002@1000000003 : TextConst 'ENU=Incorrect Data Type';
+
+    PROCEDURE AddField@1119429000(FieldID@1119429000 : Integer;Caption@1119429001 : Text[1024];ValueType@1119429002 : 'Text,Integer,Decimal,Date,Time,DateTime,Boolean';DefaultValue@1119429003 : Variant;RelationTableNo@1000000001 : Integer;RelationTableView@1000000000 : Text);
+    BEGIN
+      CASE FieldID OF
+        1: BEGIN
+            GroupVisible1 := TRUE;
+            FieldType1 := ValueType;
+          END;
+        2: BEGIN
+            GroupVisible2 := TRUE;
+            FieldType2 := ValueType;
+          END;
+        3: BEGIN
+            GroupVisible3 := TRUE;
+            FieldType3 := ValueType;
+          END;
+        4: BEGIN
+            GroupVisible4 := TRUE;
+            CaptionText[FieldID] := Caption;
+            BigTextField := DefaultValue;
+            EXIT;
+          END;
+        ELSE
+          ERROR(TEXT001);
+      END;
+
+      CaptionText[FieldID] := Caption;
+
+      CASE ValueType OF
+        ValueType::Text:
+            TextField[FieldID] := DefaultValue;
+        ValueType::Integer:
+          IntField[FieldID] := DefaultValue;
+        ValueType::Decimal:
+          DecField[FieldID] := DefaultValue;
+        ValueType::Date:
+          DateField[FieldID] := DefaultValue;
+        ValueType::Time:
+          TimeField[FieldID] := DefaultValue;
+        ValueType::DateTime:
+          DateTimeField[FieldID] := DefaultValue;
+        ValueType::Boolean:
+          BoolField[FieldID] := DefaultValue;
+        ELSE
+          ERROR(TEXT002);
+      END;
+
+      TableRelation[FieldID] := RelationTableNo;
+      TableRelationView[FieldID] := RelationTableView;
+    END;
+
+    PROCEDURE AddHeaderText@1000000003(Text@1000000000 : Text);
+    BEGIN
+      HeaderText := Text;
+    END;
+
+    PROCEDURE GetFieldValue@1119429003(FieldID@1119429000 : Integer;VAR Value@1119429001 : Variant);
+    VAR
+      ValueType@1000000000 : 'Text,Integer,Decimal,Date,Time,DateTime,Boolean';
+    BEGIN
+      CASE FieldID OF
+        1: ValueType := FieldType1;
+        2: ValueType := FieldType2;
+        3: ValueType := FieldType3;
+        4: BEGIN
+             Value := BigTextField;
+             EXIT;
+           END;
+        ELSE
+          EXIT;
+      END;
+
+      CASE ValueType OF
+        ValueType::Text:
+          Value := TextField[FieldID];
+        ValueType::Integer:
+          Value := IntField[FieldID];
+        ValueType::Decimal:
+          Value := DecField[FieldID];
+        ValueType::Date:
+          Value := DateField[FieldID];
+        ValueType::Time:
+          Value := TimeField[FieldID];
+        ValueType::DateTime:
+          Value := DateTimeField[FieldID];
+        ValueType::Boolean:
+          Value := BoolField[FieldID];
+      END;
+    END;
+
+    LOCAL PROCEDURE GetCaptionClass@1000000000(FieldID@1000000000 : Integer) : Text;
+    BEGIN
+      EXIT(STRSUBSTNO('3,%1',CaptionText[FieldID]));
+    END;
+
+    LOCAL PROCEDURE LookupText@1000000002(FieldNo@1000000000 : Integer;VAR Text@1000000001 : Text) : Boolean;
+    VAR
+      TempNameValueBuffer@1000000007 : TEMPORARY Record 823;
+      RecRef@1000000002 : RecordRef;
+      RecVariant@1000000003 : Variant;
+      OptionStringText@1000000008 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.String";
+      OptionStringArray@1000000005 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Array";
+      Separator@1000000006 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.String";
+      Value@1000000004 : Text;
+      I@1000000009 : Integer;
+    BEGIN
+      IF (TableRelation[FieldNo] = 0) AND (TableRelationView[FieldNo] = '') THEN
+        EXIT(FALSE);
+
+      IF TableRelation[FieldNo] > 0 THEN BEGIN
+        RecRef.OPEN(TableRelation[FieldNo]);
+        IF TableRelationView[FieldNo] <> '' THEN
+          RecRef.SETVIEW(TableRelationView[FieldNo]);
+        RecVariant := RecRef;
+        IF PAGE.RUNMODAL(0, RecVariant) <> ACTION::LookupOK THEN
+          EXIT(FALSE);
+
+        RecRef := RecVariant;
+        Text := RecRef.FIELD(GetFieldNo(RecRef)).VALUE;
+        EXIT(TRUE);
+      END;
+
+      OptionStringText := TableRelationView[FieldNo];
+      Separator := ',';
+      OptionStringArray := OptionStringText.Split(Separator.ToCharArray());
+      I := 0;
+      FOREACH Value IN OptionStringArray DO BEGIN
+        I += 1;
+        TempNameValueBuffer.AddNewEntry(FORMAT(I), Value);
+      END;
+
+      TempNameValueBuffer.FINDFIRST;
+      IF PAGE.RUNMODAL(PAGE::"Name/Value Lookup",TempNameValueBuffer) = ACTION::LookupOK THEN BEGIN
+        Text := TempNameValueBuffer.Value;
+        EXIT(TRUE);
+      END;
+      EXIT(FALSE);
+    END;
+
+    LOCAL PROCEDURE GetFieldNo@1000000004(RecRef@1000000000 : RecordRef) : Integer;
+    VAR
+      Field@1000000004 : Record 2000000041;
+      KeyRef@1000000002 : KeyRef;
+      FieldRef@1000000001 : FieldRef;
+      I@1000000003 : Integer;
+    BEGIN
+      Field.RESET;
+      Field.SETRANGE(TableNo, RecRef.NUMBER);
+      Field.SETFILTER(Type, '%1|%2',Field.Type::Code, Field.Type::Text);
+      Field.SETRANGE(Class, Field.Class::Normal);
+      Field.SETRANGE(Enabled, TRUE);
+
+      KeyRef := RecRef.KEYINDEX(1);
+      FOR I := 1 TO KeyRef.FIELDCOUNT DO BEGIN
+        FieldRef := KeyRef.FIELDINDEX(I);
+        Field.SETRANGE("No.", FieldRef.NUMBER);
+        IF Field.FINDFIRST THEN
+          EXIT(Field."No.");
+      END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
