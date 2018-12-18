@@ -1,2 +1,2 @@
 # SQL Query
-Allows to run SQL query inside current nav trasaction and rollback it in case of error
+Allows to run SQL query for data update inside current nav trasaction and rollback it in case of error
