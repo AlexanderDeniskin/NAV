@@ -1,0 +1,137 @@
+OBJECT Page 50007 SQL Query Examples
+{
+  OBJECT-PROPERTIES
+  {
+    Date=18.12.18;
+    Time=11:26:50;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=SQL Query Examples;
+    SaveValues=No;
+    InsertAllowed=No;
+    DeleteAllowed=Yes;
+    ModifyAllowed=No;
+    SourceTable=Table91;
+    PageType=List;
+    OnOpenPage=BEGIN
+                 SETFILTER("User ID", USERID + '*');
+               END;
+
+    OnDeleteRecord=BEGIN
+                     EXIT("User ID" <> USERID);
+
+                   END;
+
+    ActionList=ACTIONS
+    {
+      { 1000000004;  ;ActionContainer;
+                      ActionContainerType=ActionItems }
+      { 1000000005;1 ;Action    ;
+                      Name=InsertFrom;
+                      CaptionML=ENU=Insert from;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=AddAction;
+                      PromotedCategory=Process;
+                      PromotedOnly=Yes;
+                      OnAction=BEGIN
+                                 // Add to User Setup new record for USERID + '1'
+                                 // and copy e-mail from current user
+
+                                 SQLQuery.Initialize(DATABASE::"User Setup");
+                                 SQLQuery.AddFieldValue(UserSetup.FIELDNO("User ID"), 'US.[User ID]+''1''');
+                                 SQLQuery.AddFieldValue(UserSetup.FIELDNO("E-Mail"), 'US.[E-Mail]');
+                                 SQLQuery.GenerateInsertInto(1);                                              // Generate INSERT INTO ... SELECT
+                                 SQLQuery.AddText(STRSUBSTNO('FROM %1 US ', SQLQuery.GetSQLTableName(DATABASE::"User Setup")));  // Add FROM
+                                 SQLQuery.AddText(STRSUBSTNO('WHERE US.[User ID] = ''%1''', USERID));                            // and WHERE
+                                 MESSAGE('The following query will be executed:\\%1', SQLQuery.GetQueryText);
+                                 SQLQuery.Execute(FALSE);
+                               END;
+                                }
+      { 1000000006;1 ;Action    ;
+                      Name=Update;
+                      CaptionML=ENU=Update;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=UpdateUnitCost;
+                      PromotedCategory=Process;
+                      PromotedOnly=Yes;
+                      OnAction=BEGIN
+                                 UserSetup.LOCKTABLE;
+                                 UserSetup.GET(USERID);
+
+                                 UserSetup."E-Mail" := 'nav mail';
+                                 UserSetup.MODIFY;   // Record is locked, nobody other can change it
+
+                                 SQLQuery.Initialize(DATABASE::"User Setup");
+                                 SQLQuery.AddText(STRSUBSTNO('Update %1 ', SQLQuery.GetSQLTableName(DATABASE::"User Setup")));
+                                 SQLQuery.AddText(STRSUBSTNO('Set [E-Mail] = ''Wow'' '));
+                                 SQLQuery.AddText(STRSUBSTNO('where [User ID] = ''%1'' ', USERID));
+                                 SQLQuery.Execute(TRUE);    // We can change the record
+
+                                 { It can be uncommented and checked whether it will work
+                                 UserSetup.GET(USERID);
+                                 UserSetup."E-Mail" := 'nav mail2';
+                                 UserSetup.MODIFY;
+                                 }
+                               END;
+                                }
+      { 1000000007;1 ;Action    ;
+                      Name=Rollback;
+                      CaptionML=ENU=Rollback;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=Undo;
+                      PromotedCategory=Process;
+                      PromotedOnly=Yes;
+                      OnAction=VAR
+                                 I@1000000000 : Integer;
+                               BEGIN
+                                 UserSetup.GET(USERID);
+
+                                 UserSetup."E-Mail" := 'Before COMMIT';
+                                 UserSetup.MODIFY;
+                                 COMMIT;               // Save data
+
+                                 SQLQuery.Initialize(DATABASE::"User Setup");
+                                 SQLQuery.AddText(STRSUBSTNO('Update %1 ', SQLQuery.GetSQLTableName(DATABASE::"User Setup")));
+                                 SQLQuery.AddText(STRSUBSTNO('Set [E-Mail] = ''How does it work?'' '));
+                                 SQLQuery.AddText(STRSUBSTNO('where [User ID] = ''%1'' ', USERID));
+                                 SQLQuery.Execute(TRUE);
+
+                                 I := 1/0;  // Oops!
+                               END;
+                                }
+    }
+  }
+  CONTROLS
+  {
+    { 1000000000;0;Container;
+                ContainerType=ContentArea }
+
+    { 1000000001;1;Group  ;
+                Name=Group;
+                GroupType=Repeater }
+
+    { 1000000002;2;Field  ;
+                SourceExpr="User ID" }
+
+    { 1000000003;2;Field  ;
+                ExtendedDatatype=None;
+                SourceExpr="E-Mail" }
+
+  }
+  CODE
+  {
+    VAR
+      UserSetup@1000000001 : Record 91;
+      SQLQuery@1000000000 : Record 50006;
+
+    BEGIN
+    END.
+  }
+}
+

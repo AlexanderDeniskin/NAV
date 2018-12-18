@@ -1,0 +1,274 @@
+OBJECT Table 50006 SQL Query
+{
+  OBJECT-PROPERTIES
+  {
+    Date=18.12.18;
+    Time=11:27:26;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    DataPerCompany=No;
+    CaptionML=ENU=SQL Query;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Entry No.           ;Integer       ;AutoIncrement=Yes;
+                                                   CaptionML=ENU=Entry No. }
+    { 2   ;   ;Query Text          ;BLOB          ;Compressed=No;
+                                                   CaptionML=ENU=Query Text }
+    { 10  ;   ;User ID             ;Code20        ;CaptionML=ENU=User ID }
+    { 11  ;   ;Creation DateTime   ;DateTime      ;CaptionML=ENU=Creation DateTime }
+    { 12  ;   ;Duration            ;Duration      ;CaptionML=ENU=Duration }
+    { 13  ;   ;Table No.           ;Integer       ;CaptionML=ENU=Table No. }
+  }
+  KEYS
+  {
+    {    ;Entry No.                               ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      FieldsList@1000000007 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Collections.Generic.Dictionary`2";
+      QueryText@1000000005 : Text;
+      UpdateTableID@1000000004 : Integer;
+      TEXT001@1000000003 : TextConst 'ENU=Fields count cannot be more than %1';
+      TEXT002@1000000006 : TextConst 'ENU=Query text is not specified';
+
+    PROCEDURE GetSQLTableName@1119429000(TableID@1119429000 : Integer) : Text[500];
+    VAR
+      TableInfo@1000000000 : Record 2000000028;
+      RecRef@1119429002 : RecordRef;
+      DataPerCompany@1000000001 : Boolean;
+    BEGIN
+      RecRef.OPEN(TableID);
+      DataPerCompany := TRUE;
+      IF TableInfo.GET('', TableID) THEN
+        DataPerCompany := FALSE
+      ELSE
+        TableInfo.GET(COMPANYNAME, TableID); // if table doesn't exist then error will occur
+
+      IF DataPerCompany THEN
+        EXIT(STRSUBSTNO('[%1$%2]', ReplaceString(COMPANYNAME), ReplaceString(RecRef.NAME)))
+      ELSE
+        EXIT(STRSUBSTNO('[%1]',ReplaceString(RecRef.NAME)));
+    END;
+
+    PROCEDURE ReplaceString@1119429002(Text@1119429000 : Text[250]) : Text[250];
+    BEGIN
+      Text := CONVERTSTR(Text, '.', '_');
+      Text := CONVERTSTR(Text, '"', '_');
+      Text := CONVERTSTR(Text, '\', '_');
+      Text := CONVERTSTR(Text, '/', '_');
+      Text := CONVERTSTR(Text, '''', '_');
+      EXIT(Text);
+    END;
+
+    PROCEDURE Initialize@1000000002(NewTableID@1000000000 : Integer);
+    BEGIN
+      IF ISNULL(FieldsList) THEN
+        FieldsList := FieldsList.Dictionary
+      ELSE
+        FieldsList.Clear;
+
+      UpdateTableID := NewTableID;
+      QueryText := '';
+    END;
+
+    PROCEDURE AddFieldValue@1000000003(FieldNo@1000000001 : Integer;FieldValue@1000000002 : Text);
+    VAR
+      Field@1000000003 : Record 2000000041;
+    BEGIN
+      IF UpdateTableID = 0 THEN
+        ERROR('Table ID was not initialized');
+
+      Field.GET(UpdateTableID, FieldNo);
+      Field.TESTFIELD(Class, Field.Class::Normal);
+      Field.TESTFIELD(Enabled, TRUE);
+
+      IF FieldsList.ContainsKey(FieldNo) THEN
+        FieldsList.Remove(FieldNo);
+
+      FieldsList.Add(FieldNo,FieldValue);
+    END;
+
+    PROCEDURE GenerateInsertInto@1000000001(InsertType@1000000006 : 'Values,Select');
+    VAR
+      Field@1000000005 : Record 2000000041;
+      RecRef@1000000003 : RecordRef;
+      I@1000000004 : Integer;
+      FirstField@1000000007 : Boolean;
+      Text2Add@1000000008 : Text[1024];
+      DateValue@1000000011 : Date;
+      TimeValue@1000000012 : Time;
+      BooleanValue@1000000013 : Boolean;
+      IntegerValue@1000000014 : BigInteger;
+      DateTimeValue@1000000015 : DateTime;
+    BEGIN
+      CLEAR(QueryText);
+
+      RecRef.OPEN(UpdateTableID);
+      RecRef.INIT;
+
+      FOR I := 1 TO 2 DO BEGIN
+        IF I = 1 THEN
+          QueryText += STRSUBSTNO('INSERT INTO %1 ( ', GetSQLTableName(UpdateTableID))
+        ELSE
+          IF InsertType = InsertType::Values THEN
+            QueryText += ') VALUES ( '
+          ELSE
+            QueryText += ') SELECT ';
+
+        FirstField := TRUE;
+
+        Field.RESET;
+        Field.SETRANGE(TableNo, UpdateTableID);
+        Field.SETRANGE(Class, Field.Class::Normal);
+        Field.SETRANGE(Enabled, TRUE);
+        Field.FINDSET;
+
+        REPEAT
+          IF FirstField THEN
+            Text2Add := ''
+          ELSE
+            Text2Add := ',';
+
+          IF I = 1 THEN                                              // Field names
+            Text2Add += '['+ ReplaceString(Field.FieldName) +'] '
+          ELSE BEGIN                                                 // Field values
+            IF FieldsList.ContainsKey(Field."No.") THEN
+              Text2Add += FORMAT(FieldsList.Item(Field."No.")) + ' '  // Custom value
+            ELSE BEGIN                                                // Default value
+              CASE Field.Type OF
+                Field.Type::RecordID:
+                  Text2Add += '0x00000000 ';
+
+                Field.Type::TableFilter,
+                Field.Type::Binary:
+                  Text2Add += '0x00 ';
+
+                Field.Type::BLOB:
+                  Text2Add += 'NULL ';
+
+                Field.Type::GUID,
+                Field.Type::Text,
+                Field.Type::Code:
+                  Text2Add += '''' + FORMAT(RecRef.FIELD(Field."No.").VALUE) + ''' ';
+
+                Field.Type::Date:
+                  BEGIN
+                    DateValue := RecRef.FIELD(Field."No.").VALUE;
+                    IF DateValue = 0D THEN
+                      Text2Add += '''1753-01-01 00:00:00.000'' '
+                    ELSE
+                      Text2Add += '''' + FORMAT(DateValue,0,'<Year4>-<Month,2>-<Day,2>') + ''' ';
+                  END;
+
+                Field.Type::Time:
+                  BEGIN
+                    TimeValue := RecRef.FIELD(Field."No.").VALUE;
+                    IF TimeValue = 0T THEN
+                      Text2Add += '''1753-01-01 00:00:00.000'' '
+                    ELSE
+                      Text2Add += STRSUBSTNO('''1754-01-01 %1''', FORMAT(TimeValue,0,'<Hours,2>:<Minutes,2>:<Seconds,2>'));
+                  END;
+
+                Field.Type::Time:
+                  Text2Add += '''''';
+
+                Field.Type::Decimal:
+                  Text2Add += FORMAT(RecRef.FIELD(Field."No.").VALUE,0,9);
+
+                Field.Type::Boolean:
+                  BEGIN
+                    BooleanValue := RecRef.FIELD(Field."No.").VALUE;
+                    Text2Add += FORMAT(BooleanValue,0,2);
+                  END;
+
+                Field.Type::Integer,
+                Field.Type::Option,
+                Field.Type::BigInteger,
+                Field.Type::Duration:
+                  BEGIN
+                    IntegerValue := RecRef.FIELD(Field."No.").VALUE;
+                    Text2Add += FORMAT(IntegerValue,0,9);
+                  END;
+
+                Field.Type::DateTime:
+                    Text2Add += '''1753-01-01 00:00:00.000'''
+
+              END;
+            END;
+          END;
+          QueryText += Text2Add;
+          FirstField := FALSE;
+        UNTIL Field.NEXT = 0;
+      END;
+
+      IF InsertType = InsertType::Values THEN
+        QueryText += ') '
+      ELSE
+        QueryText += ' ';
+    END;
+
+    PROCEDURE AddText@1000000006(Text@1000000000 : Text[1024]);
+    BEGIN
+      QueryText += Text;
+    END;
+
+    PROCEDURE GetQueryText@1000000007() : Text;
+    BEGIN
+      EXIT(QueryText);
+    END;
+
+    PROCEDURE Execute@1000000000(Save@1000000002 : Boolean);
+    VAR
+      OutStrm@1000000001 : OutStream;
+    BEGIN
+      IF QueryText = '' THEN
+        ERROR(TEXT002);
+
+      Rec.INIT;
+      Rec."Entry No." := 0;
+
+      "Query Text".CREATEOUTSTREAM(OutStrm);
+      OutStrm.WRITE(QueryText);
+
+
+      "User ID" := USERID;
+      "Creation DateTime" := CURRENTDATETIME;
+      "Table No." := UpdateTableID;
+      INSERT;    // SQL trigger will run here
+
+      IF NOT Save THEN
+        DELETE;  // Don't save history
+
+      QueryText := '';
+    END;
+
+    PROCEDURE GetSavedQueryText@1000000004() : Text;
+    VAR
+      InStream@1000000000 : InStream;
+      ReturnText@1000000001 : Text;
+    BEGIN
+      CALCFIELDS("Query Text");
+      IF NOT "Query Text".HASVALUE THEN
+        EXIT('');
+
+      "Query Text".CREATEINSTREAM(InStream);
+      InStream.READ(ReturnText);
+      EXIT(ReturnText);
+    END;
+
+    BEGIN
+    {
+      Allow to run SQL query for update data and rollback it inside of nav transaction
+    }
+    END.
+  }
+}
+

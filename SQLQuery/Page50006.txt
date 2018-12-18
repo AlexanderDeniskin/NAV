@@ -1,0 +1,58 @@
+OBJECT Page 50006 SQL Query List
+{
+  OBJECT-PROPERTIES
+  {
+    Date=18.12.18;
+    Time=11:26:33;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=SQL Query List;
+    SourceTable=Table50006;
+    PageType=List;
+    OnAfterGetCurrRecord=BEGIN
+                           QueryText := GetSavedQueryText;
+                         END;
+
+  }
+  CONTROLS
+  {
+    { 1000000000;0;Container;
+                ContainerType=ContentArea }
+
+    { 1000000001;1;Group  ;
+                Name=Group;
+                GroupType=Repeater }
+
+    { 1000000002;2;Field  ;
+                SourceExpr="Entry No." }
+
+    { 1000000003;2;Field  ;
+                SourceExpr="User ID" }
+
+    { 1000000004;2;Field  ;
+                SourceExpr="Creation DateTime" }
+
+    { 1000000005;2;Field  ;
+                SourceExpr=Duration }
+
+    { 1000000006;2;Field  ;
+                SourceExpr="Table No." }
+
+    { 1000000007;1;Field  ;
+                SourceExpr=QueryText;
+                MultiLine=Yes }
+
+  }
+  CODE
+  {
+    VAR
+      QueryText@1000000000 : Text;
+
+    BEGIN
+    END.
+  }
+}
+
