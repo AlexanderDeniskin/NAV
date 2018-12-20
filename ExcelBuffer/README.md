@@ -12,13 +12,13 @@ No additional or external components required.
 
 ## Instalation
 
-1. Download file [Table50000.txt](Table50000.txt).
+1. Download file [Table 50000 Excel Buffer Extended.txt](Objects/Table%2050000%20Excel%20Buffer%20Extended.txt).
 2. If you want to change object id then open file in text editor and replace all instances of the string "Record 50000" with the new object id ("Record 50050", for example) and change object id in the first line of file.
 3. Import file to Nav 2017 and compile it. 
 
 ## Examples
 
-File [Examples.txt](Examples.txt) contains three functions that show how to use this tool.
+File [Codeunit 50000 Excel Buffer Ext. Examples.txt](Objects/Codeunit%2050000%20Excel%20Buffer%20Ext.%20Examples.txt) contains three functions that show how to use this tool.
 
 1. Function `GeneralFormatting()` shows how to use "Excel Buffer Extended" record directly.
 ```
