@@ -13,3 +13,4 @@ IF InputDialog.RUNMODAL = ACTION::OK THEN
   MESSAGE('OK');
 ```
 ![](InputDialog.png)
+
