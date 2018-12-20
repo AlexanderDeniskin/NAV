@@ -2,8 +2,8 @@ OBJECT Codeunit 50002 Input Dialog Example
 {
   OBJECT-PROPERTIES
   {
-    Date=04.12.18;
-    Time=15:25:52;
+    Date=20.12.18;
+    Time=12:54:02;
     Modified=Yes;
     Version List=;
   }
@@ -13,6 +13,10 @@ OBJECT Codeunit 50002 Input Dialog Example
             InputDialog@1000000000 : Page 50002;
             SalesHeader@1000000002 : Record 36;
             I@1000000003 : Integer;
+            SelectedOption@1000000001 : Text;
+            SelectedSalesHeaderNo@1000000004 : Code[20];
+            SelectedDate@1000000005 : Date;
+            VariantValue@1000000006 : Variant;
           BEGIN
             SalesHeader.RESET;
             SalesHeader.SETRANGE("Document Type",SalesHeader."Document Type"::Order);
@@ -21,8 +25,19 @@ OBJECT Codeunit 50002 Input Dialog Example
             InputDialog.AddField(1,'Option',0,'',0,'Value1,Value2,Value3');
             InputDialog.AddField(2,'Sales Order No.',0,'',36,SalesHeader.GETVIEW);
             InputDialog.AddField(3,'Date',3,TODAY,0,'');
-            IF InputDialog.RUNMODAL = ACTION::OK THEN
-              MESSAGE('OK');
+            IF InputDialog.RUNMODAL = ACTION::OK THEN BEGIN
+              InputDialog.GetFieldValue(1,VariantValue);
+              SelectedOption := VariantValue;
+              InputDialog.GetFieldValue(2,VariantValue);
+              SelectedSalesHeaderNo := VariantValue;
+              InputDialog.GetFieldValue(3,VariantValue);
+              SelectedDate := VariantValue;
+              MESSAGE('You have selected the following values:\'+
+                      'Option: %1\'+
+                      'Sales Header No.: %2\'+
+                      'Date: %3',
+                        SelectedOption, SelectedSalesHeaderNo, SelectedDate);
+            END;
           END;
 
   }
