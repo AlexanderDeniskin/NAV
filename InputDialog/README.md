@@ -12,5 +12,4 @@ InputDialog.AddField(3,'Date',3,TODAY,0,'');
 IF InputDialog.RUNMODAL = ACTION::OK THEN
   MESSAGE('OK');
 ```
-![](InputDialog.png)
-
+![](Img/InputDialog.png)
