@@ -2,17 +2,17 @@ OBJECT Codeunit 50000 Excel Buffer Ext. Examples
 {
   OBJECT-PROPERTIES
   {
-    Date=21.11.18;
-    Time=10:27:20;
+    Date=15.01.19;
+    Time=12:31:23;
     Modified=Yes;
     Version List=;
   }
   PROPERTIES
   {
     OnRun=BEGIN
-            //GeneralFormatting();
-            //UseProperties;
-            //ChangeRowsColumnsProperties;
+            GeneralFormatting();
+            UseProperties;
+            ChangeRowsColumnsProperties;
           END;
 
   }
@@ -23,7 +23,10 @@ OBJECT Codeunit 50000 Excel Buffer Ext. Examples
 
     LOCAL PROCEDURE GeneralFormatting@1000000001();
     BEGIN
+      xlBuf.RESET;
+      xlBuf.DELETEALL;
       CLEAR(xlBuf);
+
       xlBuf.VALIDATE("Row No.",1);
       xlBuf.VALIDATE("Column No.",1);
       xlBuf."Cell Value as Text" := 'Hello, world!';
@@ -44,7 +47,10 @@ OBJECT Codeunit 50000 Excel Buffer Ext. Examples
       I@1000000001 : Integer;
       J@1000000002 : Integer;
     BEGIN
+      xlBuf.RESET;
+      xlBuf.DELETEALL;
       CLEAR(xlBuf);
+      xlBuf.CreateBook('','Sheet1');
 
       xlBufDefault.INIT;
       xlBufDefault.Bold := TRUE;
@@ -58,7 +64,7 @@ OBJECT Codeunit 50000 Excel Buffer Ext. Examples
       xlBuf.SetDefaultProperties(xlBufDefault);
       { Or text
       xlBuf.SetDefaultProperties('Bold;'+
-                                 'Top Border Style::Medium;'+
+                                 'Top Border Style:Medium;'+
                                  'Bottom Border Style:Medium;'+
                                  'Left Border Style:Thin;'+
                                  'Right Border Style:Thin;');
@@ -93,7 +99,7 @@ OBJECT Codeunit 50000 Excel Buffer Ext. Examples
           END;
       END;
 
-      // Footer is without borders, it has only bold text. Top border is necessary to finish the border of the table
+      // Footer is without borders, it has only bold text. Top border is necessary to finish the border of the table body
       xlBuf.SetDefaultProperties('Bold;Top Border Style:Medium');
       xlBuf.NewRow;
       xlBuf.AddColumnPr('Rows count:',FALSE,xlBuf."Cell Type"::Text,'');
@@ -104,13 +110,21 @@ OBJECT Codeunit 50000 Excel Buffer Ext. Examples
 
       xlBuf.SetCurrent(xlBuf."Row No.",4);
       xlBuf.AddColumnPr(xlBuf."Row No."-1,FALSE,xlBuf."Cell Type"::Number,'');
+      xlBuf.CreateCellName('Totals');  // CreateBook() need to call before this function!
+      // Now we can refer to this cell by formula ='Sheet1'!Totals
 
-      xlBuf.CreateBookAndOpenExcel('','Sheet1','',COMPANYNAME,USERID);
+      xlBuf.WriteSheet('',COMPANYNAME,USERID);
+      xlBuf.CloseBook;
+      xlBuf.OpenExcel;
+      xlBuf.GiveUserControl;
     END;
 
     LOCAL PROCEDURE ChangeRowsColumnsProperties@1000000002();
     BEGIN
+      xlBuf.RESET;
+      xlBuf.DELETEALL;
       CLEAR(xlBuf);
+
       xlBuf.AddColumnPr('First column width is 250px',FALSE,xlBuf."Cell Type"::Text,'');
       xlBuf.SetColumnsProperty(1,1,xlBuf.Property::Width,250);
 
@@ -136,3 +150,4 @@ OBJECT Codeunit 50000 Excel Buffer Ext. Examples
     END.
   }
 }
+

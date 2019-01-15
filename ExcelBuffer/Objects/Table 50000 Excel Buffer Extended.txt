@@ -2,8 +2,8 @@ OBJECT Table 50000 Excel Buffer Extended
 {
   OBJECT-PROPERTIES
   {
-    Date=27.11.18;
-    Time=17:26:34;
+    Date=15.01.19;
+    Time=12:29:11;
     Modified=Yes;
     Version List=;
   }
@@ -149,8 +149,8 @@ OBJECT Table 50000 Excel Buffer Extended
   {
     VAR
       Text000@1000 : TextConst '@@@="{Locked=""Excel""}";DEU=Excel wurde nicht gefunden.;ENU=Excel not found.';
-      Text001@1001 : TextConst 'DEU=Sie mÂssen einen Dateinamen angeben.;ENU=You must enter a file name.';
-      Text002@1002 : TextConst '@@@="{Locked=""Excel""}";DEU=Sie mÂssen einen Exceltabellennamen angeben.;ENU=You must enter an Excel worksheet name.';
+      Text001@1001 : TextConst 'DEU=Sie mssen einen Dateinamen angeben.;ENU=You must enter a file name.';
+      Text002@1002 : TextConst '@@@="{Locked=""Excel""}";DEU=Sie mssen einen Exceltabellennamen angeben.;ENU=You must enter an Excel worksheet name.';
       Text003@1003 : TextConst 'DEU=Die Datei %1 ist nicht vorhanden.;ENU=The file %1 does not exist.';
       Text004@1004 : TextConst '@@@="{Locked=""Excel""}";DEU=Die Exceltabelle %1 ist nicht vorhanden.;ENU=The Excel worksheet %1 does not exist.';
       Text005@1005 : TextConst '@@@="{Locked=""Excel""}";DEU=Excel-Arbeitsbl. erstellen...\\;ENU=Creating Excel worksheet...\\';
@@ -204,7 +204,7 @@ OBJECT Table 50000 Excel Buffer Extended
       Text035@1040 : TextConst 'DEU=Der Vorgang wurde abgebrochen.;ENU=The operation was canceled.';
       Text036@1042 : TextConst '@@@="{Locked=""Excel""}";DEU=Die Excel-Tabelle ist nicht vorhanden.;ENU=The Excel workbook does not exist.';
       Text037@1047 : TextConst '@@@="{Locked=""Excel""}";DEU=Die Excel-Tabelle konnte nicht erstellt werden.;ENU=Could not create the Excel workbook.';
-      Text038@1048 : TextConst 'DEU=Die globale Variable ''%1'' ist nicht fÂr den Test enthalten.;ENU=Global variable %1 is not included for test.';
+      Text038@1048 : TextConst 'DEU=Die globale Variable ''%1'' ist nicht fr den Test enthalten.;ENU=Global variable %1 is not included for test.';
       Text039@1050 : TextConst 'DEU=Die Zellenart wurde nicht definiert.;ENU=Cell type has not been set.';
       Text040@1008 : TextConst '@@@="{Locked=""Excel""}";DEU=Excel-Datei exportieren;ENU=Export Excel File';
       SavingDocumentMsg@1010 : TextConst 'DEU=Das folgende Dokument wird gespeichert: %1.;ENU=Saving the following document: %1.';
@@ -448,6 +448,8 @@ OBJECT Table 50000 Excel Buffer Extended
         GetExcelReference(4) + TempExcelBuf.xlColID + GetExcelReference(4) + TempExcelBuf.xlRowID +
         ':' +
         GetExcelReference(4) + TempExcelBuf.xlColID + GetExcelReference(4) + ToxlRowID);
+
+      ChangeDefNameSheetID();
     END;
 
     PROCEDURE GiveUserControl@3();
@@ -841,6 +843,29 @@ OBJECT Table 50000 Excel Buffer Extended
         GetExcelReference(4) + RangeStartXlCol + GetExcelReference(4) + RangeStartXlRow +
         ':' +
         GetExcelReference(4) + RangeEndXlCol + GetExcelReference(4) + RangeEndXlRow);
+
+      ChangeDefNameSheetID();
+    END;
+
+    PROCEDURE CreateCellName@1000000040(RangeName@1000 : Text[250]);
+    BEGIN
+      XlWrkShtWriter.AddRange(
+        RangeName,
+        GetExcelReference(4) + xlColID + GetExcelReference(4) + xlRowID);
+
+      ChangeDefNameSheetID();
+    END;
+
+    LOCAL PROCEDURE ChangeDefNameSheetID@1000000039();
+    VAR
+      OpenXmlDefinedName@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.DefinedName";
+      OpenXmlUInt32Value@1000000000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.UInt32Value";
+    BEGIN
+      IF CurrSheetID > 0 THEN BEGIN
+        OpenXmlDefinedName := XlWrkBkWriter.Workbook.DefinedNames.LastChild;
+        OpenXmlDefinedName.LocalSheetId := OpenXmlUInt32Value.FromUInt32(CurrSheetID);
+        XlWrkBkWriter.Workbook.Save;
+      END;
     END;
 
     PROCEDURE AutoFit@20(RangeName@1000 : Text[50]);
@@ -2459,3 +2484,4 @@ OBJECT Table 50000 Excel Buffer Extended
     END.
   }
 }
+
