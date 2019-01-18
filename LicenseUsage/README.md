@@ -1,1 +1,1 @@
-
+![](Img/LicenseUsage.png)
