@@ -1,0 +1,467 @@
+OBJECT Page 50003 License Usage
+{
+  OBJECT-PROPERTIES
+  {
+    Date=18.01.19;
+    Time=15:37:08;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    Editable=Yes;
+    CaptionML=ENU=License Usage;
+    InsertAllowed=No;
+    DeleteAllowed=No;
+    ModifyAllowed=Yes;
+    SourceTable=Table2000000110;
+    PageType=Worksheet;
+    SourceTableTemporary=Yes;
+    ShowFilter=Yes;
+    OnOpenPage=BEGIN
+                 CurrPage.EDITABLE := TRUE;
+                 TwoHours := 1000*60*120;
+
+                 StopSessionEnabled := FALSE;
+                 FillData();
+               END;
+
+    OnAfterGetRecord=BEGIN
+                       IF NOT User.GET("User SID") THEN
+                         CLEAR(User);
+
+                       Indent := 0;
+                       IF "Server Instance ID" > 0 THEN
+                         Indent := 1;
+
+                       LicenseIsUsed := ("Client Type" IN ["Client Type"::"Windows Client", "Client Type"::"Web Client"]) OR
+                                        (("Client Type" = "Client Type"::"Web Service") AND ("Login Datetime" > CalculationDT - TwoHours));
+
+                       IF "Server Instance ID" <= 0 THEN BEGIN
+                         ActiveSessionCopyTmp.RESET;
+                         ActiveSessionCopyTmp.SETRANGE("User SID", "User SID");
+                         ActiveSessionCopyTmp.SETFILTER("Server Instance ID", '>0');
+                         NumOfSessions := ActiveSessionCopyTmp.COUNT;
+                       END ELSE
+                         NumOfSessions := "Session ID";
+                     END;
+
+    OnAfterGetCurrRecord=BEGIN
+                           StopSessionEnabled := "Server Instance ID" = SERVICEINSTANCEID;
+                         END;
+
+    ActionList=ACTIONS
+    {
+      { 1000000013;  ;ActionContainer;
+                      ActionContainerType=ActionItems }
+      { 1000000014;1 ;Action    ;
+                      CaptionML=[DEU=Daten aktualisieren;
+                                 ENU=Refresh Data];
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=RefreshLines;
+                      PromotedCategory=Process;
+                      PromotedOnly=Yes;
+                      OnAction=BEGIN
+                                 FillData();
+                                 CurrPage.UPDATE(FALSE);
+                               END;
+                                }
+      { 1000000040;1 ;Action    ;
+                      CaptionML=[DEU=Session beenden;
+                                 ENU=Stop Session];
+                      Promoted=Yes;
+                      Enabled=StopSessionEnabled;
+                      PromotedIsBig=Yes;
+                      Image=Stop;
+                      PromotedCategory=Process;
+                      PromotedOnly=Yes;
+                      OnAction=BEGIN
+                                 IF "Server Instance ID" = SERVICEINSTANCEID THEN BEGIN
+                                   STOPSESSION("Session ID");
+                                   FillData;
+                                   CurrPage.UPDATE(FALSE);
+                                 END;
+                               END;
+                                }
+      { 1000000045;1 ;Action    ;
+                      CaptionML=[DEU=Zeile l”schen;
+                                 ENU=Delete Line];
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=Delete;
+                      PromotedCategory=Process;
+                      PromotedOnly=Yes;
+                      OnAction=VAR
+                                 ActiveSession@1000000000 : Record 2000000110;
+                               BEGIN
+                                 ActiveSession.RESET;
+                                 ActiveSession.SETRANGE("User SID", "User SID");
+                                 IF "Server Instance ID" > 0 THEN BEGIN
+                                   ActiveSession.SETRANGE("Server Instance ID", "Server Instance ID");
+                                   ActiveSession.SETRANGE("Session ID", "Session ID");
+                                 END;
+                                 ActiveSession.DELETEALL(TRUE);
+                                 FillData();
+                                 CurrPage.UPDATE(FALSE);
+                               END;
+                                }
+    }
+  }
+  CONTROLS
+  {
+    { 1000000000;0;Container;
+                ContainerType=ContentArea }
+
+    { 1000000043;1;Group  ;
+                GroupType=Group }
+
+    { 1000000042;2;Field  ;
+                CaptionML=[DEU=Zeilentyp;
+                           ENU=Line Type];
+                OptionCaptionML=[DEU=Alle,Benutzer,Sessions;
+                                 ENU=All,Users,Sessions];
+                SourceExpr=LineTypeFilter;
+                Editable=TRUE;
+                OnValidate=BEGIN
+                             SetTypeFilter();
+                             CurrPage.UPDATE(FALSE);
+                           END;
+                            }
+
+    { 1000000044;2;Field  ;
+                CaptionML=[DEU=Lizenz wird verwendet;
+                           ENU=License is Used];
+                OptionCaptionML=[DEU=Alle,Ja,Nein;
+                                 ENU=All,Yes,No];
+                SourceExpr=LicenseFilter;
+                Editable=TRUE;
+                OnValidate=BEGIN
+                             SetLicenseFilter();
+                             CurrPage.UPDATE(FALSE);
+                           END;
+                            }
+
+    { 1000000001;1;Group  ;
+                Name=Group;
+                Editable=FALSE;
+                IndentationColumnName=Indent;
+                IndentationControls=User ID;
+                ShowAsTree=Yes;
+                GroupType=Repeater }
+
+    { 1000000007;2;Field  ;
+                SourceExpr="User ID";
+                Style=Subordinate;
+                StyleExpr=NOT LicenseIsUsed }
+
+    { 1000000002;2;Field  ;
+                SourceExpr="User SID";
+                Visible=FALSE;
+                Style=Subordinate;
+                StyleExpr=NOT LicenseIsUsed }
+
+    { 1000000010;2;Field  ;
+                SourceExpr="Login Datetime";
+                Style=Subordinate;
+                StyleExpr=NOT LicenseIsUsed }
+
+    { 1000000041;2;Field  ;
+                Name=Duration;
+                CaptionML=[DEU=Dauer;
+                           ENU=Duration];
+                SourceExpr=Duration }
+
+    { 1000000015;2;Field  ;
+                CaptionML=ENU=License is Used;
+                SourceExpr=LicenseIsUsed;
+                Style=Subordinate;
+                StyleExpr=NOT LicenseIsUsed }
+
+    { 1000000004;2;Field  ;
+                CaptionML=[DEU=Number of Sessions;
+                               ENU=Number of Sessions];
+                SourceExpr=NumOfSessions;
+                Style=Subordinate;
+                StyleExpr=NOT LicenseIsUsed }
+
+    { 1000000003;2;Field  ;
+                SourceExpr="Server Instance ID";
+                Visible=FALSE;
+                Style=Subordinate;
+                StyleExpr=NOT LicenseIsUsed }
+
+    { 1000000005;2;Field  ;
+                SourceExpr="Server Instance Name";
+                Style=Subordinate;
+                StyleExpr=NOT LicenseIsUsed }
+
+    { 1000000006;2;Field  ;
+                SourceExpr="Server Computer Name";
+                Style=Subordinate;
+                StyleExpr=NOT LicenseIsUsed }
+
+    { 1000000008;2;Field  ;
+                SourceExpr="Client Type";
+                Style=Subordinate;
+                StyleExpr=NOT LicenseIsUsed }
+
+    { 1000000009;2;Field  ;
+                SourceExpr="Client Computer Name";
+                Style=Subordinate;
+                StyleExpr=NOT LicenseIsUsed }
+
+    { 1000000011;2;Field  ;
+                SourceExpr="Database Name";
+                Visible=FALSE;
+                Style=Subordinate;
+                StyleExpr=NOT LicenseIsUsed }
+
+    { 1000000012;2;Field  ;
+                SourceExpr="Session Unique ID";
+                Style=Subordinate;
+                StyleExpr=NOT LicenseIsUsed }
+
+    { 1000000037;2;Field  ;
+                CaptionML=[DEU=Lizenztyp;
+                           ENU=License Type];
+                SourceExpr=User."License Type" }
+
+    { 1000000016;1;Group  ;
+                CaptionML=[DEU=Summen;
+                           ENU=Totals];
+                GroupType=Group }
+
+    { 1000000017;2;Group  ;
+                GroupType=FixedLayout;
+                Layout=Rows }
+
+    { 1000000025;3;Group  ;
+                CaptionML=[DEU=Gesamt;
+                           ENU=Total];
+                GroupType=Group }
+
+    { 1000000030;4;Field  ;
+                CaptionML=[DEU=Lizenzen;
+                           ENU=Licenses];
+                SourceExpr=Total[1,1];
+                Style=Strong;
+                StyleExpr=TRUE }
+
+    { 1000000029;4;Field  ;
+                CaptionML=[DEU=Sessions;
+                           ENU=Sessions];
+                SourceExpr=Total[2,1];
+                Style=Strong;
+                StyleExpr=TRUE }
+
+    { 1000000038;3;Group  ;
+                CaptionML=[DEU=Windows-Client;
+                           ENU=Windows Client];
+                GroupType=Group }
+
+    { 1000000036;4;Field  ;
+                SourceExpr=Total[1,2] }
+
+    { 1000000035;4;Field  ;
+                SourceExpr=Total[2,2] }
+
+    { 1000000039;3;Group  ;
+                CaptionML=[DEU=Webclient;
+                           ENU=Web Client];
+                GroupType=Group }
+
+    { 1000000026;4;Field  ;
+                SourceExpr=Total[1,3] }
+
+    { 1000000024;4;Field  ;
+                SourceExpr=Total[2,3] }
+
+    { 1000000022;3;Group  ;
+                CaptionML=[DEU=Webdienst;
+                           ENU=Web Service];
+                GroupType=Group }
+
+    { 1000000028;4;Field  ;
+                SourceExpr=Total[1,4] }
+
+    { 1000000027;4;Field  ;
+                SourceExpr=Total[2,4] }
+
+    { 1000000023;3;Group  ;
+                CaptionML=[DEU=Sonstiges;
+                           ENU=Other];
+                GroupType=Group }
+
+    { 1000000033;4;Field  ;
+                SourceExpr=Total[1,5] }
+
+    { 1000000032;4;Field  ;
+                SourceExpr=Total[2,5] }
+
+    { 1000000034;3;Group  ;
+                GroupType=Group }
+
+    { 1000000031;4;Field  ;
+                SourceExpr='' }
+
+    { 1000000019;4;Field  ;
+                SourceExpr='' }
+
+    { 1000000021;3;Group  ;
+                GroupType=Group }
+
+    { 1000000020;4;Field  ;
+                SourceExpr='' }
+
+    { 1000000018;4;Field  ;
+                SourceExpr='' }
+
+  }
+  CODE
+  {
+    VAR
+      ActiveSessionCopyTmp@1000000002 : TEMPORARY Record 2000000110;
+      User@1000000004 : Record 2000000120;
+      LineTypeFilter@1000000008 : 'All,Users,Sessions';
+      LicenseFilter@1000000009 : 'All,Yes,No';
+      Indent@1000000000 : Integer;
+      NumOfSessions@1000000003 : Integer;
+      Total@1000000006 : ARRAY [2,5] OF Integer;
+      CalculationDT@1000000007 : DateTime;
+      TwoHours@1000000010 : Duration;
+      LicenseIsUsed@1000000001 : Boolean;
+      StopSessionEnabled@1000000005 : Boolean;
+
+    LOCAL PROCEDURE FillData@1000000001();
+    VAR
+      ActiveSession@1000000000 : Record 2000000110;
+      ActiveSessionTmp@1000000001 : TEMPORARY Record 2000000110;
+      ActiveSessionTmp2@1000000003 : TEMPORARY Record 2000000110;
+      RecFound@1000000002 : Boolean;
+    BEGIN
+      ActiveSessionTmp2 := Rec;
+
+      RESET;
+      DELETEALL;
+      CLEAR(Total);
+
+      CalculationDT := CURRENTDATETIME;
+
+      ActiveSession.RESET;
+      ActiveSession.SETCURRENTKEY("User SID", "Login Datetime");
+      IF ActiveSession.FIND('-') THEN
+        REPEAT
+          ActiveSessionTmp := ActiveSession;
+          ActiveSessionTmp."Server Instance ID" := -ActiveSession."Server Instance ID";
+          RecFound := FALSE;
+
+          ActiveSession.SETRANGE("User SID", ActiveSession."User SID");
+          IF ActiveSession.FINDSET THEN
+            REPEAT
+              IF NOT RecFound THEN
+                IF (ActiveSession."Client Type" IN [ActiveSession."Client Type"::"Windows Client",ActiveSession."Client Type"::"Web Client"]) OR
+                   ((ActiveSession."Client Type" = ActiveSession."Client Type"::"Web Service") AND (ActiveSession."Login Datetime" > CalculationDT - TwoHours))
+                THEN BEGIN
+                  ActiveSessionTmp := ActiveSession;
+                  ActiveSessionTmp."Server Instance ID" := -ActiveSession."Server Instance ID";
+                  RecFound := TRUE;
+                END;
+              Rec := ActiveSession;
+              INSERT;
+              Total[2,1] += 1;
+              CASE "Client Type" OF
+                "Client Type"::"Windows Client":
+                  Total[2,2] += 1;
+                "Client Type"::"Web Client":
+                  Total[2,3] += 1;
+                "Client Type"::"Web Service":
+                  Total[2,4] += 1;
+                ELSE
+                  Total[2,5] += 1;
+              END;
+            UNTIL ActiveSession.NEXT = 0;
+          Rec := ActiveSessionTmp;
+          INSERT;
+          IF ("Client Type" IN ["Client Type"::"Windows Client", "Client Type"::"Web Client"]) OR
+             (("Client Type" = "Client Type"::"Web Service") AND ("Login Datetime" > CalculationDT - TwoHours))
+          THEN BEGIN
+            Total[1,1] += 1;
+            CASE "Client Type" OF
+              "Client Type"::"Windows Client":
+                Total[1,2] += 1;
+              "Client Type"::"Web Client":
+                Total[1,3] += 1;
+              "Client Type"::"Web Service":
+                Total[1,4] += 1;
+              ELSE
+                Total[1,5] += 1;
+            END;
+          END;
+
+          ActiveSession.SETRANGE("User SID");
+        UNTIL ActiveSession.NEXT = 0;
+
+      RESET;
+      SETCURRENTKEY("User SID", "Server Instance ID", "Login Datetime");
+
+      ActiveSessionCopyTmp.COPY(Rec, TRUE);
+      SetLicenseFilter();
+      SetTypeFilter();
+      Rec := ActiveSessionTmp2;
+      IF FIND('=<>') THEN;
+    END;
+
+    PROCEDURE Duration@5() : Duration;
+    BEGIN
+      IF ("Login Datetime" = 0DT) OR (CalculationDT = 0DT) THEN
+        EXIT(0);
+      EXIT(ROUND(CalculationDT - "Login Datetime",1000));
+    END;
+
+    LOCAL PROCEDURE SetTypeFilter@1000000000();
+    BEGIN
+      CASE LineTypeFilter OF
+        LineTypeFilter::All:
+          SETRANGE("Server Instance ID");
+        LineTypeFilter::Users:
+          SETFILTER("Server Instance ID",'<0');
+        LineTypeFilter::Sessions:
+          SETFILTER("Server Instance ID",'>0');
+      END;
+    END;
+
+    LOCAL PROCEDURE SetLicenseFilter@1000000002();
+    VAR
+      ActiveSession@1000000000 : Record 2000000110;
+    BEGIN
+      CASE LicenseFilter OF
+        LicenseFilter::All:
+          BEGIN
+            CLEARMARKS;
+            MARKEDONLY(FALSE);
+          END;
+        ELSE BEGIN
+          ActiveSession.COPY(Rec);
+          RESET;
+          SETCURRENTKEY("User SID", "Server Instance ID", "Login Datetime");
+          IF FINDSET THEN
+            REPEAT
+              LicenseIsUsed := ("Client Type" IN ["Client Type"::"Windows Client", "Client Type"::"Web Client"]) OR
+                               (("Client Type" = "Client Type"::"Web Service") AND ("Login Datetime" > CalculationDT - TwoHours));
+              MARK(LicenseIsUsed = (LicenseFilter = LicenseFilter::Yes));
+            UNTIL NEXT = 0;
+          COPYFILTERS(ActiveSession);
+          MARKEDONLY(TRUE);
+          Rec := ActiveSession;
+          SETCURRENTKEY("User SID", "Server Instance ID", "Login Datetime");
+          IF FIND('=<>') THEN;
+        END;
+
+      END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
