@@ -2,8 +2,8 @@ OBJECT Table 50000 Excel Buffer Extended
 {
   OBJECT-PROPERTIES
   {
-    Date=15.01.19;
-    Time=12:29:11;
+    Date=18.01.19;
+    Time=13:03:57;
     Modified=Yes;
     Version List=;
   }
@@ -193,6 +193,7 @@ OBJECT Table 50000 Excel Buffer Extended
       RangeEndXlCol@1031 : Text[30];
       FileNameServer@1046 : Text;
       FriendlyName@1025 : Text;
+      ClientPath@1000000032 : Text;
       TabColor@1000000015 : Text[20];
       CurrentRow@1029 : Integer;
       CurrentCol@1030 : Integer;
@@ -233,6 +234,7 @@ OBJECT Table 50000 Excel Buffer Extended
       FooterMargin@1000000027 : Decimal;
       CurrSheetID@1000000029 : Integer;
       ActiveSheetID@1000000030 : Integer;
+      PathDoesNotExistErr@1000000031 : TextConst 'DEU=Der Pfad "%1" ist nicht vorhanden.;ENU=The path %1 does not exist.';
 
     PROCEDURE CreateBook@1(FileName@1001 : Text;SheetName@1000 : Text[250]);
     BEGIN
@@ -443,13 +445,12 @@ OBJECT Table 50000 Excel Buffer Extended
       TempExcelBuf.VALIDATE("Row No.",FromRowNo);
       TempExcelBuf.VALIDATE("Column No.",FromColumnNo);
 
-      XlWrkShtWriter.AddRange(
+      AddDefinedName(
         RangeName,
+        1,
         GetExcelReference(4) + TempExcelBuf.xlColID + GetExcelReference(4) + TempExcelBuf.xlRowID +
         ':' +
         GetExcelReference(4) + TempExcelBuf.xlColID + GetExcelReference(4) + ToxlRowID);
-
-      ChangeDefNameSheetID();
     END;
 
     PROCEDURE GiveUserControl@3();
@@ -838,34 +839,20 @@ OBJECT Table 50000 Excel Buffer Extended
 
     PROCEDURE CreateRange@45(RangeName@1000 : Text[250]);
     BEGIN
-      XlWrkShtWriter.AddRange(
+      AddDefinedName(
         RangeName,
+        1,
         GetExcelReference(4) + RangeStartXlCol + GetExcelReference(4) + RangeStartXlRow +
         ':' +
         GetExcelReference(4) + RangeEndXlCol + GetExcelReference(4) + RangeEndXlRow);
-
-      ChangeDefNameSheetID();
     END;
 
     PROCEDURE CreateCellName@1000000040(RangeName@1000 : Text[250]);
     BEGIN
-      XlWrkShtWriter.AddRange(
+      AddDefinedName(
         RangeName,
+        1,
         GetExcelReference(4) + xlColID + GetExcelReference(4) + xlRowID);
-
-      ChangeDefNameSheetID();
-    END;
-
-    LOCAL PROCEDURE ChangeDefNameSheetID@1000000039();
-    VAR
-      OpenXmlDefinedName@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.DefinedName";
-      OpenXmlUInt32Value@1000000000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.UInt32Value";
-    BEGIN
-      IF CurrSheetID > 0 THEN BEGIN
-        OpenXmlDefinedName := XlWrkBkWriter.Workbook.DefinedNames.LastChild;
-        OpenXmlDefinedName.LocalSheetId := OpenXmlUInt32Value.FromUInt32(CurrSheetID);
-        XlWrkBkWriter.Workbook.Save;
-      END;
     END;
 
     PROCEDURE AutoFit@20(RangeName@1000 : Text[50]);
@@ -982,8 +969,13 @@ OBJECT Table 50000 Excel Buffer Extended
         EXIT;
 
       // rename the Temporary filename into a more UI friendly name in a new subdirectory
-      FileNameClient := FileManagement.DownloadTempFile(FileNameServer);
-      FileNameClient := FileManagement.MoveAndRenameClientFile(FileNameClient,GetFriendlyFilename,FORMAT(CREATEGUID));
+      IF ClientPath = '' THEN BEGIN
+        FileNameClient := FileManagement.DownloadTempFile(FileNameServer);
+        FileNameClient := FileManagement.MoveAndRenameClientFile(FileNameClient,GetFriendlyFilename,FORMAT(CREATEGUID));
+      END ELSE BEGIN
+        FileNameClient := FileManagement.CombinePath(ClientPath,GetFriendlyFilename);
+        FileManagement.DownloadToFile(FileNameServer,FileNameClient);
+      END;
 
       XlWrkBk := XlHelper.CallOpen(XlApp,FileNameClient);
 
@@ -1128,6 +1120,15 @@ OBJECT Table 50000 Excel Buffer Extended
     PROCEDURE SetFriendlyFilename@41(Name@1000 : Text);
     BEGIN
       FriendlyName := Name;
+    END;
+
+    PROCEDURE SetClientPath@1000000039(Path@1000 : Text);
+    BEGIN
+      IF Path <> '' THEN
+        IF NOT FileManagement.ClientDirectoryExists(Path) THEN
+          ERROR(PathDoesNotExistErr, Path);
+
+      ClientPath := Path;
     END;
 
     PROCEDURE ConvertDateTimeDecimalToDateTime@43(DateTimeAsOADate@1000 : Decimal) : DateTime;
@@ -2430,6 +2431,34 @@ OBJECT Table 50000 Excel Buffer Extended
         WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlBookViews, OpenXmlWorkbookView)
       END;
       OpenXmlWorkbook.Save;
+    END;
+
+    LOCAL PROCEDURE AddDefinedName@1000000043(Name@1000000000 : Text;Scope@1000000001 : 'Workbook,CurrentSheet';Range@1000000002 : Text);
+    VAR
+      OpenXmlDefinedNames@1000000005 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.DefinedNames";
+      OpenXmlDefinedName@1000000004 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.DefinedName";
+      OpenXmlUInt32Value@1000000003 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.UInt32Value";
+      OpenXmlStringValue@1000000006 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.StringValue";
+    BEGIN
+      OpenXmlDefinedNames := XlWrkBkWriter.Workbook.DefinedNames;
+      IF ISNULL(OpenXmlDefinedNames) THEN BEGIN
+        XlWrkShtWriter.AddRange(Name,Range);
+        IF (CurrSheetID = 0) AND (Scope = Scope::CurrentSheet) THEN
+          EXIT;
+        OpenXmlDefinedName := XlWrkBkWriter.Workbook.DefinedNames.LastChild;
+        IF Scope = Scope::Workbook THEN
+          OpenXmlDefinedName.RemoveAttribute('LocalSheetId','')
+        ELSE
+          OpenXmlDefinedName.LocalSheetId := OpenXmlUInt32Value.FromUInt32(CurrSheetID);
+      END ELSE BEGIN
+        OpenXmlDefinedName := OpenXmlDefinedName.DefinedName;
+        OpenXmlDefinedName.Name := OpenXmlStringValue.StringValue(Name);
+        OpenXmlDefinedName.Text := STRSUBSTNO('''%1''!%2',XlWrkShtWriter.Name, Range);
+        IF Scope = Scope::CurrentSheet THEN
+          OpenXmlDefinedName.LocalSheetId := OpenXmlUInt32Value.FromUInt32(CurrSheetID);
+        WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlDefinedNames, OpenXmlDefinedName);
+      END;
+      XlWrkBkWriter.Workbook.Save;
     END;
 
     EVENT XmlWrkShtDoc@1000000000::NodeInserting@94(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNodeChangedEventArgs");
