@@ -1,4 +1,4 @@
-## This script allows to change ID of table in Nav 2017
+## This SQL-script allows to change ID of table in Nav 2017 without transferring data
 
 ```SQL
 Declare @OldID int, @NewID int
@@ -40,3 +40,4 @@ Set [Object ID] = @NewID
 where [Object Type] = 1	and [Object ID] = @OldID
 
 ```
+After renumbering need to compile table and change links  to new ID in other objects where this table is used.
