@@ -79,7 +79,7 @@ BEGIN
 	END  
 
 	INSERT INTO @RecordIdInfo
-	Select @TableNo, @Text
+	SELECT @TableNo, @Text
 
 	RETURN;
 
