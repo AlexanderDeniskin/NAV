@@ -1,1 +1,35 @@
 # Working with Record ID fields via SQL
+Convert primary key values to varbinary Record ID:
+```
+SELECT TOP 1 
+	[Document Type]
+	,[No_]
+	,[Doc_ No_ Occurrence]
+	,[Version No_]
+	,[dbo].[fn_Int2RecordID](5109,0) 
+		+[dbo].[fn_Int2RecordID]([Document Type],1) 
+		+[dbo].[fn_Text2RecordID]([No_],1) 
+		+[dbo].[fn_Int2RecordID]([Doc_ No_ Occurrence],2) 
+		+[dbo].[fn_Int2RecordID]([Version No_],2) 
+		+0x0000 as [RecordID]
+FROM [CompanyName$Purchase Header Archive] PHA
+```
+```
+SELECT TOP 1 
+	[No_]
+	,[dbo].[fn_Int2RecordID](27,0) 
+		+[dbo].[fn_Text2RecordID]([No_],1) 
+		+0x0000 as [RecordID]
+FROM [CompanyName$Item]
+```
+
+Get readable Record ID value:
+```
+Select top 50
+	[Link ID]
+	,[Record ID]
+	,URL1+URL2+URL3+URL4 as [URL]
+	,RecordIdInfo.*
+from [Record Link]
+CROSS APPLY dbo.[fn_FormatRecordID]([Record ID]) RecordIdInfo
+```
