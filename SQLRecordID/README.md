@@ -6,10 +6,10 @@ SELECT TOP 1
 	,[No_]
 	,[Doc_ No_ Occurrence]
 	,[Version No_]
-	,[dbo].[fn_Int2RecordID](5109,0) 
-		+[dbo].[fn_Int2RecordID]([Document Type],1) 
+	,[dbo].[fn_Int2RecordID](5109,0)  -- 0 for Table No. (don't add field type chars)
+		+[dbo].[fn_Int2RecordID]([Document Type],1)  -- 1 for option fields
 		+[dbo].[fn_Text2RecordID]([No_],1) 
-		+[dbo].[fn_Int2RecordID]([Doc_ No_ Occurrence],2) 
+		+[dbo].[fn_Int2RecordID]([Doc_ No_ Occurrence],2)  -- 2 for integer fields
 		+[dbo].[fn_Int2RecordID]([Version No_],2) 
 		+0x0000 as [RecordID]
 FROM [CompanyName$Purchase Header Archive] PHA
@@ -36,7 +36,13 @@ CROSS APPLY dbo.[fn_FormatRecordID]([Record ID]) RecordIdInfo
 ##### Filter by Table No. of Record ID:
 ```SQL
 SELECT * FROM [Record Link]
-WHERE CAST(SUBSTRING([Record ID],4,1)+SUBSTRING([Record ID],3,1)+SUBSTRING([Record ID],2,1)+SUBSTRING([Record ID],1,1) as Int) = 27 -- Item table
+WHERE 
+  CAST(
+    SUBSTRING([Record ID],4,1)+
+    SUBSTRING([Record ID],3,1)+
+    SUBSTRING([Record ID],2,1)+
+    SUBSTRING([Record ID],1,1) 
+  as Int) = 27 -- Item table
 ```
 
 These functions supports only Option, Integer, Text and Code fields types.
