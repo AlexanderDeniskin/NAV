@@ -2,8 +2,8 @@ OBJECT Table 50000 Excel Buffer Extended
 {
   OBJECT-PROPERTIES
   {
-    Date=18.01.19;
-    Time=13:03:57;
+    Date=28.02.19;
+    Time=14:33:10;
     Modified=Yes;
     Version List=;
   }
@@ -2459,6 +2459,53 @@ OBJECT Table 50000 Excel Buffer Extended
         WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlDefinedNames, OpenXmlDefinedName);
       END;
       XlWrkBkWriter.Workbook.Save;
+    END;
+
+    PROCEDURE CalcFormulasAndSave@1000000044(WithQuit@1000000000 : Boolean) FileNameClient : Text;
+    VAR
+      FileNameClientTemp@1000000001 : Text;
+      Directory@1000000003 : Text;
+    BEGIN
+      CloseBook;
+
+      IF OpenUsingDocumentService('') THEN
+        EXIT;
+
+      IF NOT PreOpenExcel THEN
+        EXIT;
+
+      FileNameClientTemp := FileManagement.DownloadTempFile(FileNameServer);
+      IF ERASE(FileNameServer) THEN;
+
+      IF ClientPath = '' THEN BEGIN
+        Directory := FileManagement.GetDirectoryName(FileNameClientTemp);
+        Directory := FileManagement.CombinePath(Directory,FORMAT(CREATEGUID));
+        FileManagement.CreateClientDirectory(Directory);
+        FileNameClient := FileManagement.CombinePath(Directory,GetFriendlyFilename);
+      END ELSE
+        FileNameClient := FileManagement.CombinePath(ClientPath,GetFriendlyFilename);
+
+      IF FileManagement.ClientFileExists(FileNameClient) THEN
+        FileManagement.DeleteClientFile(FileNameClient);
+
+      XlWrkBk := XlHelper.CallOpen(XlApp,FileNameClientTemp);
+      PostOpenExcel;
+      XlHelper.CallSaveAs(XlWrkBk,FileNameClient);
+
+      FileManagement.DeleteClientFile(FileNameClientTemp);
+
+      IF WithQuit THEN BEGIN
+        CloseBook;
+        QuitExcel;
+      END;
+    END;
+
+    PROCEDURE CalcFormulasAndOpen@1000000045();
+    VAR
+      FileNameClient@1000 : Text;
+    BEGIN
+      FileNameClient := CalcFormulasAndSave(FALSE);
+      XlWrkBk := XlHelper.CallOpen(XlApp,FileNameClient);
     END;
 
     EVENT XmlWrkShtDoc@1000000000::NodeInserting@94(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNodeChangedEventArgs");
