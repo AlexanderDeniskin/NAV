@@ -33,3 +33,4 @@ Select top 50
 from [Record Link]
 CROSS APPLY dbo.[fn_FormatRecordID]([Record ID]) RecordIdInfo
 ```
+These functions supports only Option, Integer, Text and Code fields types.
