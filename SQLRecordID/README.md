@@ -36,7 +36,7 @@ CROSS APPLY dbo.[fn_FormatRecordID]([Record ID]) RecordIdInfo
 ##### Filter by Table No. of Record ID:
 ```SQL
 SELECT * FROM [Record Link]
-WHERE CAST(SUBSTRING([Record ID],4,1)+SUBSTRING([Record ID],3,1)+SUBSTRING([Record ID],2,1)+SUBSTRING([Record ID],1,1) as Int) = 27
+WHERE CAST(SUBSTRING([Record ID],4,1)+SUBSTRING([Record ID],3,1)+SUBSTRING([Record ID],2,1)+SUBSTRING([Record ID],1,1) as Int) = 27 -- Item table
 ```
 
 These functions supports only Option, Integer, Text and Code fields types.
