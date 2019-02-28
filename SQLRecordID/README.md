@@ -1,6 +1,6 @@
 # Working with Record ID fields via SQL
 Convert primary key values to varbinary Record ID:
-```
+```SQL
 SELECT TOP 1 
 	[Document Type]
 	,[No_]
@@ -14,7 +14,7 @@ SELECT TOP 1
 		+0x0000 as [RecordID]
 FROM [CompanyName$Purchase Header Archive] PHA
 ```
-```
+```SQL
 SELECT TOP 1 
 	[No_]
 	,[dbo].[fn_Int2RecordID](27,0) 
@@ -24,7 +24,7 @@ FROM [CompanyName$Item]
 ```
 
 Get readable Record ID value:
-```
+```SQL
 Select top 50
 	[Link ID]
 	,[Record ID]
