@@ -45,4 +45,4 @@ WHERE
   as Int) = 27 -- Item table
 ```
 
-These functions supports only Option, Integer, Text and Code fields types.
+These functions support only Option, Integer, Text and Code field data types.
