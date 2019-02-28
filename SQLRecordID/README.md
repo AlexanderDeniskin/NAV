@@ -1,5 +1,5 @@
 # Working with Record ID fields via SQL
-Convert primary key values to varbinary Record ID:
+##### Convert primary key values to varbinary Record ID:
 ```SQL
 SELECT TOP 1 
 	[Document Type]
@@ -23,7 +23,7 @@ SELECT TOP 1
 FROM [CompanyName$Item]
 ```
 
-Get readable Record ID value:
+##### Get readable Record ID value:
 ```SQL
 Select top 50
 	[Link ID]
@@ -33,4 +33,10 @@ Select top 50
 from [Record Link]
 CROSS APPLY dbo.[fn_FormatRecordID]([Record ID]) RecordIdInfo
 ```
+##### Filter by Table No. of Record ID:
+```SQL
+SELECT * FROM [Record Link]
+WHERE CAST(SUBSTRING([Record ID],4,1)+SUBSTRING([Record ID],3,1)+SUBSTRING([Record ID],2,1)+SUBSTRING([Record ID],1,1) as Int) = 27
+```
+
 These functions supports only Option, Integer, Text and Code fields types.
