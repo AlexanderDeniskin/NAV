@@ -2,8 +2,8 @@ OBJECT Table 50000 Excel Buffer Extended
 {
   OBJECT-PROPERTIES
   {
-    Date=28.02.19;
-    Time=14:33:10;
+    Date=01.03.19;
+    Time=09:21:51;
     Modified=Yes;
     Version List=;
   }
@@ -2501,11 +2501,9 @@ OBJECT Table 50000 Excel Buffer Extended
     END;
 
     PROCEDURE CalcFormulasAndOpen@1000000045();
-    VAR
-      FileNameClient@1000 : Text;
     BEGIN
-      FileNameClient := CalcFormulasAndSave(FALSE);
-      XlWrkBk := XlHelper.CallOpen(XlApp,FileNameClient);
+      CalcFormulasAndSave(FALSE);
+      GiveUserControl;
     END;
 
     EVENT XmlWrkShtDoc@1000000000::NodeInserting@94(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNodeChangedEventArgs");
