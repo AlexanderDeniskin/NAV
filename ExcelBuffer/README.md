@@ -36,7 +36,7 @@ xlBuf."Background Color" := 'FFEEEEEE';
 xlBuf.INSERT;
 xlBuf.CreateBookAndOpenExcel('','Sheet1','',COMPANYNAME,USERID);
 ```
-![](Img/GeneralFormatting.png?)
+![](Img/GeneralFormatting.png)
 
 2. Function `UseProperties()` shows how to use functions `SetDefaultProperies` and `AddColumnPr`.
 This function generates a file of the following format:
