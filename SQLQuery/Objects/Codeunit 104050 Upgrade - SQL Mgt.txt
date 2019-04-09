@@ -1,0 +1,201 @@
+OBJECT Codeunit 104050 Upgrade - SQL Mgt.
+{
+  OBJECT-PROPERTIES
+  {
+    Date=28.01.17;
+    Time=12:00:00;
+    Version List=UPGW17.00.00;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      dbpropertyInitialized@1002 : Boolean;
+      dbpropFromStr@1001 : Text[30];
+      dbpropToStr@1000 : Text[30];
+      Text002@1004 : TextConst 'ENU=Found database %1 on server %2, but that is not the database you run on now. Please verify that you have specified the correct SQL Server Name.';
+
+    PROCEDURE GetSQLConnection@5(VAR SQLConnection@1000 : DotNet "'System.Data, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.SqlClient.SqlConnection");
+    BEGIN
+      SQLConnection :=
+        SQLConnection.SqlConnection(
+          STRSUBSTNO(
+            'Data Source=%1;Initial Catalog=%2;Integrated Security=SSPI',
+            GetServerName,GetDBName));
+    END;
+
+    PROCEDURE GetServerName@1() : Text[250];
+    VAR
+      StatusLog@1003 : Record 104002;
+      ActiveSession@1000 : Record 2000000110;
+      ServerName@1001 : Text[250];
+      i@1002 : Integer;
+    BEGIN
+      StatusLog.SETRANGE("Company Name",COMPANYNAME);
+      IF StatusLog.FINDFIRST THEN
+        ServerName := StatusLog."SQL Server Name";
+
+      IF ServerName = '' THEN BEGIN
+        ActiveSession.SETRANGE("Session ID",SESSIONID);
+        ActiveSession.FINDFIRST;
+        ServerName := ActiveSession."Server Computer Name";
+        i := STRPOS(ServerName,'.');
+        IF i > 1 THEN
+          ServerName := COPYSTR(ServerName,1,i - 1);
+      END;
+      EXIT(ServerName);
+    END;
+
+    PROCEDURE GetDBName@3() : Text[250];
+    VAR
+      SessionEvent@1000 : Record 2000000111;
+    BEGIN
+      SessionEvent.SETRANGE("Session ID",SESSIONID);
+      SessionEvent.FINDLAST;
+      EXIT(SessionEvent."Database Name");
+    END;
+
+    PROCEDURE GetFullTableNameSQL@8(TableID@1000 : Integer) : Text[128];
+    BEGIN
+      EXIT(STRSUBSTNO('%1$%2',GetCompanyNameSQL,GetTableNameSQL(TableID)));
+    END;
+
+    PROCEDURE GetCompanyNameSQL@10() : Text[80];
+    BEGIN
+      EXIT(StringConvert(COMPANYNAME));
+    END;
+
+    PROCEDURE GetTableNameSQL@7(TableID@1000 : Integer) : Text[80];
+    VAR
+      RecRef@1001 : RecordRef;
+      TableName@1002 : Text[80];
+    BEGIN
+      RecRef.OPEN(TableID);
+      TableName := RecRef.NAME;
+      RecRef.CLOSE;
+      EXIT(StringConvert(TableName));
+    END;
+
+    LOCAL PROCEDURE GetDBPropertyField@11(FieldName@1000 : Text) : Text;
+    VAR
+      SQLCommand@1003 : DotNet "'System.Data, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.SqlClient.SqlCommand";
+      SQLConnection@1002 : DotNet "'System.Data, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.SqlClient.SqlConnection";
+      Qry@1004 : Text;
+      i@1001 : Integer;
+      FieldValue@1005 : Text;
+    BEGIN
+      IF FieldName = '' THEN
+        EXIT('');
+
+      Qry := STRSUBSTNO('select top 1 [%1] from [$ndo$dbproperty]',FieldName);
+
+      GetSQLConnection(SQLConnection);
+      SQLConnection.Open;
+
+      SQLCommand := SQLCommand.SqlCommand(Qry,SQLConnection);
+      SQLCommand.CommandTimeout(0); // wait indefinately for the command to finish.
+
+      FieldValue := FORMAT(SQLCommand.ExecuteScalar);
+
+      SQLConnection.Close;
+      EXIT(FieldValue);
+    END;
+
+    PROCEDURE ExecuteSQLCommand@4(CommandString@1000 : Text) : Integer;
+    VAR
+      SQLConnection@1002 : DotNet "'System.Data, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.SqlClient.SqlConnection";
+      SQLCommand@1003 : DotNet "'System.Data, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.SqlClient.SqlCommand";
+      NoOfAffectedRows@1001 : Integer;
+    BEGIN
+      GetSQLConnection(SQLConnection);
+      SQLConnection.Open;
+
+      SQLCommand := SQLCommand.SqlCommand(CommandString,SQLConnection);
+      SQLCommand.CommandTimeout(0); // wait indefinately for the command to finish.
+
+      NoOfAffectedRows := SQLCommand.ExecuteNonQuery;
+
+      SQLConnection.Close;
+      EXIT(NoOfAffectedRows);
+    END;
+
+    PROCEDURE StringConvert@2(NAVName@1000 : Text[80]) : Text[80];
+    VAR
+      i@1001 : Integer;
+    BEGIN
+      IF NOT dbpropertyInitialized THEN BEGIN
+        dbpropertyInitialized := TRUE;
+        IF GetDBPropertyField('convertidentifiers') = '1' THEN BEGIN
+          dbpropFromStr := GetDBPropertyField('invalididentifierchars');
+          FOR i := 1 TO STRLEN(dbpropFromStr) DO
+            dbpropToStr += '_';
+        END;
+      END;
+
+      EXIT(CONVERTSTR(NAVName,dbpropFromStr,dbpropToStr));
+    END;
+
+    PROCEDURE TestDatabaseConnection@15(VAR StatusLog@1000 : Record 104002);
+    VAR
+      SQLConnection@1001 : DotNet "'System.Data, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.SqlClient.SqlConnection";
+      SQLCommand@1002 : DotNet "'System.Data, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.SqlClient.SqlCommand";
+      SelectedTestValue@1003 : Text[80];
+    BEGIN
+      GetSQLConnection(SQLConnection);
+      SQLConnection.Open;
+      StatusLog."SQL Connection Test Value" := FORMAT(CREATEGUID);
+      StatusLog."SQL Connection Verified" := FALSE;
+      StatusLog.MODIFY;
+      COMMIT;
+
+      SQLCommand :=
+        SQLCommand.SqlCommand(
+          STRSUBSTNO(
+            'select [%1] from [%2] where [%3]=''%4''',
+            StringConvert(StatusLog.FIELDNAME("SQL Connection Test Value")),
+            GetTableNameSQL(DATABASE::"Status Log"),
+            StringConvert(StatusLog.FIELDNAME("Company Name")),
+            EscapeSingleQuote(COMPANYNAME)),
+          SQLConnection);
+
+      SelectedTestValue := FORMAT(SQLCommand.ExecuteScalar);
+      SQLConnection.Close;
+      IF StatusLog."SQL Connection Test Value" <> SelectedTestValue THEN
+        ERROR(Text002,SQLConnection.Database,SQLConnection.DataSource);
+      StatusLog."SQL Connection Verified" := TRUE;
+      StatusLog.MODIFY;
+      COMMIT;
+    END;
+
+    PROCEDURE GetUserApprovalToRunOnClient@16();
+    VAR
+      SQLConnection@1000 : DotNet "'System.Data, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.SqlClient.SqlConnection" RUNONCLIENT;
+    BEGIN
+      // This function only serves to prompt the user whether they will allow .net components to run on the client.
+      // We need to run parts of the direct sql commands from client, because we need permissions to create/remove a few intermediate work-tables.
+      SQLConnection := SQLConnection.SqlConnection;
+      SQLConnection.Close;
+    END;
+
+    LOCAL PROCEDURE EscapeSingleQuote@17(Str@1000 : Text[30]) NewStr : Text;
+    VAR
+      i@1001 : Integer;
+    BEGIN
+      NewStr := '';
+      FOR i := 1 TO STRLEN(Str) DO BEGIN
+        NewStr += FORMAT(Str[i]);
+        IF Str[i] = '''' THEN
+          NewStr += '''';
+      END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
