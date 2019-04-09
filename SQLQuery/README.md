@@ -9,3 +9,6 @@ File [Page 50007 SQL Query Examples.txt](Objects/Page%2050007%20SQL%20Query%20Ex
 1. How to insert data.
 2. How to update data.
 3. What if error will occur (rollback changes).
+
+## Additional info
+File [Codeunit 104050 Upgrade - SQL Mgt.txt](Objects/Codeunit%20104050%20Upgrade%20-%20SQL%20Mgt.txt) is from Nav 2013 upgrade toolkit. It can be used to run SQL queries from Nav.
