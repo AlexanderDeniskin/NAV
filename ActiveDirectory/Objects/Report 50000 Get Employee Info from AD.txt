@@ -1,0 +1,160 @@
+OBJECT Report 50000 Get Employee Info from AD
+{
+  OBJECT-PROPERTIES
+  {
+    Date=25.06.19;
+    Time=15:46:45;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    CaptionML=[DEU=Get Employee Info from AD;
+               ENU=Get Employee Info from AD];
+    ProcessingOnly=Yes;
+    OnPreReport=VAR
+                ;
+                BEGIN
+                  DomainName := LOWERCASE(COPYSTR(USERID,1, STRPOS(USERID,'\') - 1));
+                END;
+
+  }
+  DATASET
+  {
+    { 1119429000;;DataItem;                  ;
+               DataItemTable=Table5200;
+               OnPreDataItem=BEGIN
+
+                               WriteExcelRow(
+                                 Employee.FIELDCAPTION("No."),
+                                 Employee.FIELDCAPTION("First Name"),
+                                 Employee.FIELDCAPTION("Last Name"),
+                                 Employee.FIELDCAPTION("Job Title"),
+                                 'SAMAccountName',
+                                 'DisplayName',
+                                 'Email',
+                                 'TelephoneNumber',
+                                 'Department',
+                                 'Title',
+                                 TRUE);
+                             END;
+
+               OnAfterGetRecord=BEGIN
+                                  GetUserInfo();
+
+                                  WriteExcelRow(
+                                    Employee."No.",
+                                    Employee."First Name",
+                                    Employee."Last Name",
+                                    Employee."Job Title",
+                                    ADFieldsArray[1],
+                                    ADFieldsArray[2],
+                                    ADFieldsArray[3],
+                                    ADFieldsArray[4],
+                                    ADFieldsArray[5],
+                                    ADFieldsArray[6],
+                                    FALSE);
+                                END;
+
+               OnPostDataItem=BEGIN
+                                ExcelBuffer.CreateBookAndOpenExcel('','Employees','','',USERID);
+                              END;
+
+               ReqFilterFields=No.,Last Name,First Name }
+
+  }
+  REQUESTPAGE
+  {
+    PROPERTIES
+    {
+    }
+    CONTROLS
+    {
+    }
+  }
+  LABELS
+  {
+  }
+  CODE
+  {
+    VAR
+      ExcelBuffer@1000000003 : TEMPORARY Record 370;
+      DomainName@1000000005 : Text;
+      ADFieldsArray@1000000000 : ARRAY [7] OF Text;
+      RowNo@1000000004 : Integer;
+
+    LOCAL PROCEDURE GetUserInfo@1119429002();
+    VAR
+      DirectoryEntry@1119429004 : DotNet "'System.DirectoryServices, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.System.DirectoryServices.DirectoryEntry";
+      AuthTypes@1119429003 : DotNet "'System.DirectoryServices, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.System.DirectoryServices.AuthenticationTypes";
+      DirectorySearcher@1119429002 : DotNet "'System.DirectoryServices, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.System.DirectoryServices.DirectorySearcher";
+      SearchScope@1000000000 : DotNet "'System.DirectoryServices, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.System.DirectoryServices.SearchScope";
+      SearchResult@1119429001 : DotNet "'System.DirectoryServices, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.System.DirectoryServices.SearchResult";
+      Env@1119429000 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Environment";
+      Pos@1119429008 : Integer;
+    BEGIN
+      CLEAR(ADFieldsArray);
+
+      DirectoryEntry := DirectoryEntry.DirectoryEntry;
+      DirectoryEntry.Path := 'LDAP://' + DomainName;
+      DirectorySearcher := DirectorySearcher.DirectorySearcher(DirectoryEntry);
+      DirectorySearcher.Filter := STRSUBSTNO('(&(objectClass=user)(employeeID=%1)(DisplayName=%2))', Employee."No.", Employee."First Name" + ' ' + Employee."Last Name");
+      DirectorySearcher.PropertiesToLoad.Add('SAMAccountName');
+      DirectorySearcher.PropertiesToLoad.Add('DisplayName');
+      DirectorySearcher.PropertiesToLoad.Add('mail');
+      DirectorySearcher.PropertiesToLoad.Add('telephoneNumber');
+      DirectorySearcher.PropertiesToLoad.Add('department');
+      DirectorySearcher.PropertiesToLoad.Add('title');
+      DirectorySearcher.PropertiesToLoad.Add('employeeID');
+
+      SearchResult := DirectorySearcher.FindOne;
+
+      IF ISNULL(SearchResult) THEN
+        EXIT;
+
+      ADFieldsArray[1] := GetPropertyValue(SearchResult,'SAMAccountName');
+      ADFieldsArray[2] := GetPropertyValue(SearchResult,'DisplayName');
+      ADFieldsArray[3] := GetPropertyValue(SearchResult,'mail');
+      ADFieldsArray[4] := GetPropertyValue(SearchResult,'telephoneNumber');
+      ADFieldsArray[5] := GetPropertyValue(SearchResult,'department');
+      ADFieldsArray[6] := GetPropertyValue(SearchResult,'title');
+      ADFieldsArray[7] := GetPropertyValue(SearchResult,'employeeID');
+    END;
+
+    LOCAL PROCEDURE GetPropertyValue@1000000001(VAR SearchResult@1000000000 : DotNet "'System.DirectoryServices, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.System.DirectoryServices.SearchResult";PropertyName@1000000002 : Text) : Text;
+    VAR
+      PropertyValue@1000000001 : DotNet "'System.DirectoryServices, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.System.DirectoryServices.PropertyValueCollection";
+    BEGIN
+      PropertyValue := SearchResult.Properties.Item(PropertyName);
+      IF ISNULL(PropertyValue) THEN
+        EXIT('');
+
+      IF PropertyValue.Count = 0 THEN
+        EXIT('');
+
+      EXIT(FORMAT(PropertyValue.Item(0)));
+    END;
+
+    LOCAL PROCEDURE WriteExcelRow@1000000000(Col1@1000000000 : Variant;Col2@1000000001 : Variant;Col3@1000000002 : Variant;Col4@1000000003 : Variant;Col5@1000000004 : Variant;Col6@1000000009 : Variant;Col7@1000000008 : Variant;Col8@1000000007 : Variant;Col9@1000000006 : Variant;Col10@1000000010 : Variant;IsHeader@1000000005 : Boolean);
+    BEGIN
+      ExcelBuffer.NewRow;
+      ExcelBuffer.AddColumn(Col1,FALSE,'',IsHeader,FALSE,FALSE,'',0);
+      ExcelBuffer.AddColumn(Col2,FALSE,'',IsHeader,FALSE,FALSE,'',0);
+      ExcelBuffer.AddColumn(Col3,FALSE,'',IsHeader,FALSE,FALSE,'',0);
+      ExcelBuffer.AddColumn(Col4,FALSE,'',IsHeader,FALSE,FALSE,'',0);
+      ExcelBuffer.AddColumn(Col5,FALSE,'',IsHeader,FALSE,FALSE,'',0);
+      ExcelBuffer.AddColumn(Col6,FALSE,'',IsHeader,FALSE,FALSE,'',0);
+      ExcelBuffer.AddColumn(Col7,FALSE,'',IsHeader,FALSE,FALSE,'',0);
+      ExcelBuffer.AddColumn(Col8,FALSE,'',IsHeader,FALSE,FALSE,'',0);
+      ExcelBuffer.AddColumn(Col9,FALSE,'',IsHeader,FALSE,FALSE,'',0);
+      ExcelBuffer.AddColumn(Col10,FALSE,'',IsHeader,FALSE,FALSE,'',0);
+    END;
+
+    BEGIN
+    END.
+  }
+  RDLDATA
+  {
+  }
+}
+
