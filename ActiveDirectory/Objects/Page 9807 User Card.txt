@@ -1,0 +1,660 @@
+OBJECT Page 9807 User Card
+{
+  OBJECT-PROPERTIES
+  {
+    Date=25.06.19;
+    Time=15:14:48;
+    Modified=Yes;
+    Version List=NAVW110.00,ASD;
+  }
+  PROPERTIES
+  {
+    CaptionML=[DEU=Benutzerkarte;
+               ENU=User Card];
+    SourceTable=Table2000000120;
+    DataCaptionExpr="Full Name";
+    DelayedInsert=Yes;
+    PageType=Card;
+    OnInit=BEGIN
+             DeployedToAzure := IdentityManagement.IsAzure;
+           END;
+
+    OnOpenPage=VAR
+                 PermissionManager@1000 : Codeunit 9002;
+               BEGIN
+                 SoftwareAsAService := PermissionManager.SoftwareAsAService;
+
+                 HideExternalUsers;
+
+                 IsWindowsClient := (CURRENTCLIENTTYPE = CLIENTTYPE::Windows);
+               END;
+
+    OnAfterGetRecord=VAR
+                       PermissionManager@1000 : Codeunit 9002;
+                     BEGIN
+                       WindowsUserName := IdentityManagement.UserName("Windows Security ID");
+
+                       TESTFIELD("User Name");
+
+                       Password := IdentityManagement.GetMaskedNavPassword("User Security ID");
+                       ACSStatus := IdentityManagement.GetACSStatus("User Security ID");
+                       WebServiceExpiryDate := IdentityManagement.GetWebServiceExpiryDate("User Security ID");
+                       AuthenticationStatus := IdentityManagement.GetAuthenticationStatus("User Security ID");
+                       HasExchangeIdentifier := "Exchange Identifier" <> '';
+                       InitialState := State;
+
+                       IF NOT ISNULLGUID("Application ID") THEN
+                         ApplicationID := "Application ID";
+
+                       IF PermissionManager.SoftwareAsAService AND (USERID <> "User Name") THEN BEGIN
+                         AllowChangeWebServiceAccessKey := FALSE;
+                         WebServiceID := '*************************************';
+                       END ELSE BEGIN
+                         AllowChangeWebServiceAccessKey := TRUE;
+                         WebServiceID := IdentityManagement.GetWebServicesKey("User Security ID");
+                       END;
+                     END;
+
+    OnNewRecord=VAR
+                  PermissionManager@1001 : Codeunit 9002;
+                BEGIN
+                  IF PermissionManager.SoftwareAsAService THEN
+                    ERROR(CannotCreateUsersErr);
+                  WindowsUserName := '';
+                  Password := '';
+                  "Change Password" := FALSE;
+                  WebServiceID := '';
+                  CLEAR(WebServiceExpiryDate);
+                END;
+
+    OnInsertRecord=BEGIN
+                     "User Security ID" := CREATEGUID;
+                     TESTFIELD("User Name");
+                   END;
+
+    OnModifyRecord=BEGIN
+                     TESTFIELD("User Name");
+                   END;
+
+    OnDeleteRecord=BEGIN
+                     IF SoftwareAsAService THEN
+                       ERROR(CannotDeleteUsersErr)
+                   END;
+
+    OnQueryClosePage=BEGIN
+                       IF "User Name" <> '' THEN
+                         EXIT(ValidateAuthentication);
+                     END;
+
+    ActionList=ACTIONS
+    {
+      { 10      ;    ;ActionContainer;
+                      ActionContainerType=ActionItems }
+      { 9       ;1   ;ActionGroup;
+                      CaptionML=[DEU=Authentifizierung;
+                                 ENU=Authentication] }
+      { 21      ;2   ;Action    ;
+                      Name=AcsSetup;
+                      CaptionML=[DEU=&ACS-Einrichtung;
+                                 ENU=&ACS Setup];
+                      ToolTipML=[DEU=Dient zum Einrichten der Access Control Service-Authentifizierung, z.ÿB. zur Generierung eines Authentifizierungsschlssels, mit dem der Benutzer eine Verbindung mit Azure herstellen kann.;
+                                 ENU=Set up Access Control Service authentication, such as generating an authentication key that the user can use to connect to Azure.];
+                      ApplicationArea=#Basic,#Suite;
+                      Promoted=Yes;
+                      Visible=NOT SoftwareAsAService;
+                      PromotedIsBig=Yes;
+                      Image=ServiceSetup;
+                      PromotedCategory=Process;
+                      OnAction=BEGIN
+                                 EditACSStatus;
+                               END;
+                                }
+      { 24      ;2   ;Action    ;
+                      Name=ChangePassword;
+                      CaptionML=[DEU=&Kennwort „ndern;
+                                 ENU=Change &Password];
+                      ToolTipML=[DEU=Dient zum Žndern des Benutzerkennworts, wenn der Benutzer die Verbindung per Kennwortauthentifizierung herstellt.;
+                                 ENU=Change the user's password if the user connects using password authentication.];
+                      ApplicationArea=#Basic,#Suite;
+                      Promoted=Yes;
+                      Visible=NOT SoftwareAsAService;
+                      PromotedIsBig=Yes;
+                      Image=EncryptionKeys;
+                      PromotedCategory=Process;
+                      OnAction=BEGIN
+                                 EditNavPassword;
+                               END;
+                                }
+      { 20      ;2   ;Action    ;
+                      Name=ChangeWebServiceAccessKey;
+                      CaptionML=[DEU=&Webdienstschlssel „ndern;
+                                 ENU=Change &Web Service Key];
+                      ToolTipML=[DEU=Dient zum Einrichten des Schlssels, den Webdienste zum Zugreifen auf Ihre Daten verwenden, und zum Angeben des Schlssels auf der Benutzerkarte fr die relevanten Benutzerkonten.;
+                                 ENU=Set up the key that web services use to access your data, and then specify the key on the user card for the relevant user accounts.];
+                      ApplicationArea=#Basic,#Suite;
+                      Promoted=Yes;
+                      Enabled=AllowChangeWebServiceAccessKey;
+                      PromotedIsBig=Yes;
+                      Image=ServiceCode;
+                      PromotedCategory=Process;
+                      OnAction=BEGIN
+                                 EditWebServiceID;
+                               END;
+                                }
+      { 35      ;2   ;Action    ;
+                      Name=DeleteExchangeIdentifier;
+                      CaptionML=[DEU=Exchange-Bezeichnerzuordnung l”schen;
+                                 ENU=Delete Exchange Identifier Mapping];
+                      ToolTipML=[DEU=Belegaustauschzuordnung fr den aktuellen Benutzer l”schen;
+                                 ENU=Delete the document exchange mapping for the current user.];
+                      ApplicationArea=#Basic,#Suite;
+                      Enabled=HasExchangeIdentifier;
+                      Image=DeleteXML;
+                      OnAction=BEGIN
+                                 IF NOT CONFIRM(ConfirmRemoveExchangeIdentifierQst) THEN
+                                   EXIT;
+
+                                 CLEAR("Exchange Identifier");
+                                 MODIFY(TRUE);
+                                 HasExchangeIdentifier := FALSE;
+                               END;
+                                }
+    }
+  }
+  CONTROLS
+  {
+    { 1   ;0   ;Container ;
+                ContainerType=ContentArea }
+
+    { 2   ;1   ;Group     ;
+                Name=General;
+                CaptionML=[DEU=Allgemein;
+                           ENU=General];
+                GroupType=Group }
+
+    { 3   ;2   ;Field     ;
+                CaptionML=[DEU=Benutzersicherheitskennung;
+                           ENU=User Security ID];
+                ToolTipML=[DEU=Gibt eine ID an, mit der der Benutzer eindeutig identifiziert wird. Dieser Wert wird automatisch erzeugt und sollte nicht ge„ndert werden.;
+                           ENU=Specifies an ID that uniquely identifies the user. This value is generated automatically and should not be changed.];
+                SourceExpr="User Security ID";
+                Visible=FALSE }
+
+    { 4   ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt den Namen des Benutzers an. Falls der Benutzer Anmeldeinformationen angeben muss, wenn der Client gestartet wird, ist dies der Name, den der Benutzer angeben muss.;
+                           ENU=Specifies the user's name. If the user is required to present credentials when starting the client, this is the name that the user must present.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="User Name";
+                Importance=Promoted;
+                OnValidate=BEGIN
+                             IF xRec."User Name" <> "User Name" THEN
+                               ValidateUserName;
+                           END;
+                            }
+
+    { 5   ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt den vollst„ndigen Namen des Benutzers an.;
+                           ENU=Specifies the full name of the user.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Full Name";
+                Editable=NOT SoftwareAsAService }
+
+    { 8   ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die Art der Lizenz an, die fr den Benutzer gilt.;
+                           ENU=Specifies the type of license that applies to the user.];
+                ApplicationArea=#All;
+                SourceExpr="License Type";
+                Visible=NOT SoftwareAsAService }
+
+    { 6   ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt an, ob der Benutzername fr die Anmeldung des Benutzers aktiviert ist.;
+                           ENU=Specifies if the user's login is enabled.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr=State;
+                Importance=Promoted }
+
+    { 13  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt ein Datum an, nach dem der Benutzer nicht mehr autorisiert ist, sich am Windows-Client anzumelden.;
+                           ENU=Specifies a date past which the user will no longer be authorized to log on to the Windows client.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Expiry Date";
+                Visible=NOT SoftwareAsAService }
+
+    { 29  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die E-Mail-Adresse des Benutzers an.;
+                           ENU=Specifies the user's email address.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Contact Email" }
+
+    { 11  ;1   ;Group     ;
+                Name=Windows Authentication;
+                CaptionML=[DEU=Windows-Authentifizierung;
+                           ENU=Windows Authentication];
+                Visible=(NOT DeployedToAzure) AND (NOT SoftwareAsAService);
+                GroupType=Group }
+
+    { 12  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die Windows-Sicherheitskennung des Benutzers an. Dies ist nur fr die Windows-Authentifizierung relevant.;
+                           ENU=Specifies the Windows Security ID of the user. This is only relevant for Windows authentication.];
+                SourceExpr="Windows Security ID";
+                Visible=FALSE }
+
+    { 38  ;2   ;Field     ;
+                Name=Windows User Name;
+                AssistEdit=No;
+                CaptionML=[DEU=Windows-Benutzername;
+                           ENU=Windows User Name];
+                ToolTipML=[DEU=Gibt den Namen eines gltigen Active Directory-Benutzers an, wobei das Format Dom„ne\Benutzername verwendet wird.;
+                           ENU=Specifies the name of a valid Active Directory user, using the format domain\username.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr=WindowsUserName;
+                Importance=Promoted;
+                Visible=NOT IsWindowsClient;
+                OnValidate=BEGIN
+                             ValidateWindowsUserName;
+                           END;
+                            }
+
+    { 7   ;2   ;Field     ;
+                Name=Windows User Name Desktop;
+                AssistEdit=Yes;
+                CaptionML=[DEU=Windows-Benutzername;
+                           ENU=Windows User Name];
+                ToolTipML=[DEU=Gibt den Namen eines gltigen Active Directory-Benutzers an, wobei das Format Dom„ne\Benutzername verwendet wird.;
+                           ENU=Specifies the name of a valid Active Directory user, using the format domain\username.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr=WindowsUserName;
+                Importance=Promoted;
+                Visible=IsWindowsClient;
+                OnValidate=BEGIN
+                             ValidateWindowsUserName;
+                           END;
+
+                OnAssistEdit=VAR
+                               DSOP@1000 : DotNet "'Microsoft.Dynamics.Nav.Management.DSObjectPickerWrapper, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Nav.Management.DSObjectPicker.DSObjectPickerWrapper" RUNONCLIENT;
+                               result@1001 : Text;
+                             BEGIN
+                               DSOP := DSOP.DSObjectPickerWrapper;
+                               result := DSOP.InvokeDialogAndReturnSid;
+                               IF result <> '' THEN BEGIN
+                                 "Windows Security ID" := result;
+                                 ValidateSid;
+                                 WindowsUserName := IdentityManagement.UserName("Windows Security ID");
+                                 SetUserName;
+                               END;
+                             END;
+                              }
+
+    { 31  ;1   ;Group     ;
+                Name=ACS Authentication;
+                CaptionML=[DEU=Dienstauthentifizierung fr Zugriffssteuerung;
+                           ENU=Access Control Service Authentication];
+                Visible=NOT SoftwareAsAService;
+                GroupType=Group }
+
+    { 22  ;2   ;Field     ;
+                DrillDown=No;
+                AssistEdit=Yes;
+                CaptionML=[DEU=ACS-Zugriffsstatus;
+                           ENU=ACS Access Status];
+                ToolTipML=[DEU=Gibt den Status des Benutzers fr die ACS-Authentifizierung an. Wenn Sie mit dem Erstellen eines Benutzers beginnen, lautet der Status "Deaktiviert". Nach dem Erstellen eines Benutzers „ndert sich der Status in "Ausstehend". Nachdem sich der Benutzer angemeldet hat, „ndert sich der Status in "Aktiviert".;
+                           ENU=Specifies the user's status for ACS authentication. When you start creating a user, the status is Disabled. After you create a user, the status changes to Pending. After the user logs on successfully, the status changes to Enabled.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr=ACSStatus;
+                Importance=Promoted;
+                Visible=NOT SoftwareAsAService;
+                Editable=FALSE;
+                OnAssistEdit=BEGIN
+                               EditACSStatus;
+                             END;
+                              }
+
+    { 15  ;1   ;Group     ;
+                Name=NAV Password Authentication;
+                CaptionML=[DEU=Microsoft Dynamics NAV-Kennwortauthentifizierung;
+                           ENU=Microsoft Dynamics NAV Password Authentication];
+                Visible=NOT SoftwareAsAService;
+                GroupType=Group }
+
+    { 25  ;2   ;Field     ;
+                ExtendedDatatype=Masked;
+                AssistEdit=Yes;
+                CaptionML=[DEU=Kennwort;
+                           ENU=Password];
+                ToolTipML=[DEU=Gibt ein anf„ngliches Kennwort fr den Benutzer an. Fr die Anmeldung am Client muss der Benutzer den Namen, der im Feld "Benutzername" angegeben ist, und dieses Kennwort angeben.;
+                           ENU=Specifies an initial password for the user. To sign in to the client, the user must provide the name that is specified in the User Name field and this password.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr=Password;
+                Importance=Standard;
+                Editable=FALSE;
+                OnAssistEdit=BEGIN
+                               EditNavPassword;
+                             END;
+                              }
+
+    { 26  ;2   ;Field     ;
+                CaptionML=[DEU=Der Benutzer muss bei der n„chsten Anmeldung das Kennwort „ndern.;
+                           ENU=User must change password at next login];
+                ToolTipML=[DEU=Gibt an, ob der Benutzer aufgefordert wird, das Kennwort bei der n„chsten Anmeldung zu „ndern.;
+                           ENU=Specifies if the user will be prompted to change the password at next login.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Change Password" }
+
+    { 19  ;1   ;Group     ;
+                Name=Web Service Access;
+                CaptionML=[DEU=Webdienstzugriff;
+                           ENU=Web Service Access];
+                GroupType=Group }
+
+    { 23  ;2   ;Field     ;
+                AssistEdit=Yes;
+                CaptionML=[DEU=Webdienst-Zugriffsschlssel;
+                           ENU=Web Service Access Key];
+                ToolTipML=[DEU=Gibt einen generierten Schlssel an, der von Dynamics NAV-Webdienstanwendungen zum Authentifizieren von Dynamics NAV-Diensten verwendet werden kann. W„hlen Sie die Schaltfl„che "AssistEdit", um einen Schlssel zu generieren.;
+                           ENU=Specifies a generated key that Dynamics NAV web service applications can use to authenticate to Dynamics NAV services. Choose the AssistEdit button to generate a key.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr=WebServiceID;
+                Editable=FALSE;
+                OnAssistEdit=BEGIN
+                               EditWebServiceID;
+                             END;
+                              }
+
+    { 30  ;2   ;Field     ;
+                CaptionML=[DEU=Webdienst-Ablaufdatum;
+                           ENU=Web Service Expiry Date];
+                ToolTipML=[DEU=Gibt ein Ablaufdatum fr den Webdienst-Zugriffsschlssel an.;
+                           ENU=Specifies an expiration date for the web services access key.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr=WebServiceExpiryDate;
+                Importance=Promoted;
+                Editable=FALSE }
+
+    { 27  ;1   ;Group     ;
+                Name=Office 365 Authentication;
+                CaptionML=[@@@="{Locked=""Office 365""}";
+                           DEU=Office 365-Authentifizierung;
+                           ENU=Office 365 Authentication];
+                GroupType=Group }
+
+    { 28  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt das Microsoft-Konto an, mit dem sich dieser Benutzer an Office 365 oder SharePoint Online anmeldet.;
+                           ENU=Specifies the Microsoft account that this user signs into Office 365 or SharePoint Online with.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Authentication Email";
+                Editable=NOT SoftwareAsAService;
+                OnValidate=BEGIN
+                             IdentityManagement.SetAuthenticationEmail("User Security ID","Authentication Email");
+                             CurrPage.SAVERECORD;
+                             AuthenticationStatus := IdentityManagement.GetAuthenticationStatus("User Security ID");
+                           END;
+                            }
+
+    { 36  ;2   ;Field     ;
+                Name=ApplicationID;
+                CaptionML=[DEU=Ausgleichs-ID;
+                           ENU=Application ID];
+                ToolTipML=[DEU=Gibt die Client-ID der Microsoft Azure Active Directory-Anwendung an, wenn Webdienstaufrufe authentifiziert werden. Dieses Feld ist nur relevant, wenn der Dynamics NAV-Benutzer fr Webdienste verwendet wird.;
+                           ENU=Specifies the client ID of the Microsoft Azure Active Directory application when authenticating web-service calls. This field is only relevant when the Dynamics NAV user is used for web services.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr=ApplicationID;
+                OnValidate=BEGIN
+                             IF ApplicationID = '' THEN
+                               CLEAR("Application ID")
+                             ELSE
+                               "Application ID" := ApplicationID
+                           END;
+                            }
+
+    { 34  ;2   ;Field     ;
+                Name=MappedToExchangeIdentifier;
+                CaptionML=[DEU=Zu Exchange-Bezeichner zugeordnet;
+                           ENU=Mapped To Exchange Identifier];
+                ToolTipML=[DEU=Gibt an, ob der Benutzer einem Microsoft Exchange-Bezeichner zugeordnet ist, mit dem der Benutzer ohne Anmeldung aus Exchange-Anwendungen (z.ÿB. Outlook) auf Dynamics NAV zugreifen kann.;
+                           ENU=Specifies whether the user is mapped to a Microsoft Exchange identifier, which enables the user to access Dynamics NAV from Exchange applications (such as Outlook) without having to sign-in.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr=HasExchangeIdentifier;
+                Editable=FALSE;
+                Style=StandardAccent;
+                StyleExpr=TRUE }
+
+    { 32  ;2   ;Field     ;
+                Name=AuthenticationStatus;
+                CaptionML=[DEU=Authentifizierungsstatus;
+                           ENU=Authentication Status];
+                ToolTipML=[DEU=Gibt den Status des Benutzers fr die Office 365-Authentifizierung an. Wenn Sie mit dem Erstellen eines Benutzers beginnen, lautet der Status "Deaktiviert". Nachdem Sie fr den Benutzer eine E-Mail-Adresse zur Authentifizierung angegeben haben, „ndert sich der Status in "Inaktiv". Nachdem sich der Benutzer angemeldet hat, „ndert sich der Status in "Aktiv".;
+                           ENU=Specifies the user's status for Office 365 authentication. When you start to create a user, the status is Disabled. After you specify an authentication email address for the user, the status changes to Inactive. After the user logs on successfully, the status changes to Active.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr=AuthenticationStatus;
+                Editable=FALSE }
+
+    { 33  ;1   ;Part      ;
+                Name=UserGroups;
+                CaptionML=[DEU=Benutzergruppen;
+                           ENU=User Groups];
+                ApplicationArea=#Basic,#Suite;
+                SubPageLink=User Security ID=FIELD(User Security ID);
+                PagePartID=Page9833;
+                PartType=Page }
+
+    { 14  ;1   ;Part      ;
+                Name=Permissions;
+                CaptionML=[DEU=Benutzerberechtigungss„tze;
+                           ENU=User Permission Sets];
+                ApplicationArea=#Basic,#Suite;
+                SubPageLink=User Security ID=FIELD(User Security ID);
+                PagePartID=Page9801;
+                PartType=Page }
+
+    { 16  ;    ;Container ;
+                ContainerType=FactBoxArea }
+
+    { 17  ;1   ;Part      ;
+                PartType=System;
+                SystemPartID=Notes }
+
+    { 18  ;1   ;Part      ;
+                PartType=System;
+                SystemPartID=RecordLinks }
+
+  }
+  CODE
+  {
+    VAR
+      UserSecID@1007 : Record 2000000120;
+      IdentityManagement@1011 : Codeunit 9801;
+      WindowsUserName@1000 : Text[208];
+      Text001@1003 : TextConst 'DEU=Das Konto ''%1'' ist kein gltiges Windows-Konto.;ENU=The account %1 is not a valid Windows account.';
+      Text002@1002 : TextConst 'DEU=Das Konto ''%1'' ist bereits vorhanden.;ENU=The account %1 already exists.';
+      Text003@1001 : TextConst 'DEU=Das Konto ''%1'' ist unzul„ssig.;ENU=The account %1 is not allowed.';
+      Password@1006 : Text[80];
+      ACSStatus@1008 : 'Disabled,Pending,Registered,Unknown';
+      WebServiceID@1009 : Text[80];
+      Confirm001Qst@1010 : TextConst 'DEU=Der aktuelle Webdienst-Zugriffsschlssel ist nach der Bearbeitung nicht gltig. Alle Clients, die den Schlssel verwenden, mssen aktualisiert werden. M”chten Sie fortfahren?;ENU=The current Web Service Access Key will not be valid after editing. All clients that use it have to be updated. Do you want to continue?';
+      WebServiceExpiryDate@1012 : DateTime;
+      Confirm002Qst@1013 : TextConst 'DEU=Sie haben nicht alle erforderlichen Felder fr den Anmeldeinformationstyp ausgefllt, den dieser Client derzeit verwendet. Der Benutzer kann sich erst anmelden, wenn Sie einen Wert im Feld %1 angeben. M”chten Sie dieses Fenster wirklich schlieáen?;ENU=You have not completed all necessary fields for the Credential Type that this client is currently using. The user will not be able to log in unless you provide a value in the %1 field. Are you sure that you want to close the window?';
+      DeployedToAzure@1014 : Boolean INDATASET;
+      Confirm003Qst@1005 : TextConst 'DEU=Der Benutzer kann sich erst anmelden, wenn Sie den Status zu "Aktiviert" „ndern. M”chten Sie die Seite wirklich schlieáen?;ENU=The user will not be able to sign in unless you change the state to Enabled. Are you sure that you want to close the page?';
+      HasExchangeIdentifier@1016 : Boolean;
+      AuthenticationStatus@1004 : 'Disabled,Inactive,Active';
+      Confirm004Qst@1015 : TextConst 'DEU=Der Benutzer kann sich nicht anmelden, da keine Authentifizierungsdaten angegeben wurden. M”chten Sie die Seite wirklich schlieáen?;ENU=The user will not be able to sign in because no authentication data was provided. Are you sure that you want to close the page?';
+      ConfirmRemoveExchangeIdentifierQst@1017 : TextConst 'DEU=Wenn Sie die Exchange-Bezeichner-Zuordnung l”schen, wird der Benutzer nicht mehr automatisch angemeldet, wenn Exchange-Anwendungen verwendet werden.\M”chten Sie fortfahren?;ENU=If you delete the Exchange Identifier Mapping, the user will no longer automatically be signed in when they use Exchange applications.\Do you want to continue?';
+      SoftwareAsAService@1018 : Boolean;
+      ApplicationID@1019 : Text;
+      CannotCreateUsersErr@1020 : TextConst 'DEU=Sie k”nnen keine Benutzer auf dieser Seite hinzufgen. Administratoren k”nnen Benutzer im Officeÿ365-Verwaltungsportal hinzufgen.;ENU=You cannot add users on this page. Administrators can add users in the Office 365 administration portal.';
+      AllowChangeWebServiceAccessKey@1021 : Boolean;
+      IsWindowsClient@1024 : Boolean;
+      CannotDeleteUsersErr@1022 : TextConst 'DEU=Sie k”nnen keine Benutzer auf dieser Seite l”schen. Administratoren k”nnen Benutzer im Officeÿ365-Verwaltungsportal l”schen.;ENU=You cannot delete users on this page. Administrators can delete users in the Office 365 administration portal.';
+      InitialState@1023 : Option;
+
+    LOCAL PROCEDURE ValidateSid@1();
+    VAR
+      User@1000 : Record 2000000120;
+    BEGIN
+      IF "Windows Security ID" = '' THEN
+        ERROR(Text001,"User Name");
+
+      IF ("Windows Security ID" = 'S-1-1-0') OR ("Windows Security ID" = 'S-1-5-7') OR ("Windows Security ID" = 'S-1-5-32-544') THEN
+        ERROR(Text003,IdentityManagement.UserName("Windows Security ID"));
+
+      User.SETFILTER("Windows Security ID","Windows Security ID");
+      User.SETFILTER("User Security ID",'<>%1',"User Security ID");
+      IF NOT User.ISEMPTY THEN
+        ERROR(Text002,WindowsUserName);
+    END;
+
+    LOCAL PROCEDURE ValidateAuthentication@7() : Boolean;
+    VAR
+      ValidationField@1000 : Text;
+    BEGIN
+      UserSecID.RESET;
+      IF (UserSecID.COUNT = 1) OR (USERSECURITYID = "User Security ID") THEN BEGIN
+        IF IdentityManagement.IsWindowsAuthentication AND ("Windows Security ID" = '') THEN
+          ValidationField := 'Windows User Name';
+
+        IF IdentityManagement.IsUserNamePasswordAuthentication AND (Password = '') THEN
+          ValidationField := 'Password';
+
+        IF IdentityManagement.IsAccessControlServiceAuthentication AND (ACSStatus = 0) AND (AuthenticationStatus = 0) THEN
+          ValidationField := 'ACSStatus / AuthenticationStatus';
+
+        IF ValidationField <> '' THEN
+          EXIT(CONFIRM(Confirm002Qst,FALSE,ValidationField));
+      END ELSE BEGIN
+        IF ("Windows Security ID" = '') AND (Password = '') AND (ACSStatus = 0) AND (AuthenticationStatus = 0) THEN
+          EXIT(CONFIRM(Confirm004Qst,FALSE));
+      END;
+
+      IF (InitialState = State::Enabled) AND (State = State::Disabled) THEN
+        EXIT(CONFIRM(Confirm003Qst,FALSE));
+
+      EXIT(TRUE);
+    END;
+
+    LOCAL PROCEDURE ValidateUserName@3();
+    VAR
+      UserMgt@1000 : Codeunit 418;
+    BEGIN
+      UserMgt.ValidateUserName(Rec,xRec,WindowsUserName);
+      CurrPage.UPDATE;
+    END;
+
+    LOCAL PROCEDURE EditWebServiceID@6();
+    VAR
+      PermissionManager@1001 : Codeunit 9002;
+      SetWebServiceAccessKey@1000 : Page 9812;
+    BEGIN
+      IF PermissionManager.SoftwareAsAService AND (USERSECURITYID <> "User Security ID") THEN
+        EXIT;
+
+      TESTFIELD("User Name");
+
+      IF CONFIRM(Confirm001Qst) THEN BEGIN
+        UserSecID.SETCURRENTKEY("User Security ID");
+        UserSecID.SETRANGE("User Security ID","User Security ID","User Security ID");
+        SetWebServiceAccessKey.SETRECORD(UserSecID);
+        SetWebServiceAccessKey.SETTABLEVIEW(UserSecID);
+        IF SetWebServiceAccessKey.RUNMODAL = ACTION::OK THEN
+          CurrPage.UPDATE;
+      END;
+    END;
+
+    LOCAL PROCEDURE EditNavPassword@8();
+    VAR
+      SetPassword@1000 : Page 9810;
+    BEGIN
+      TESTFIELD("User Name");
+
+      CurrPage.SAVERECORD;
+      COMMIT;
+
+      UserSecID.SETCURRENTKEY("User Security ID");
+      UserSecID.SETRANGE("User Security ID","User Security ID","User Security ID");
+      SetPassword.SETRECORD(UserSecID);
+      SetPassword.SETTABLEVIEW(UserSecID);
+      IF SetPassword.RUNMODAL = ACTION::OK THEN
+        CurrPage.UPDATE(FALSE);
+    END;
+
+    LOCAL PROCEDURE EditACSStatus@9();
+    VAR
+      UserACSSetup@1000 : Page 9811;
+    BEGIN
+      TESTFIELD("User Name");
+
+      UserSecID.SETCURRENTKEY("User Security ID");
+      UserSecID.SETRANGE("User Security ID","User Security ID","User Security ID");
+      UserACSSetup.SETRECORD(UserSecID);
+      UserACSSetup.SETTABLEVIEW(UserSecID);
+      IF UserACSSetup.RUNMODAL = ACTION::OK THEN
+        CurrPage.UPDATE;
+    END;
+
+    LOCAL PROCEDURE SetUserName@4();
+    BEGIN
+      "User Name" := WindowsUserName;
+      // ASD  >
+      IF UPPERCASE("Full Name") IN ['',"User Name"] THEN
+        IF GetDisplayName("Full Name") THEN;
+      // ASD  <
+      ValidateUserName;
+    END;
+
+    LOCAL PROCEDURE HideExternalUsers@2();
+    VAR
+      PermissionManager@1001 : Codeunit 9002;
+      OriginalFilterGroup@1000 : Integer;
+    BEGIN
+      IF NOT PermissionManager.SoftwareAsAService THEN
+        EXIT;
+
+      OriginalFilterGroup := FILTERGROUP;
+      FILTERGROUP := 2;
+      SETFILTER("License Type",'<>%1',"License Type"::"External User");
+      FILTERGROUP := OriginalFilterGroup;
+    END;
+
+    LOCAL PROCEDURE ValidateWindowsUserName@5();
+    VAR
+      UserSID@1001 : Text;
+    BEGIN
+      IF WindowsUserName = '' THEN
+        "Windows Security ID" := ''
+      ELSE BEGIN
+        UserSID := SID(WindowsUserName);
+        WindowsUserName := IdentityManagement.UserName(UserSID);
+        IF WindowsUserName <> '' THEN BEGIN
+          "Windows Security ID" := UserSID;
+          ValidateSid;
+          SetUserName;
+        END ELSE
+          ERROR(Text001,WindowsUserName);
+      END;
+    END;
+
+    [TryFunction]
+    LOCAL PROCEDURE GetDisplayName@1000000002(VAR ReturnValue@1119429000 : Text);
+    VAR
+      UserPrincipal@1119429004 : DotNet "'System.DirectoryServices.AccountManagement, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.DirectoryServices.AccountManagement.UserPrincipal";
+      PrincipalContext@1000000005 : DotNet "'System.DirectoryServices.AccountManagement, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.DirectoryServices.AccountManagement.PrincipalContext";
+      ContextType@1000000006 : DotNet "'System.DirectoryServices.AccountManagement, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.DirectoryServices.AccountManagement.ContextType";
+      IdentityType@1000000007 : DotNet "'System.DirectoryServices.AccountManagement, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.DirectoryServices.AccountManagement.IdentityType";
+    BEGIN
+      // ASD 
+      PrincipalContext := PrincipalContext.PrincipalContext(ContextType.Domain);
+      UserPrincipal := UserPrincipal.FindByIdentity(PrincipalContext, IdentityType.Sid, "Windows Security ID");
+
+      IF ISNULL(UserPrincipal) THEN
+        ERROR('');
+
+      ReturnValue := UserPrincipal.DisplayName;
+    END;
+
+    BEGIN
+    {
+      ASD
+        Populate "Full Name" by DisplayName from Active Directory
+    }
+    END.
+  }
+}
