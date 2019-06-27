@@ -1,0 +1,57 @@
+OBJECT Table 50008 Object Change Log
+{
+  OBJECT-PROPERTIES
+  {
+    Date=27.06.19;
+    Time=14:08:27;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    DataPerCompany=No;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Entry No.           ;Integer       ;AutoIncrement=Yes;
+                                                   CaptionML=ENU=Entry No. }
+    { 2   ;   ;Object Type         ;Option        ;CaptionML=ENU=Object Type;
+                                                   OptionCaptionML=ENU=TableData,Table,,Report,,Codeunit,XMLport,MenuSuite,Page,Query,System,FieldNumber;
+                                                   OptionString=TableData,Table,,Report,,Codeunit,XMLport,MenuSuite,Page,Query,System,FieldNumber }
+    { 3   ;No ;Company Name        ;Text30        ;CaptionML=ENU=Company Name }
+    { 4   ;   ;Object ID           ;Integer       ;TableRelation=Object.ID WHERE (Type=FIELD(Object Type));
+                                                   TestTableRelation=No;
+                                                   CaptionML=ENU=Object ID }
+    { 5   ;   ;Object Name         ;Text30        ;CaptionML=ENU=Object Name }
+    { 6   ;   ;Modified            ;Boolean       ;CaptionML=ENU=Modified }
+    { 7   ;   ;Compiled            ;Boolean       ;CaptionML=ENU=Compiled }
+    { 8   ;   ;BLOB Reference      ;BLOB          ;CaptionML=ENU=BLOB Reference }
+    { 9   ;   ;BLOB Size           ;Integer       ;CaptionML=ENU=BLOB Size }
+    { 10  ;   ;DBM Table No.       ;Integer       ;CaptionML=ENU=DBM Table No. }
+    { 11  ;   ;Object Date         ;Date          ;CaptionML=ENU=Object Date }
+    { 12  ;   ;Object Time         ;Time          ;CaptionML=ENU=Object Time }
+    { 13  ;   ;Version List        ;Text250       ;CaptionML=ENU=Version List }
+    { 14  ;   ;Locked              ;Boolean       ;CaptionML=ENU=Locked }
+    { 15  ;   ;Locked By           ;Text150       ;CaptionML=ENU=Locked By }
+    { 16  ;   ;Changed by User     ;Text150       ;CaptionML=ENU=Changed by User }
+    { 17  ;   ;Changed DateTime    ;DateTime      ;CaptionML=ENU=Changed DateTime }
+    { 18  ;   ;Type of Change      ;Option        ;CaptionML=ENU=Type of Change;
+                                                   OptionCaptionML=ENU=" ,Insertion,Modification,Deletion,Renumbering";
+                                                   OptionString=[ ,Insertion,Modification,Deletion,Renumbering] }
+    { 19  ;   ;Renumbered From ID  ;Integer       ;CaptionML=ENU=Renumbered from ID }
+  }
+  KEYS
+  {
+    {    ;Entry No.                               ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

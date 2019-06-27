@@ -1,0 +1,190 @@
+OBJECT Page 50008 Object Change Log
+{
+  OBJECT-PROPERTIES
+  {
+    Date=27.06.19;
+    Time=14:21:54;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Object Change Log;
+    InsertAllowed=No;
+    DeleteAllowed=No;
+    ModifyAllowed=No;
+    SourceTable=Table50008;
+    PageType=List;
+    OnAfterGetRecord=BEGIN
+                       CALCFIELDS("BLOB Reference");
+                     END;
+
+    ActionList=ACTIONS
+    {
+      { 1119429020;  ;ActionContainer;
+                      ActionContainerType=ActionItems }
+      { 1119429021;1 ;Action    ;
+                      Name=Restore;
+                      CaptionML=ENU=Revert To This Version;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=Restore;
+                      PromotedCategory=Process;
+                      PromotedOnly=Yes;
+                      OnAction=BEGIN
+                                 RestoreObject();
+                               END;
+                                }
+    }
+  }
+  CONTROLS
+  {
+    { 1119429000;0;Container;
+                ContainerType=ContentArea }
+
+    { 1119429001;1;Group  ;
+                Name=Group;
+                Editable=FALSE;
+                GroupType=Repeater }
+
+    { 1119429002;2;Field  ;
+                SourceExpr="Entry No." }
+
+    { 1119429003;2;Field  ;
+                SourceExpr="Object Type" }
+
+    { 1119429004;2;Field  ;
+                SourceExpr="Object ID" }
+
+    { 1119429005;2;Field  ;
+                SourceExpr="Object Name" }
+
+    { 1119429006;2;Field  ;
+                SourceExpr=Modified }
+
+    { 1119429007;2;Field  ;
+                SourceExpr=Compiled }
+
+    { 1119429009;2;Field  ;
+                SourceExpr="BLOB Size" }
+
+    { 1119429010;2;Field  ;
+                SourceExpr="DBM Table No.";
+                Visible=FALSE }
+
+    { 1119429011;2;Field  ;
+                SourceExpr="Object Date" }
+
+    { 1119429012;2;Field  ;
+                SourceExpr="Object Time" }
+
+    { 1119429013;2;Field  ;
+                SourceExpr="Version List" }
+
+    { 1119429014;2;Field  ;
+                SourceExpr=Locked;
+                Visible=FALSE }
+
+    { 1119429015;2;Field  ;
+                SourceExpr="Locked By";
+                Visible=FALSE }
+
+    { 1119429016;2;Field  ;
+                SourceExpr="Changed by User" }
+
+    { 1119429017;2;Field  ;
+                SourceExpr="Changed DateTime" }
+
+    { 1119429018;2;Field  ;
+                SourceExpr="Type of Change" }
+
+    { 1119429019;2;Field  ;
+                SourceExpr="Renumbered From ID" }
+
+    { 1119429008;2;Field  ;
+                CaptionML=ENU=Has Object Data;
+                SourceExpr="BLOB Reference".HASVALUE }
+
+  }
+  CODE
+  {
+    VAR
+      DBName@1000000000 : Text;
+      ServerName@1000000001 : Text;
+      NoSavedDataErr@1000000002 : TextConst 'ENU=There''''s no object data saved for this log entry.';
+      ObjectLockedErr@1000000003 : TextConst 'ENU=Object %1 %2 "%3" is locked by %4';
+      RevertToSavedQst@1000000004 : TextConst 'ENU=Are you sure you want to revert to the saved %1 %2 "%3" version?';
+      ObjectHasBeenRestoredMsg@1000000005 : TextConst 'ENU=Object has been restored.\You should recompile the restored object.';
+      NoUpdatedDataMsg@1000000006 : TextConst 'ENU=Oops!\No data has been updated.';
+
+    LOCAL PROCEDURE RestoreObject@1119429000();
+    VAR
+      Object@1119429011 : Record 2000000001;
+      SQLConn@1119429009 : DotNet "'System.Data, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.SqlClient.SqlConnection";
+      SQLCommand@1119429008 : DotNet "'System.Data, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.SqlClient.SqlCommand";
+      SQLQueryText@1119429007 : Text;
+      NoOfAffectedRows@1119429006 : Integer;
+    BEGIN
+      IF NOT Rec."BLOB Reference".HASVALUE THEN
+        ERROR(NoSavedDataErr);
+
+      CALCFIELDS("BLOB Reference");
+
+      Object.GET("Object Type",'',"Object ID"); // Object must exist
+
+      IF Object.Locked AND (UPPERCASE(Object."Locked By") <> UPPERCASE(USERID)) THEN
+        ERROR(ObjectLockedErr, Object.Type, Object.ID, Object.Name, Object."Locked By");
+
+      GetServerSettings();
+
+      IF NOT CONFIRM(RevertToSavedQst,FALSE, "Object Type", "Object ID", "Object Name") THEN
+        EXIT;
+
+      SQLQueryText := STRSUBSTNO('UPDATE [dbo].[Object] ' +
+                        'SET [BLOB Reference] = ObjLog.[BLOB Reference] '+
+                           ',[Modified] = ObjLog.[Modified] ' +
+                           ',[Compiled] = 0 ' +
+                           ',[BLOB Size] = ObjLog.[BLOB Size] ' +
+                           ',[Date] = ObjLog.[Object Date] ' +
+                           ',[Time] = ObjLog.[Object Time] ' +
+                           ',[Version List] = ObjLog.[Version List] ' +
+                           ',[Locked] = 1 ' +
+                           ',[Locked By] = ''%1''' +
+                        'FROM [dbo].[Object Change Log] ObjLog ' +
+                        'WHERE ObjLog.[Object Type] = [Object].[Type] ' +
+                          'AND ObjLog.[Object ID] = [Object].[ID] ' +
+                          'AND ObjLog.[Entry No_] = %2', USERID,"Entry No.");
+
+      SQLConn :=
+        SQLConn.SqlConnection(
+          STRSUBSTNO('Data Source=%1;Initial Catalog=%2;Integrated Security=SSPI',ServerName,DBName));
+
+      SQLConn.Open;
+      SQLCommand := SQLCommand.SqlCommand(SQLQueryText,SQLConn);
+      SQLCommand.CommandTimeout(0);
+      NoOfAffectedRows := SQLCommand.ExecuteNonQuery;
+      SQLConn.Close;
+
+      IF NoOfAffectedRows > 0 THEN
+        MESSAGE(ObjectHasBeenRestoredMsg)
+      ELSE
+        MESSAGE(NoUpdatedDataMsg);
+    END;
+
+    LOCAL PROCEDURE GetServerSettings@1119429005();
+    VAR
+      ServerUserSettings@1119429000 : DotNet "'Microsoft.Dynamics.Nav.Types, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Nav.Types.ServerUserSettings";
+    BEGIN
+      IF DBName <> '' THEN
+        EXIT;
+
+      ServerUserSettings := ServerUserSettings.Instance;
+      DBName := FORMAT(ServerUserSettings.DatabaseName);
+      ServerName := FORMAT(ServerUserSettings.DatabaseServer);
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
