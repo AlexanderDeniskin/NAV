@@ -1,0 +1,205 @@
+OBJECT Table 50009 External Connection
+{
+  OBJECT-PROPERTIES
+  {
+    Date=03.09.19;
+    Time=12:00:00;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    Permissions=TableData 50009=rimd;
+    CaptionML=[DEU=Externe Verbindung;
+               ENU=External Connection];
+    LookupPageID=Page50009;
+    DrillDownPageID=Page50009;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Code                ;Code20        ;CaptionML=[DEU=Code;
+                                                              ENU=Code] }
+    { 2   ;   ;Server Type         ;Option        ;CaptionML=[DEU="Server Typ ";
+                                                              ENU=Server Type];
+                                                   OptionString=Live,Test }
+    { 3   ;   ;Description         ;Text250       ;CaptionML=[DEU=Beschreibung;
+                                                              ENU=Description] }
+    { 4   ;   ;Data Source         ;Text50        ;CaptionML=[DEU=Data Source;
+                                                              ENU=Data Source] }
+    { 5   ;   ;Initial Catalog     ;Text50        ;CaptionML=[DEU=Initial Catalog;
+                                                              ENU=Initial Catalog] }
+    { 6   ;   ;Use Windows Authentication;Boolean ;CaptionML=[DEU=Verwenden die Windows-Authentifizierung;
+                                                              ENU=Use Windows Authentication] }
+    { 7   ;   ;User Name           ;Text250       ;OnValidate=BEGIN
+                                                                "User Name" := DELCHR("User Name",'<>');
+                                                              END;
+
+                                                   CaptionML=[DEU=Benutzername;
+                                                              ENU=User Name] }
+    { 8   ;   ;User Password       ;Text150       ;CaptionML=[DEU=Benutzerkennwortschlssel;
+                                                              ENU=User Password] }
+    { 9   ;   ;Table ID            ;Integer       ;OnLookup=VAR
+                                                              ConfigValidateMgt@1119429000 : Codeunit 8617;
+                                                            BEGIN
+                                                              ConfigValidateMgt.LookupTable("Table ID");
+                                                              IF "Table ID" <> 0 THEN
+                                                                VALIDATE("Table ID");
+                                                            END;
+
+                                                   CaptionML=ENU=Table No. }
+    { 10  ;   ;Failover Partner    ;Text50        ;CaptionML=ENU=Failover Partner }
+  }
+  KEYS
+  {
+    {    ;Code,Server Type                        ;MaintainSIFTIndex=No;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    PROCEDURE HasPassword@8() : Boolean;
+    BEGIN
+      EXIT(GetPassword <> '');
+    END;
+
+    PROCEDURE SetPassword@1(PasswordText@1000 : Text);
+    VAR
+      ServicePassword@1002 : Record 1261;
+    BEGIN
+      "User Password" := EncryptPassword(PasswordText,0);
+    END;
+
+    LOCAL PROCEDURE GetPassword@2() : Text;
+    VAR
+      ServicePassword@1000 : Record 1261;
+    BEGIN
+      EXIT(EncryptPassword("User Password",1));
+    END;
+
+    PROCEDURE MakeConnection@1119429000(SetAsDefault@1119429000 : Boolean);
+    VAR
+      Connected@1119429002 : Boolean;
+    BEGIN
+      IF IsConnected THEN
+        UNREGISTERTABLECONNECTION(TABLECONNECTIONTYPE::ExternalSQL, GetConnectionCode);
+
+      Connected := TryConnect(GetConnectionString(FALSE), SetAsDefault);
+
+      // Try to connect to a redundant server if the primary server is unavailable
+      IF NOT Connected AND ("Failover Partner" <> '') THEN BEGIN
+        Connected := TryConnect(GetConnectionString(TRUE), SetAsDefault);
+        IF Connected THEN
+          ChangeDataSource();
+      END;
+
+      IF NOT Connected THEN BEGIN
+        IF IsConnected THEN
+          UNREGISTERTABLECONNECTION(TABLECONNECTIONTYPE::ExternalSQL, GetConnectionCode);
+        ERROR(GETLASTERRORTEXT);
+      END;
+    END;
+
+    LOCAL PROCEDURE GetConnectionString@1000000000(IsFailoverPartner@1000000000 : Boolean) : Text;
+    VAR
+      DataSource@1000000001 : Text;
+    BEGIN
+      IF NOT IsFailoverPartner THEN BEGIN
+        TESTFIELD("Data Source");
+        DataSource := "Data Source"
+      END ELSE BEGIN
+        TESTFIELD("Failover Partner");
+        DataSource := "Failover Partner";
+      END;
+
+      TESTFIELD("Initial Catalog");
+
+      IF "Use Windows Authentication" THEN
+        EXIT(STRSUBSTNO('Data Source=%1;Initial Catalog=%2;Integrated Security=SSPI;', DataSource, "Initial Catalog"));
+
+      TESTFIELD("User Name");
+      EXIT(STRSUBSTNO('Data Source=%1;Initial Catalog=%2;User ID=%3;Password=%4;', DataSource, "Initial Catalog", "User Name", GetPassword));
+    END;
+
+    [TryFunction]
+    LOCAL PROCEDURE TryConnect@1119429004(ConnectionString@1119429000 : Text;SetAsDefault@1000000001 : Boolean);
+    VAR
+      RecRef@1000000000 : RecordRef;
+    BEGIN
+      IF IsConnected THEN
+        UNREGISTERTABLECONNECTION(TABLECONNECTIONTYPE::ExternalSQL, GetConnectionCode);
+      REGISTERTABLECONNECTION(TABLECONNECTIONTYPE::ExternalSQL, GetConnectionCode, ConnectionString);
+
+      IF SetAsDefault THEN BEGIN
+        SETDEFAULTTABLECONNECTION(TABLECONNECTIONTYPE::ExternalSQL,GetConnectionCode);
+
+        IF "Table ID" <> 0 THEN BEGIN
+          RecRef.OPEN("Table ID");
+          IF RecRef.ISEMPTY THEN;
+        END;
+      END;
+    END;
+
+    PROCEDURE IsConnected@1119429001() : Boolean;
+    BEGIN
+      EXIT(HASTABLECONNECTION(TABLECONNECTIONTYPE::ExternalSQL, GetConnectionCode));
+    END;
+
+    PROCEDURE IsDefaultConnection@1119429003() : Boolean;
+    BEGIN
+      IF NOT IsConnected THEN
+        EXIT;
+      EXIT(GETDEFAULTTABLECONNECTION(TABLECONNECTIONTYPE::ExternalSQL)=GetConnectionCode);
+    END;
+
+    LOCAL PROCEDURE GetConnectionCode@1119429002() : Text;
+    BEGIN
+      EXIT(STRSUBSTNO('%1_%2',Code,FORMAT("Server Type",0,2)));
+    END;
+
+    LOCAL PROCEDURE ChangeDataSource@1000000001();
+    VAR
+      OldValue@1000000000 : Text;
+    BEGIN
+      OldValue := "Data Source";
+      FIND('=');
+      IF OldValue <> "Data Source" THEN // Someone else has changed settings
+        EXIT;
+      "Data Source" := "Failover Partner";
+      "Failover Partner" := OldValue;
+      MODIFY;
+    END;
+
+    PROCEDURE EncryptPassword@1000000002(Text@1000000001 : Text[150];Direction@1000000004 : 'Encrypt,Decrypt') : Text;
+    VAR
+      I@1000000000 : Integer;
+      Offset@1000000003 : Integer;
+      Sign@1000000005 : Integer;
+      Char@1000000002 : Char;
+      CharInt@1000000006 : Integer;
+    BEGIN
+      IF Direction = Direction::Encrypt THEN
+        Sign := 1
+      ELSE
+        Sign := -1;
+
+      FOR I := 1 TO STRLEN(Text) DO BEGIN
+        CharInt := Text[I];
+        Offset := (I MOD 5 + 1) * Sign;
+        IF I DIV 2 = 0 THEN
+          CharInt += ROUND(Offset/2,1,'=')
+        ELSE
+          CharInt -= ROUND(Offset/2,1,'=');
+
+        Text[I] := CharInt;
+      END;
+
+      EXIT(Text);
+    END;
+
+    BEGIN
+    END.
+  }
+}
