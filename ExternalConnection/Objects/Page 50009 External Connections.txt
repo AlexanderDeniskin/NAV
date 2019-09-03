@@ -1,0 +1,115 @@
+OBJECT Page 50009 External Connections
+{
+  OBJECT-PROPERTIES
+  {
+    Date=03.09.19;
+    Time=16:34:23;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    CaptionML=[DEU=Externe Verbindungen;
+               ENU=External Connections];
+    SourceTable=Table50009;
+    PageType=List;
+    OnAfterGetRecord=BEGIN
+                       Password := '';
+                       IF HasPassword THEN
+                         Password := '****';
+
+                       StyleExpr := IsDefaultConnection;
+                     END;
+
+    OnNewRecord=BEGIN
+                  Password := '';
+                END;
+
+    ActionList=ACTIONS
+    {
+      { 1119429009;  ;ActionContainer;
+                      ActionContainerType=ActionItems }
+      { 1119429011;1 ;Action    ;
+                      Name=Connect;
+                      CaptionML=[DEU=Verbinden;
+                                 ENU=Connect];
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=Change;
+                      PromotedCategory=Process;
+                      PromotedOnly=Yes;
+                      OnAction=BEGIN
+                                 MakeConnection(TRUE);
+                                 CurrPage.UPDATE(FALSE);
+                                 MESSAGE(TEXT001);
+                               END;
+                                }
+    }
+  }
+  CONTROLS
+  {
+    { 1119429000;0;Container;
+                ContainerType=ContentArea }
+
+    { 1119429001;1;Group  ;
+                Name=Group;
+                GroupType=Repeater }
+
+    { 1119429002;2;Field  ;
+                SourceExpr=Code;
+                Style=Favorable;
+                StyleExpr=StyleExpr }
+
+    { 1119429003;2;Field  ;
+                SourceExpr="Server Type";
+                Style=Favorable;
+                StyleExpr=StyleExpr }
+
+    { 1119429004;2;Field  ;
+                SourceExpr=Description;
+                Style=Favorable;
+                StyleExpr=StyleExpr }
+
+    { 1119429005;2;Field  ;
+                SourceExpr="Data Source" }
+
+    { 1119429006;2;Field  ;
+                SourceExpr="Initial Catalog" }
+
+    { 1119429007;2;Field  ;
+                SourceExpr="Use Windows Authentication" }
+
+    { 1119429008;2;Field  ;
+                SourceExpr="User Name" }
+
+    { 1119429010;2;Field  ;
+                Name=Password;
+                ExtendedDatatype=Masked;
+                CaptionML=[DEU=Kennwort;
+                           ENU=Password];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr=Password;
+                OnValidate=BEGIN
+                             SetPassword(Password);
+                             CurrPage.SAVERECORD;
+                           END;
+                            }
+
+    { 1119429013;2;Field  ;
+                SourceExpr="Failover Partner" }
+
+    { 1119429012;2;Field  ;
+                SourceExpr="Table ID" }
+
+  }
+  CODE
+  {
+    VAR
+      Password@1119429000 : Text;
+      TEXT001@1119429001 : TextConst 'DEU=Verbunden;ENU=Connected';
+      StyleExpr@1119429002 : Boolean;
+
+    BEGIN
+    END.
+  }
+}
