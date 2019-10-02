@@ -1,0 +1,514 @@
+OBJECT Page 38 Item Ledger Entries
+{
+  OBJECT-PROPERTIES
+  {
+    Date=02.10.19;
+    Time=11:58:19;
+    Modified=Yes;
+    Version List=NAVW110.00,ASD;
+  }
+  PROPERTIES
+  {
+    Editable=No;
+    CaptionML=[DEU=Artikelposten;
+               ENU=Item Ledger Entries];
+    SourceTable=Table32;
+    DataCaptionExpr=GetCaption;
+    SourceTableView=SORTING(Entry No.)
+                    ORDER(Descending);
+    DataCaptionFields=Item No.;
+    PageType=List;
+    OnOpenPage=BEGIN
+                 IF FINDFIRST THEN;
+               END;
+
+    ActionList=ACTIONS
+    {
+      { 1900000003;0 ;ActionContainer;
+                      ActionContainerType=RelatedInformation }
+      { 60      ;1   ;ActionGroup;
+                      CaptionML=[DEU=&Posten;
+                                 ENU=Ent&ry];
+                      Image=Entry }
+      { 61      ;2   ;Action    ;
+                      AccessByPermission=TableData 348=R;
+                      ShortCutKey=Shift+Ctrl+D;
+                      CaptionML=[DEU=Dimensionen;
+                                 ENU=Dimensions];
+                      ToolTipML=[DEU=Zeigt Dimensionen an oder bearbeitet sie, wie etwa einen Bereich, ein Projekt oder eine Abteilung, die Sie Verkaufs- oder Einkaufsbelegen zuweisen kînnen, um die Kosten zu verteilen und den Transaktionsverlauf zu analysieren.;
+                                 ENU=View or edits dimensions, such as area, project, or department, that you can assign to sales and purchase documents to distribute costs and analyze transaction history.];
+                      ApplicationArea=#Suite;
+                      Image=Dimensions;
+                      OnAction=BEGIN
+                                 ShowDimensions;
+                               END;
+                                }
+      { 64      ;2   ;Action    ;
+                      ShortCutKey=Ctrl+F7;
+                      CaptionML=[DEU=&Wertposten;
+                                 ENU=&Value Entries];
+                      ToolTipML=[DEU=Zeigen Sie alle zu einem Artikel gehîrenden BetrÑge an.;
+                                 ENU=View all amounts relating to an item.];
+                      RunObject=Page 5802;
+                      RunPageView=SORTING(Item Ledger Entry No.);
+                      RunPageLink=Item Ledger Entry No.=FIELD(Entry No.);
+                      Image=ValueLedger }
+      { 30      ;1   ;ActionGroup;
+                      CaptionML=[DEU=A&usgleich;
+                                 ENU=&Application];
+                      Image=Apply }
+      { 58      ;2   ;Action    ;
+                      CaptionML=[DEU=&Ausgeglichene Posten;
+                                 ENU=Applied E&ntries];
+                      ToolTipML=[DEU=Zeigt die Posten an, die auf diesen Datensatz angewendet wurden.;
+                                 ENU=View the ledger entries that have been applied to this record.];
+                      ApplicationArea=#Basic,#Suite;
+                      Image=Approve;
+                      OnAction=BEGIN
+                                 CODEUNIT.RUN(CODEUNIT::"Show Applied Entries",Rec);
+                               END;
+                                }
+      { 56      ;2   ;Action    ;
+                      AccessByPermission=TableData 27=R;
+                      CaptionML=[DEU=Reservierungsposten;
+                                 ENU=Reservation Entries];
+                      ToolTipML=[DEU=Zeigen Sie die Posten fÅr jede manuell oder automatisch durchgefÅhrte Reservierung an.;
+                                 ENU=View the entries for every reservation that is made, either manually or automatically.];
+                      Image=ReservationLedger;
+                      OnAction=BEGIN
+                                 ShowReservationEntries(TRUE);
+                               END;
+                                }
+      { 86      ;2   ;Action    ;
+                      CaptionML=[DEU=Ausgleichsvorschlag;
+                                 ENU=Application Worksheet];
+                      ToolTipML=[DEU=Zeigen Sie Artikelausgleiche an, die automatisch zwischen Artikelposten wÑhrend Artikeltransaktionen erstellt werden.;
+                                 ENU=View item applications that are automatically created between item ledger entries during item transactions.];
+                      Image=ApplicationWorksheet;
+                      OnAction=VAR
+                                 Worksheet@1000 : Page 521;
+                               BEGIN
+                                 CLEAR(Worksheet);
+                                 Worksheet.SetRecordToShow(Rec);
+                                 Worksheet.RUN;
+                               END;
+                                }
+      { 1000000000;2 ;Action    ;
+                      CaptionML=[DEU=Ausgleichskette;
+                                 ENU=Application Chain];
+                      Image=Route;
+                      OnAction=VAR
+                                 ItemLedgEntryApplChain@1000000000 : Page 50010;
+                               BEGIN
+                                 // ASD
+                                 CLEAR(ItemLedgEntryApplChain);
+                                 ItemLedgEntryApplChain.Calculate("Entry No.");
+                                 ItemLedgEntryApplChain.RUN;
+                               END;
+                                }
+      { 1900000004;0 ;ActionContainer;
+                      ActionContainerType=ActionItems }
+      { 57      ;1   ;ActionGroup;
+                      CaptionML=[DEU=Fun&ktion;
+                                 ENU=F&unctions];
+                      Image=Action }
+      { 59      ;2   ;Action    ;
+                      CaptionML=[DEU=&Bedarfsverursacher;
+                                 ENU=Order &Tracking];
+                      ToolTipML=[DEU=Verfolgt die Verbindung eines Vorrats zum entsprechenden Bedarf. So kînnen Sie den ursprÅnglichen Bedarf finden, anhand dessen ein spezifischer Fertigungsauftrag oder eine Bestellung erstellt wurde.;
+                                 ENU=Tracks the connection of a supply to its corresponding demand. This can help you find the original demand that created a specific production order or purchase order.];
+                      Image=OrderTracking;
+                      OnAction=VAR
+                                 TrackingForm@1001 : Page 99000822;
+                               BEGIN
+                                 TrackingForm.SetItemLedgEntry(Rec);
+                                 TrackingForm.RUNMODAL;
+                               END;
+                                }
+      { 32      ;1   ;Action    ;
+                      CaptionML=[DEU=&Navigate;
+                                 ENU=&Navigate];
+                      ToolTipML=[DEU=Sucht alle Posten und Belege, die fÅr die Belegnummer und das Buchungsdatum auf dem ausgewÑhlten Posten oder Beleg vorhanden sind.;
+                                 ENU=Find all entries and documents that exist for the document number and posting date on the selected entry or document.];
+                      ApplicationArea=#Basic,#Suite;
+                      Promoted=Yes;
+                      Image=Navigate;
+                      PromotedCategory=Process;
+                      OnAction=BEGIN
+                                 Navigate.SetDoc("Posting Date","Document No.");
+                                 Navigate.RUN;
+                               END;
+                                }
+    }
+  }
+  CONTROLS
+  {
+    { 1900000001;0;Container;
+                ContainerType=ContentArea }
+
+    { 1   ;1   ;Group     ;
+                GroupType=Repeater }
+
+    { 2   ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt das Buchungsdatum des Postens an.;
+                           ENU=Specifies the posting date for the entry.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Posting Date" }
+
+    { 4   ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt an, aus welcher Art Transaktion der Posten erstellt wurde.;
+                           ENU=Specifies which type of transaction that the entry is created from.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Entry Type" }
+
+    { 76  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt an, welche Belegart zum Erstellen des Artikelpostens gebucht wurde.;
+                           ENU=Specifies what type of document was posted to create the item ledger entry.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Document Type" }
+
+    { 6   ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die Belegnummer des Postens an. Der Beleg ist das Dokument, das die Basis des Postens darstellte, z.ˇB. ein Lieferschein.;
+                           ENU=Specifies the document number on the entry. The document is the voucher that the entry was based on, for example, a receipt.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Document No." }
+
+    { 78  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die Nummer der Zeile des gebuchten Belegs an, die dem Artikelposten entspricht.;
+                           ENU=Specifies the number of the line on the posted document that corresponds to the item ledger entry.];
+                SourceExpr="Document Line No.";
+                Visible=FALSE }
+
+    { 8   ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die Nummer des Artikels im Posten an.;
+                           ENU=Specifies the number of the item in the entry.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Item No." }
+
+    { 16  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt den Variantencode fÅr die Artikel an.;
+                           ENU=Specifies the variant code for the items.];
+                SourceExpr="Variant Code";
+                Visible=FALSE }
+
+    { 10  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt eine Beschreibung des Postens an.;
+                           ENU=Specifies a description of the entry.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr=Description }
+
+    { 20  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt einen Code an, der erklÑrt, warum der Artikel zurÅckgesendet wird.;
+                           ENU=Specifies a code that explains why the item is returned.];
+                SourceExpr="Return Reason Code";
+                Visible=FALSE }
+
+    { 34  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt den Dimensionswertcode an, mit dem der Posten verknÅpft ist.;
+                           ENU=Specifies the dimension value code that the entry is linked to.];
+                SourceExpr="Global Dimension 1 Code";
+                Visible=FALSE }
+
+    { 36  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt den Dimensionswertcode an, mit dem der Posten verknÅpft ist.;
+                           ENU=Specifies the dimension value code that the entry is linked to.];
+                SourceExpr="Global Dimension 2 Code";
+                Visible=FALSE }
+
+    { 82  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt das letzte Datum an, an dem der Artikel in der Zeile verwendet werden kann.;
+                           ENU=Specifies the last date that the item on the line can be used.];
+                SourceExpr="Expiration Date";
+                Visible=FALSE }
+
+    { 68  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt eine Seriennummer an, wenn es fÅr den gebuchten Artikel eine derartige Nummer gibt.;
+                           ENU=Specifies a serial number if the posted item carries such a number.];
+                SourceExpr="Serial No.";
+                Visible=FALSE }
+
+    { 70  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt eine Chargennummer an, wenn es fÅr den gebuchten Artikel eine derartige Nummer gibt.;
+                           ENU=Specifies a lot number if the posted item carries such a number.];
+                SourceExpr="Lot No.";
+                Visible=FALSE }
+
+    { 38  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt den Code des Lagerorts an, mit dem der Posten verknÅpft ist.;
+                           ENU=Specifies the code for the location that the entry is linked to.];
+                SourceExpr="Location Code" }
+
+    { 12  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die Anzahl der Einheiten des Artikels im Artikelposten an.;
+                           ENU=Specifies the number of units of the item in the item entry.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr=Quantity }
+
+    { 42  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt an, wie viele Einheiten des Artikels in der Zeile fakturiert wurden.;
+                           ENU=Specifies how many units of the item on the line have been invoiced.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Invoiced Quantity";
+                Visible=TRUE }
+
+    { 44  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die im Lager verbleibende Menge im Feld "Menge" an, wenn der Posten einen Zugang darstellt (einen Einkauf oder Zugang).;
+                           ENU=Specifies the quantity that remains in inventory in the Quantity field if the entry is an increase (a purchase or positive adjustment).];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Remaining Quantity";
+                Visible=TRUE }
+
+    { 84  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt fÅr diesen Artikelposten die Menge an, die geliefert, aber noch nicht zurÅckgesendet wurde.;
+                           ENU=Specifies the quantity for this item ledger entry that was shipped and has not yet been returned.];
+                SourceExpr="Shipped Qty. Not Returned";
+                Visible=FALSE }
+
+    { 117 ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt an, wie viele Einheiten des Artikels in der Zeile reserviert wurden.;
+                           ENU=Specifies how many units of the item on the line have been reserved.];
+                SourceExpr="Reserved Quantity";
+                Visible=FALSE }
+
+    { 52  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die Menge pro Artikeleinheit an.;
+                           ENU=Specifies the quantity per item unit of measure.];
+                SourceExpr="Qty. per Unit of Measure";
+                Visible=FALSE }
+
+    { 18  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt den erwarteten Verkaufsbetrag in MW an.;
+                           ENU=Specifies the expected sales amount, in LCY.];
+                SourceExpr="Sales Amount (Expected)";
+                Visible=FALSE }
+
+    { 22  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt den Verkaufsbetrag in MW an.;
+                           ENU=Specifies the sales amount, in LCY.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Sales Amount (Actual)" }
+
+    { 31  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die Soll-Kosten der Mengenbuchung in MW an.;
+                           ENU=Specifies the expected cost, in LCY, of the quantity posting.];
+                SourceExpr="Cost Amount (Expected)";
+                Visible=FALSE }
+
+    { 41  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt den regulierten Lagerwert der Mengenbuchung in MW an.;
+                           ENU=Specifies the adjusted cost, in LCY, of the quantity posting.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Cost Amount (Actual)" }
+
+    { 47  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die regulierten lagerwertunabhÑngigen Kosten, also einen Artikel Zu-/Abschlag, der einem ausgehenden Posten zugewiesen ist, an.;
+                           ENU=Specifies the adjusted non-inventoriable cost, that is an item charge assigned to an outbound entry.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Cost Amount (Non-Invtbl.)" }
+
+    { 49  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die Soll-Kosten der Mengenbuchung in BW an.;
+                           ENU=Specifies the expected cost, in ACY, of the quantity posting.];
+                SourceExpr="Cost Amount (Expected) (ACY)";
+                Visible=FALSE }
+
+    { 72  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt den regulierten Lagerwert des Postens in der BerichtswÑhrung.;
+                           ENU=Specifies the adjusted cost of the entry, in the additional reporting currency.];
+                SourceExpr="Cost Amount (Actual) (ACY)";
+                Visible=FALSE }
+
+    { 74  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die regulierten lagerwertunabhÑngigen Kosten, also einen Artikel Zu-/Abschlag, der einem ausgehenden Posten zugeordnet ist, in der BerichtswÑhrung an.;
+                           ENU=Specifies the adjusted non-inventoriable cost, that is, an item charge assigned to an outbound entry in the additional reporting currency.];
+                SourceExpr="Cost Amount (Non-Invtbl.)(ACY)";
+                Visible=FALSE }
+
+    { 66  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt an, ob der Posten komplett fakturiert wurde oder ob weitere gebuchte Rechnungen erwartet werden. Nur vollstÑndig fakturierte Posten kînnen neu bewertet werden.;
+                           ENU=Specifies if the entry has been fully invoiced or if more posted invoices are expected. Only completely invoiced entries can be revalued.];
+                SourceExpr="Completely Invoiced";
+                Visible=FALSE }
+
+    { 24  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt an, ob der Posten vollstÑndig ausgeglichen wurde.;
+                           ENU=Specifies whether the entry has been fully applied to.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr=Open }
+
+    { 80  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt an, ob die Artikel in der Zeile direkt an den Debitor geliefert wurden.;
+                           ENU=Specifies whether the items on the line have been shipped directly to the customer.];
+                SourceExpr="Drop Shipment";
+                Visible=FALSE }
+
+    { 5   ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt an, ob die Buchung einen Auftragsmontageverkauf darstellt.;
+                           ENU=Specifies if the posting represents an assemble-to-order sale.];
+                SourceExpr="Assemble to Order";
+                Visible=FALSE }
+
+    { 14  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt an, ob es einen oder mehrere ausgeglichene Posten gibt, die reguliert werden mÅssen.;
+                           ENU=Specifies whether there is one or more applied entries, which need to be adjusted.];
+                SourceExpr="Applied Entry to Adjust";
+                Visible=FALSE }
+
+    { 3   ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt an, in welcher Auftragsart der Posten erstellt wurde.;
+                           ENU=Specifies which type of order that the entry was created in.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Order Type" }
+
+    { 54  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die Nummer des Auftrags an, der den Posten erstellt hat.;
+                           ENU=Specifies the number of the order that created the entry.];
+                SourceExpr="Order No.";
+                Visible=FALSE }
+
+    { 51  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die Zeilennummer des Auftrags an, der den Posten erstellt hat.;
+                           ENU=Specifies the line number of the order that created the entry.];
+                SourceExpr="Order Line No.";
+                Visible=FALSE }
+
+    { 63  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die Zeilennummer der FA-Komponente an.;
+                           ENU=Specifies the line number of the production order component.];
+                SourceExpr="Prod. Order Comp. Line No.";
+                Visible=FALSE }
+
+    { 26  ;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die Postennummer fÅr den Posten an.;
+                           ENU=Specifies the entry number for the entry.];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr="Entry No." }
+
+    { 1000;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die Nummer des Projekts an, der mit dem Posten verknÅpft ist.;
+                           ENU=Specifies the number of the job associated with the entry.];
+                SourceExpr="Job No.";
+                Visible=FALSE }
+
+    { 1002;2   ;Field     ;
+                ToolTipML=[DEU=Gibt die Nummer der Projektaufgabe an, die mit dem Posten verknÅpft ist.;
+                           ENU=Specifies the number of the job task associated with the entry.];
+                SourceExpr="Job Task No.";
+                Visible=FALSE }
+
+    { 1900000007;0;Container;
+                ContainerType=FactBoxArea }
+
+    { 1900383207;1;Part   ;
+                Visible=FALSE;
+                PartType=System;
+                SystemPartID=RecordLinks }
+
+    { 1905767507;1;Part   ;
+                Visible=FALSE;
+                PartType=System;
+                SystemPartID=Notes }
+
+  }
+  CODE
+  {
+    VAR
+      Navigate@1000 : Page 344;
+
+    LOCAL PROCEDURE GetCaption@3() : Text;
+    VAR
+      GLSetup@1010 : Record 98;
+      ObjTransl@1009 : Record 377;
+      Item@1008 : Record 27;
+      ProdOrder@1007 : Record 5405;
+      Cust@1006 : Record 18;
+      Vend@1005 : Record 23;
+      Dimension@1004 : Record 348;
+      DimValue@1003 : Record 349;
+      SourceTableName@1002 : Text;
+      SourceFilter@1001 : Text;
+      Description@1000 : Text[100];
+    BEGIN
+      Description := '';
+
+      CASE TRUE OF
+        GETFILTER("Item No.") <> '':
+          BEGIN
+            SourceTableName := ObjTransl.TranslateObject(ObjTransl."Object Type"::Table,27);
+            SourceFilter := GETFILTER("Item No.");
+            IF MAXSTRLEN(Item."No.") >= STRLEN(SourceFilter) THEN
+              IF Item.GET(SourceFilter) THEN
+                Description := Item.Description;
+          END;
+        (GETFILTER("Order No.") <> '') AND ("Order Type" = "Order Type"::Production):
+          BEGIN
+            SourceTableName := ObjTransl.TranslateObject(ObjTransl."Object Type"::Table,5405);
+            SourceFilter := GETFILTER("Order No.");
+            IF MAXSTRLEN(ProdOrder."No.") >= STRLEN(SourceFilter) THEN
+              IF ProdOrder.GET(ProdOrder.Status::Released,SourceFilter) OR
+                 ProdOrder.GET(ProdOrder.Status::Finished,SourceFilter)
+              THEN BEGIN
+                SourceTableName := STRSUBSTNO('%1 %2',ProdOrder.Status,SourceTableName);
+                Description := ProdOrder.Description;
+              END;
+          END;
+        GETFILTER("Source No.") <> '':
+          CASE "Source Type" OF
+            "Source Type"::Customer:
+              BEGIN
+                SourceTableName :=
+                  ObjTransl.TranslateObject(ObjTransl."Object Type"::Table,18);
+                SourceFilter := GETFILTER("Source No.");
+                IF MAXSTRLEN(Cust."No.") >= STRLEN(SourceFilter) THEN
+                  IF Cust.GET(SourceFilter) THEN
+                    Description := Cust.Name;
+              END;
+            "Source Type"::Vendor:
+              BEGIN
+                SourceTableName :=
+                  ObjTransl.TranslateObject(ObjTransl."Object Type"::Table,23);
+                SourceFilter := GETFILTER("Source No.");
+                IF MAXSTRLEN(Vend."No.") >= STRLEN(SourceFilter) THEN
+                  IF Vend.GET(SourceFilter) THEN
+                    Description := Vend.Name;
+              END;
+          END;
+        GETFILTER("Global Dimension 1 Code") <> '':
+          BEGIN
+            GLSetup.GET;
+            Dimension.Code := GLSetup."Global Dimension 1 Code";
+            SourceFilter := GETFILTER("Global Dimension 1 Code");
+            SourceTableName := Dimension.GetMLName(GLOBALLANGUAGE);
+            IF MAXSTRLEN(DimValue.Code) >= STRLEN(SourceFilter) THEN
+              IF DimValue.GET(GLSetup."Global Dimension 1 Code",SourceFilter) THEN
+                Description := DimValue.Name;
+          END;
+        GETFILTER("Global Dimension 2 Code") <> '':
+          BEGIN
+            GLSetup.GET;
+            Dimension.Code := GLSetup."Global Dimension 2 Code";
+            SourceFilter := GETFILTER("Global Dimension 2 Code");
+            SourceTableName := Dimension.GetMLName(GLOBALLANGUAGE);
+            IF MAXSTRLEN(DimValue.Code) >= STRLEN(SourceFilter) THEN
+              IF DimValue.GET(GLSetup."Global Dimension 2 Code",SourceFilter) THEN
+                Description := DimValue.Name;
+          END;
+        GETFILTER("Document Type") <> '':
+          BEGIN
+            SourceTableName := GETFILTER("Document Type");
+            SourceFilter := GETFILTER("Document No.");
+            Description := GETFILTER("Document Line No.");
+          END;
+      END;
+      EXIT(STRSUBSTNO('%1 %2 %3',SourceTableName,SourceFilter,Description));
+    END;
+
+    BEGIN
+    {
+      ASD
+        Added new action "Application Chain"
+    }
+    END.
+  }
+}
+
