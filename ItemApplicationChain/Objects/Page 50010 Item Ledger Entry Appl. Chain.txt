@@ -2,8 +2,8 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
 {
   OBJECT-PROPERTIES
   {
-    Date=02.10.19;
-    Time=11:55:30;
+    Date=07.10.19;
+    Time=12:39:24;
     Modified=Yes;
     Version List=ASD;
   }
@@ -41,7 +41,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
       { 32      ;1   ;Action    ;
                       CaptionML=[DEU=&Navigate;
                                  ENU=&Navigate];
-                      ToolTipML=[DEU=Sucht alle Posten und Belege, die f¬År die Belegnummer und das Buchungsdatum auf dem ausgew‚Äûhlten Posten oder Beleg vorhanden sind.;
+                      ToolTipML=[DEU=Sucht alle Posten und Belege, die fÅr die Belegnummer und das Buchungsdatum auf dem ausgewÑhlten Posten oder Beleg vorhanden sind.;
                                  ENU=Find all entries and documents that exist for the document number and posting date on the selected entry or document.];
                       ApplicationArea=#Basic,#Suite;
                       Promoted=Yes;
@@ -61,7 +61,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
                       ShortCutKey=Shift+Ctrl+D;
                       CaptionML=[DEU=Dimensionen;
                                  ENU=Dimensions];
-                      ToolTipML=[DEU=Zeigt Dimensionen an oder bearbeitet sie, wie etwa einen Bereich, ein Projekt oder eine Abteilung, die Sie Verkaufs- oder Einkaufsbelegen zuweisen k‚Äùnnen, um die Kosten zu verteilen und den Transaktionsverlauf zu analysieren.;
+                      ToolTipML=[DEU=Zeigt Dimensionen an oder bearbeitet sie, wie etwa einen Bereich, ein Projekt oder eine Abteilung, die Sie Verkaufs- oder Einkaufsbelegen zuweisen kînnen, um die Kosten zu verteilen und den Transaktionsverlauf zu analysieren.;
                                  ENU=View or edits dimensions, such as area, project, or department, that you can assign to sales and purchase documents to distribute costs and analyze transaction history.];
                       ApplicationArea=#Suite;
                       Image=Dimensions;
@@ -73,7 +73,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
                       ShortCutKey=Ctrl+F7;
                       CaptionML=[DEU=&Wertposten;
                                  ENU=&Value Entries];
-                      ToolTipML=[DEU=Zeigen Sie alle zu einem Artikel geh‚Äùrenden Betr‚Äûge an.;
+                      ToolTipML=[DEU=Zeigen Sie alle zu einem Artikel gehîrenden BetrÑge an.;
                                  ENU=View all amounts relating to an item.];
                       RunObject=Page 5802;
                       RunPageView=SORTING(Item Ledger Entry No.);
@@ -82,7 +82,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
       { 59      ;2   ;Action    ;
                       CaptionML=[DEU=&Bedarfsverursacher;
                                  ENU=Order &Tracking];
-                      ToolTipML=[DEU=Verfolgt die Verbindung eines Vorrats zum entsprechenden Bedarf. So k‚Äùnnen Sie den urspr¬Ånglichen Bedarf finden, anhand dessen ein spezifischer Fertigungsauftrag oder eine Bestellung erstellt wurde.;
+                      ToolTipML=[DEU=Verfolgt die Verbindung eines Vorrats zum entsprechenden Bedarf. So kînnen Sie den ursprÅnglichen Bedarf finden, anhand dessen ein spezifischer Fertigungsauftrag oder eine Bestellung erstellt wurde.;
                                  ENU=Tracks the connection of a supply to its corresponding demand. This can help you find the original demand that created a specific production order or purchase order.];
                       Image=OrderTracking;
                       OnAction=VAR
@@ -111,7 +111,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
                       AccessByPermission=TableData 27=R;
                       CaptionML=[DEU=Reservierungsposten;
                                  ENU=Reservation Entries];
-                      ToolTipML=[DEU=Zeigen Sie die Posten f¬År jede manuell oder automatisch durchgef¬Åhrte Reservierung an.;
+                      ToolTipML=[DEU=Zeigen Sie die Posten fÅr jede manuell oder automatisch durchgefÅhrte Reservierung an.;
                                  ENU=View the entries for every reservation that is made, either manually or automatically.];
                       Image=ReservationLedger;
                       OnAction=BEGIN
@@ -156,7 +156,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
                 StyleExpr="Entry No." = MainEntryNo }
 
     { 6   ;2   ;Field     ;
-                ToolTipML=[DEU=Gibt die Belegnummer des Postens an. Der Beleg ist das Dokument, das die Basis des Postens darstellte, z.√øB. ein Lieferschein.;
+                ToolTipML=[DEU=Gibt die Belegnummer des Postens an. Der Beleg ist das Dokument, das die Basis des Postens darstellte, z.ˇB. ein Lieferschein.;
                            ENU=Specifies the document number on the entry. The document is the voucher that the entry was based on, for example, a receipt.];
                 ApplicationArea=#Basic,#Suite;
                 SourceExpr="Document No.";
@@ -183,7 +183,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
                 StyleExpr="Entry No." = MainEntryNo }
 
     { 16  ;2   ;Field     ;
-                ToolTipML=[DEU=Gibt den Variantencode f¬År die Artikel an.;
+                ToolTipML=[DEU=Gibt den Variantencode fÅr die Artikel an.;
                            ENU=Specifies the variant code for the items.];
                 SourceExpr="Variant Code";
                 Visible=FALSE;
@@ -201,7 +201,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
                 StyleExpr="Entry No." = MainEntryNo }
 
     { 68  ;2   ;Field     ;
-                ToolTipML=[DEU=Gibt eine Seriennummer an, wenn es f¬År den gebuchten Artikel eine derartige Nummer gibt.;
+                ToolTipML=[DEU=Gibt eine Seriennummer an, wenn es fÅr den gebuchten Artikel eine derartige Nummer gibt.;
                            ENU=Specifies a serial number if the posted item carries such a number.];
                 SourceExpr="Serial No.";
                 Visible=FALSE;
@@ -210,7 +210,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
                 StyleExpr="Entry No." = MainEntryNo }
 
     { 70  ;2   ;Field     ;
-                ToolTipML=[DEU=Gibt eine Chargennummer an, wenn es f¬År den gebuchten Artikel eine derartige Nummer gibt.;
+                ToolTipML=[DEU=Gibt eine Chargennummer an, wenn es fÅr den gebuchten Artikel eine derartige Nummer gibt.;
                            ENU=Specifies a lot number if the posted item carries such a number.];
                 SourceExpr="Lot No.";
                 Visible=FALSE;
@@ -219,7 +219,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
                 StyleExpr="Entry No." = MainEntryNo }
 
     { 38  ;2   ;Field     ;
-                ToolTipML=[DEU=Gibt den Code des Lagerorts an, mit dem der Posten verkn¬Åpft ist.;
+                ToolTipML=[DEU=Gibt den Code des Lagerorts an, mit dem der Posten verknÅpft ist.;
                            ENU=Specifies the code for the location that the entry is linked to.];
                 SourceExpr="Location Code";
                 Editable=FALSE;
@@ -250,7 +250,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
                 SourceExpr="Invoiced Quantity";
                 Visible=TRUE;
                 Editable=FALSE;
-                Style=Standard;
+                Style=Strong;
                 StyleExpr="Entry No." = MainEntryNo }
 
     { 44  ;2   ;Field     ;
@@ -264,7 +264,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
                 StyleExpr="Entry No." = MainEntryNo }
 
     { 84  ;2   ;Field     ;
-                ToolTipML=[DEU=Gibt f¬År diesen Artikelposten die Menge an, die geliefert, aber noch nicht zur¬Åckgesendet wurde.;
+                ToolTipML=[DEU=Gibt fÅr diesen Artikelposten die Menge an, die geliefert, aber noch nicht zurÅckgesendet wurde.;
                            ENU=Specifies the quantity for this item ledger entry that was shipped and has not yet been returned.];
                 SourceExpr="Shipped Qty. Not Returned";
                 Visible=FALSE;
@@ -327,7 +327,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
                 StyleExpr="Entry No." = MainEntryNo }
 
     { 47  ;2   ;Field     ;
-                ToolTipML=[DEU=Gibt die regulierten lagerwertunabh‚Äûngigen Kosten, also einen Artikel Zu-/Abschlag, der einem ausgehenden Posten zugewiesen ist, an.;
+                ToolTipML=[DEU=Gibt die regulierten lagerwertunabhÑngigen Kosten, also einen Artikel Zu-/Abschlag, der einem ausgehenden Posten zugewiesen ist, an.;
                            ENU=Specifies the adjusted non-inventoriable cost, that is an item charge assigned to an outbound entry.];
                 ApplicationArea=#Basic,#Suite;
                 SourceExpr="Cost Amount (Non-Invtbl.)";
@@ -345,7 +345,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
                 StyleExpr="Entry No." = MainEntryNo }
 
     { 72  ;2   ;Field     ;
-                ToolTipML=[DEU=Gibt den regulierten Lagerwert des Postens in der Berichtsw‚Äûhrung.;
+                ToolTipML=[DEU=Gibt den regulierten Lagerwert des Postens in der BerichtswÑhrung.;
                            ENU=Specifies the adjusted cost of the entry, in the additional reporting currency.];
                 SourceExpr="Cost Amount (Actual) (ACY)";
                 Visible=FALSE;
@@ -354,7 +354,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
                 StyleExpr="Entry No." = MainEntryNo }
 
     { 74  ;2   ;Field     ;
-                ToolTipML=[DEU=Gibt die regulierten lagerwertunabh‚Äûngigen Kosten, also einen Artikel Zu-/Abschlag, der einem ausgehenden Posten zugeordnet ist, in der Berichtsw‚Äûhrung an.;
+                ToolTipML=[DEU=Gibt die regulierten lagerwertunabhÑngigen Kosten, also einen Artikel Zu-/Abschlag, der einem ausgehenden Posten zugeordnet ist, in der BerichtswÑhrung an.;
                            ENU=Specifies the adjusted non-inventoriable cost, that is, an item charge assigned to an outbound entry in the additional reporting currency.];
                 SourceExpr="Cost Amount (Non-Invtbl.)(ACY)";
                 Visible=FALSE;
@@ -363,7 +363,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
                 StyleExpr="Entry No." = MainEntryNo }
 
     { 66  ;2   ;Field     ;
-                ToolTipML=[DEU=Gibt an, ob der Posten komplett fakturiert wurde oder ob weitere gebuchte Rechnungen erwartet werden. Nur vollst‚Äûndig fakturierte Posten k‚Äùnnen neu bewertet werden.;
+                ToolTipML=[DEU=Gibt an, ob der Posten komplett fakturiert wurde oder ob weitere gebuchte Rechnungen erwartet werden. Nur vollstÑndig fakturierte Posten kînnen neu bewertet werden.;
                            ENU=Specifies if the entry has been fully invoiced or if more posted invoices are expected. Only completely invoiced entries can be revalued.];
                 SourceExpr="Completely Invoiced";
                 Visible=FALSE;
@@ -372,7 +372,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
                 StyleExpr="Entry No." = MainEntryNo }
 
     { 24  ;2   ;Field     ;
-                ToolTipML=[DEU=Gibt an, ob der Posten vollst‚Äûndig ausgeglichen wurde.;
+                ToolTipML=[DEU=Gibt an, ob der Posten vollstÑndig ausgeglichen wurde.;
                            ENU=Specifies whether the entry has been fully applied to.];
                 ApplicationArea=#Basic,#Suite;
                 SourceExpr=Open;
@@ -399,7 +399,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
                 StyleExpr="Entry No." = MainEntryNo }
 
     { 14  ;2   ;Field     ;
-                ToolTipML=[DEU=Gibt an, ob es einen oder mehrere ausgeglichene Posten gibt, die reguliert werden m¬Åssen.;
+                ToolTipML=[DEU=Gibt an, ob es einen oder mehrere ausgeglichene Posten gibt, die reguliert werden mÅssen.;
                            ENU=Specifies whether there is one or more applied entries, which need to be adjusted.];
                 SourceExpr="Applied Entry to Adjust";
                 Visible=FALSE;
@@ -444,7 +444,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
                 StyleExpr="Entry No." = MainEntryNo }
 
     { 26  ;2   ;Field     ;
-                ToolTipML=[DEU=Gibt die Postennummer f¬År den Posten an.;
+                ToolTipML=[DEU=Gibt die Postennummer fÅr den Posten an.;
                            ENU=Specifies the entry number for the entry.];
                 ApplicationArea=#Basic,#Suite;
                 SourceExpr="Entry No.";
@@ -638,3 +638,4 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
     END.
   }
 }
+
