@@ -1,0 +1,76 @@
+OBJECT Codeunit 50004 DataTable Examples
+{
+  OBJECT-PROPERTIES
+  {
+    Date=08.10.19;
+    Time=08:50:33;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    OnRun=VAR
+            xlBuf@1000000002 : TEMPORARY Record 370;
+            DataTable@1000000000 : Codeunit 50003;
+            I@1000000001 : Integer;
+          BEGIN
+            // Create DataTable structure
+            DataTable.Initialize;
+            DataTable.AddColumn('ID', 'Int32');
+            DataTable.AddColumn('Description', 'String');
+            DataTable.AddColumn('Quantity', 'Decimal');
+            DataTable.AddColumn('Bool Value', 'Boolean');
+            DataTable.AddColumn('Posting Date','DateTime');
+            DataTable.SetPrimaryKeyColumn('ID');
+
+            // Fill DataTable
+            FOR I := 1 TO 10 DO BEGIN
+              DataTable.NewRow;
+              DataTable.SetFieldValue('ID', I);
+              DataTable.SetFieldValue('Description', STRSUBSTNO('Line %1', I));
+              DataTable.SetFieldValue('Quantity', I * 2.5 );
+              DataTable.SetFieldValue('Bool Value', I MOD 2 = 0);
+              DataTable.SetFieldValue('Posting Date', TODAY);
+              DataTable.AddRow;
+            END;
+
+            // Get record by primary key value
+            IF DataTable.GetRow(3) THEN BEGIN
+              DataTable.BeginEdit;
+              DataTable.SetFieldValue('Description', 'Line is edited by GetRow');
+              DataTable.EndEdit;
+            END;
+
+            // Filter
+            I := 0;
+            DataTable.ResetFilter;
+            DataTable.SetFieldRange('Bool Value', TRUE); // Analog of SETRANGE
+            IF DataTable.SelectRows THEN
+              REPEAT
+                I += 1;
+                DataTable.BeginEdit;
+                DataTable.SetFieldValue('Description', 'Line is edited by SelectRows');
+                DataTable.AddFieldValue('Quantity', I);   //  +=, only for int and decimal
+                DataTable.EndEdit;
+              UNTIL DataTable.NextRow = FALSE;
+
+            // Calc sum of the [Quantity] column
+            DataTable.ResetFilter;
+            DataTable.SetFieldFilter('Description', 'LIKE ''%edited by%''');  // Analog of SETFILTER
+            MESSAGE('Sum of edited rows: %1', DataTable.CalcSum('Quantity'));
+
+            // Export data to Excel, can be used for debugging
+            DataTable.ResetFilter;
+            DataTable.ExportToExcel(xlBuf);
+            xlBuf.CreateBookAndOpenExcel('','DataTable','','','');
+          END;
+
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+
