@@ -1,0 +1,395 @@
+OBJECT Codeunit 50003 DataTable Manager
+{
+  OBJECT-PROPERTIES
+  {
+    Date=08.10.19;
+    Time=08:34:47;
+    Modified=Yes;
+    Version List=;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      DataTable@1000000005 : DotNet "'System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.DataTable";
+      DataRow@1000000003 : DotNet "'System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.DataRow";
+      FoundRows@1000000002 : DotNet "'System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.DataRowCollection";
+      Enumerator@1000000000 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Collections.IEnumerator";
+      FieldsDict@1000000001 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Collections.Generic.Dictionary`2";
+      FilterExpression@1000000006 : Text;
+      CustomFilterExpression@1000000004 : Text;
+      SortExpression@1000000007 : Text;
+      CurrRowNo@1000000008 : Integer;
+
+    PROCEDURE Initialize@1000000002();
+    BEGIN
+      DataTable := DataTable.DataTable;
+    END;
+
+    PROCEDURE AddColumn@1000000001(FieldName@1000000000 : Text;FieldType@1000000001 : Text);
+    VAR
+      DataColumn@1000000003 : DotNet "'System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.DataColumn";
+      Type@1000000002 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Type";
+    BEGIN
+      DataTable.Columns.Add(FieldName, Type.GetType('System.' + FieldType,FALSE));
+    END;
+
+    PROCEDURE AddCalculatedColumn@1000000040(FieldName@1000000000 : Text;FieldType@1000000001 : Text;Formula@1000000005 : Text);
+    VAR
+      DataColumn@1000000003 : DotNet "'System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.DataColumn";
+      Type@1000000002 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Type";
+    BEGIN
+      DataTable.Columns.Add(FieldName, Type.GetType('System.' + FieldType,FALSE), Formula);
+    END;
+
+    PROCEDURE SetPrimaryKeyColumn@1000000034(FieldName@1000000000 : Text);
+    VAR
+      Type@1000000003 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Type";
+      ArrayOfColumn@1000000002 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Array";
+      DataColumn@1000000001 : DotNet "'System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.DataColumn";
+      Object@1000000004 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Object";
+    BEGIN
+      DataColumn := DataTable.Columns.Item(FieldName);
+
+      ArrayOfColumn := ArrayOfColumn.CreateInstance(GETDOTNETTYPE(DataColumn),1);
+      ArrayOfColumn.SetValue(DataColumn,0);
+
+      DataTable.PrimaryKey := ArrayOfColumn;
+    END;
+
+    PROCEDURE BeginLoadData@1000000000();
+    BEGIN
+      DataTable.BeginLoadData;
+    END;
+
+    PROCEDURE EndLoadData@1000000003();
+    BEGIN
+      DataTable.EndLoadData;
+    END;
+
+    PROCEDURE GetRow@1000000039(Value@1000000000 : Variant) : Boolean;
+    BEGIN
+      DataRow := DataTable.Rows.Find(Value);
+      EXIT(NOT ISNULL(DataRow));
+    END;
+
+    PROCEDURE NewRow@1000000004();
+    BEGIN
+      DataRow := DataTable.NewRow;
+    END;
+
+    PROCEDURE AddRow@1000000006();
+    BEGIN
+      DataTable.Rows.Add(DataRow);
+    END;
+
+    PROCEDURE BeginEdit@1000000030();
+    BEGIN
+      DataRow.BeginEdit;
+    END;
+
+    PROCEDURE EndEdit@1000000031();
+    BEGIN
+      DataRow.EndEdit;
+    END;
+
+    PROCEDURE CancelEdit@1000000032();
+    BEGIN
+      DataRow.CancelEdit;
+    END;
+
+    PROCEDURE SetFieldValue@1000000007(FieldName@1000000000 : Text;Value@1000000001 : Variant);
+    BEGIN
+      DataRow.Item(FieldName, Value);
+    END;
+
+    PROCEDURE AddFieldValue@1119429000(FieldName@1119429001 : Text;Value@1119429000 : Variant);
+    VAR
+      CurrValue@1119429002 : Variant;
+      DecimalValue@1119429003 : Decimal;
+      DecimalValue2@1119429004 : Decimal;
+    BEGIN
+      GetFieldValue(FieldName, CurrValue);
+      IF NOT ISNULL(CurrValue) THEN
+        DecimalValue := CurrValue;
+      IF NOT ISNULL(Value) THEN
+        DecimalValue2 := Value;
+      SetFieldValue(FieldName, DecimalValue + DecimalValue2);
+    END;
+
+    PROCEDURE GetFieldValue@1000000008(FieldName@1000000000 : Text;VAR Value@1000000001 : Variant);
+    BEGIN
+      Value := DataRow.Item(FieldName);
+    END;
+
+    PROCEDURE GetFieldValueText@1000000009(FieldName@1000000000 : Text) : Text;
+    BEGIN
+      IF ISNULL(DataRow.Item(FieldName)) THEN
+        EXIT('');
+      EXIT(DataRow.Item(FieldName));
+    END;
+
+    PROCEDURE GetFieldValueInt@1000000010(FieldName@1000000000 : Text) : Integer;
+    BEGIN
+      IF ISNULL(DataRow.Item(FieldName)) THEN
+        EXIT(0);
+      EXIT(DataRow.Item(FieldName));
+    END;
+
+    PROCEDURE GetFieldValueDec@1000000011(FieldName@1000000000 : Text) : Decimal;
+    BEGIN
+      IF ISNULL(DataRow.Item(FieldName)) THEN
+        EXIT(0);
+      EXIT(DataRow.Item(FieldName));
+    END;
+
+    PROCEDURE GetFieldValueDate@1000000012(FieldName@1000000000 : Text) : Date;
+    BEGIN
+      IF ISNULL(DataRow.Item(FieldName)) THEN
+        EXIT(0D);
+      EXIT(DT2DATE(DataRow.Item(FieldName)));
+    END;
+
+    PROCEDURE GetFieldValueBool@1000000027(FieldName@1000000000 : Text) : Boolean;
+    BEGIN
+      IF ISNULL(DataRow.Item(FieldName)) THEN
+        EXIT(FALSE);
+      EXIT(DataRow.Item(FieldName));
+    END;
+
+    PROCEDURE SetFieldRange@1000000015(FieldName@1000000000 : Text;Value@1000000001 : Variant);
+    VAR
+      FieldFilterText@1000000002 : Text;
+    BEGIN
+      // http://www.csharp-examples.net/dataview-rowfilter/
+      CASE TRUE OF
+        Value.ISBIGINTEGER,
+        Value.ISINTEGER,
+        Value.ISBYTE,
+        Value.ISDECIMAL,
+        Value.ISBOOLEAN:
+          SetFieldFilter(FieldName,'='+FORMAT(Value,0,9));
+
+        Value.ISCODE,
+        Value.ISTEXT,
+        Value.ISTEXTCONSTANT:
+          SetFieldFilter(FieldName,STRSUBSTNO('=''%1''',Value));
+
+        Value.ISDATE:
+          SetFieldFilter(FieldName,STRSUBSTNO('=#%1#',FORMAT(Value,0,'<Day,2>/<Month,2>/<Year4>')));
+
+        Value.ISDATETIME:
+          SetFieldFilter(FieldName,STRSUBSTNO('=#%1#',FORMAT(Value,0,'<Day,2>/<Month,2>/<Year4> <Hours24>:<Minutes,2>:<Seconds,2>')));
+
+        ELSE
+          SetFieldFilter(FieldName,STRSUBSTNO('=''%1''',Value));
+      END;
+    END;
+
+    PROCEDURE SetFieldFilter@1000000016(FieldName@1000000001 : Text;FilterValue@1000000000 : Variant);
+    BEGIN
+      IF ISNULL(FieldsDict) THEN
+        FieldsDict := FieldsDict.Dictionary;
+
+      IF FieldsDict.ContainsKey(FieldName) THEN
+        FieldsDict.Remove(FieldName);
+      FieldsDict.Add(FieldName,FilterValue);
+    END;
+
+    PROCEDURE SetFilterExpression@1000000017(Value@1000000000 : Text);
+    BEGIN
+      CustomFilterExpression := Value;
+    END;
+
+    PROCEDURE GetFilterExpression@1000000018() : Text;
+    BEGIN
+      BuildFilter;
+      EXIT(FilterExpression);
+    END;
+
+    PROCEDURE SetSortExpression@1000000019(Value@1000000000 : Text);
+    BEGIN
+      SortExpression := Value;
+    END;
+
+    PROCEDURE ResetFilter@1000000020();
+    BEGIN
+      FilterExpression := '';
+      CustomFilterExpression := '';
+      SortExpression := '';
+
+      IF NOT ISNULL(FieldsDict) THEN
+        FieldsDict.Clear;
+
+      CLEAR(Enumerator);
+    END;
+
+    LOCAL PROCEDURE BuildFilter@1000000035();
+    VAR
+      DictElement@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Collections.Generic.KeyValuePair`2";
+    BEGIN
+      FilterExpression := '';
+
+      IF CustomFilterExpression <> '' THEN BEGIN
+        FilterExpression := CustomFilterExpression;
+        EXIT;
+      END;
+
+      IF NOT ISNULL(FieldsDict) THEN
+        FOREACH DictElement IN FieldsDict DO
+          IF FilterExpression = '' THEN
+            FilterExpression := STRSUBSTNO('[%1] %2',DictElement.Key,DictElement.Value)
+          ELSE
+            FilterExpression := FilterExpression + ' AND ' + STRSUBSTNO('[%1] %2',DictElement.Key,DictElement.Value);
+    END;
+
+    PROCEDURE SelectRows@1000000021() : Boolean;
+    VAR
+      FoundDataRow@1000000000 : DotNet "'System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.DataRow";
+    BEGIN
+      CLEAR(DataRow);
+      BuildFilter();
+
+      IF (FilterExpression = '') AND (SortExpression = '') THEN
+        FoundRows := DataTable.Rows
+      ELSE
+        FoundRows := DataTable.Select(FilterExpression,SortExpression);
+
+      IF ISNULL(FoundRows) THEN
+        EXIT(FALSE);
+
+      Enumerator := FoundRows.GetEnumerator;
+      EXIT(NextRow());
+    END;
+
+    PROCEDURE NextRow@1000000022() : Boolean;
+    BEGIN
+      IF ISNULL(Enumerator) THEN
+        EXIT(FALSE);
+
+      IF NOT Enumerator.MoveNext THEN
+        EXIT(FALSE);
+
+      DataRow := Enumerator.Current;
+      EXIT(TRUE);
+    END;
+
+    PROCEDURE Compute@1000000036(Expression@1000000000 : Text;VAR ReturnObject@1000000001 : Variant);
+    BEGIN
+      BuildFilter;
+      ReturnObject := DataTable.Compute(Expression, FilterExpression);
+    END;
+
+    PROCEDURE CalcSum@1000000037(FieldName@1000000001 : Text) : Decimal;
+    VAR
+      CalcValue@1000000000 : Variant;
+    BEGIN
+      Compute(STRSUBSTNO('SUM([%1])',FieldName), CalcValue);
+      IF ISNULL(CalcValue) THEN
+        EXIT(0);
+      EXIT(CalcValue);
+    END;
+
+    PROCEDURE CalcCount@1000000038(FieldName@1000000000 : Text) : Integer;
+    VAR
+      CalcValue@1000000001 : Variant;
+    BEGIN
+      Compute(STRSUBSTNO('Count([%1])',FieldName), CalcValue);
+      IF ISNULL(CalcValue) THEN
+        EXIT(0);
+      EXIT(CalcValue);
+    END;
+
+    PROCEDURE GetDataTable@1000000024(VAR ReturnDataTable@1000000000 : DotNet "'System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.DataTable");
+    BEGIN
+      ReturnDataTable := DataTable;
+    END;
+
+    PROCEDURE GetDataRow@1000000025(VAR ReturnDataRow@1000000000 : DotNet "'System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.DataRow");
+    BEGIN
+      ReturnDataRow := DataRow;
+    END;
+
+    PROCEDURE SetDataTable@1000000026(VAR NewDataTable@1000000000 : DotNet "'System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.DataTable");
+    BEGIN
+      DataTable := NewDataTable;
+    END;
+
+    PROCEDURE ClearDataTable@1000000013();
+    BEGIN
+      CLEAR(Enumerator);
+      DataTable.Clear;
+      ResetFilter;
+    END;
+
+    PROCEDURE DeleteRow@1000000014();
+    BEGIN
+      FoundRows.Remove(DataRow);
+    END;
+
+    PROCEDURE DeleteAllRows@1000000023();
+    BEGIN
+      FOREACH DataRow IN FoundRows DO
+        FoundRows.Remove(DataRow);
+    END;
+
+    PROCEDURE ModifyAllRows@1000000029(FieldName@1000000001 : Text;Value@1000000000 : Variant);
+    BEGIN
+      FOREACH DataRow IN FoundRows DO BEGIN
+        BeginEdit;
+        SetFieldValue(FieldName, Value);
+        EndEdit;
+      END;
+    END;
+
+    PROCEDURE ExportToExcel@1000000028(VAR xlBuf@1000000000 : Record 370);
+    VAR
+      DataColumn@1000000005 : DotNet "'System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Data.DataColumn";
+      RowNo@1000000001 : Integer;
+      ColNo@1000000002 : Integer;
+      DataTableRowsCount@1000000003 : Integer;
+      DataTableColumnsCount@1000000004 : Integer;
+    BEGIN
+      xlBuf.DELETEALL;
+
+      DataTableRowsCount := DataTable.Rows.Count;
+      RowNo := 0;
+      DataTableColumnsCount := DataTable.Columns.Count;
+
+      ColNo := 0;
+      xlBuf.SetCurrent(0,0);
+      REPEAT
+        DataColumn := DataTable.Columns.Item(ColNo);
+        xlBuf.AddColumn(DataColumn.ColumnName,FALSE,'',TRUE,FALSE,FALSE,'',1);
+        ColNo += 1;
+      UNTIL ColNo = DataTableColumnsCount;
+
+      REPEAT
+        DataRow := DataTable.Rows.Item(RowNo);
+        ColNo := 0;
+        xlBuf.NewRow;
+        REPEAT
+          xlBuf.AddColumn(DataRow.Item(ColNo),FALSE,'',FALSE,FALSE,FALSE,'',1);
+          ColNo += 1;
+        UNTIL ColNo = DataTableColumnsCount;
+        RowNo += 1;
+      UNTIL RowNo = DataTableRowsCount;
+    END;
+
+    PROCEDURE CopyDataTableRef@1000000033(VAR DataTableManager@1000000000 : Codeunit 50003);
+    BEGIN
+      DataTableManager.SetDataTable(DataTable);
+    END;
+
+    BEGIN
+    {
+      https://docs.microsoft.com/en-us/dotnet/api/system.data.datatable
+    }
+    END.
+  }
+}
