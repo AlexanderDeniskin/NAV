@@ -2,8 +2,8 @@ OBJECT Codeunit 50000 Excel Buffer Ext. Examples
 {
   OBJECT-PROPERTIES
   {
-    Date=15.01.19;
-    Time=12:31:23;
+    Date=09.10.19;
+    Time=10:03:28;
     Modified=Yes;
     Version List=;
   }
@@ -126,21 +126,23 @@ OBJECT Codeunit 50000 Excel Buffer Ext. Examples
       CLEAR(xlBuf);
 
       xlBuf.AddColumnPr('First column width is 250px',FALSE,xlBuf."Cell Type"::Text,'');
-      xlBuf.SetColumnsProperty(1,1,xlBuf.Property::Width,250);
+      xlBuf.SetColumnsProperty(1,xlBuf.Property::Width,250);
 
       xlBuf.AddColumnPr('Second column is hidden',FALSE,xlBuf."Cell Type"::Text,'');
-      xlBuf.SetColumnsProperty(2,2,xlBuf.Property::Hidden,TRUE);
+      xlBuf.SetColumnsProperty(2,xlBuf.Property::Hidden,TRUE);
+      // or xlBuf.SetColumnsProperty('B',xlBuf.Property::Hidden,TRUE);
 
       // group columns
-      xlBuf.SetColumnsProperty(5,6,xlBuf.Property::"Outline Level",1);
+      xlBuf.SetColumnsProperty('E:F',xlBuf.Property::"Outline Level",1);
+      // or xlBuf.SetColumnsProperty('5:6',xlBuf.Property::"Outline Level",1);
 
       xlBuf.SetCurrent(3,0);
       xlBuf.AddColumnPr('Third row height is 30px',FALSE,xlBuf."Cell Type"::Text,'Vertical Alignment:Center');
-      xlBuf.SetRowsProperty(3,3,xlBuf.Property::Height, 30);
+      xlBuf.SetRowsProperty(3,xlBuf.Property::Height, 30);
 
       // Group and hide rows
-      xlBuf.SetRowsProperty(4,6,xlBuf.Property::"Outline Level", 1);
-      xlBuf.SetRowsProperty(4,6,xlBuf.Property::Hidden, TRUE);
+      xlBuf.SetRowsProperty('4:6',xlBuf.Property::"Outline Level", 1);
+      xlBuf.SetRowsProperty('4:6',xlBuf.Property::Hidden, TRUE);
       xlBuf.SetRowsSummaryAbove(TRUE);
 
       xlBuf.CreateBookAndOpenExcel('','Sheet1','',COMPANYNAME,USERID);

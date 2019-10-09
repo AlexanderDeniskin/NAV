@@ -2,8 +2,8 @@ OBJECT Table 50000 Excel Buffer Extended
 {
   OBJECT-PROPERTIES
   {
-    Date=01.03.19;
-    Time=09:21:51;
+    Date=09.10.19;
+    Time=09:59:48;
     Modified=Yes;
     Version List=;
   }
@@ -86,6 +86,10 @@ OBJECT Table 50000 Excel Buffer Extended
     { 21  ;   ;Font Size           ;Integer       ;CaptionML=ENU=Font Size }
     { 22  ;   ;Font Color          ;Text10        ;CaptionML=ENU=Font Color }
     { 23  ;   ;Background Color    ;Text10        ;CaptionML=ENU=Background Color }
+    { 28  ;   ;Border Style        ;Option        ;CaptionML=ENU=Border Style;
+                                                   OptionCaptionML=ENU=None,Thin,Medium,Dashed,Dotted,Thick,Double,Hair,MediumDashed,DashDot,MediumDashDot,DashDotDot,MediumDashDotDot,SlantDashDot;
+                                                   OptionString=None,Thin,Medium,Dashed,Dotted,Thick,Double,Hair,MediumDashed,DashDot,MediumDashDot,DashDotDot,MediumDashDotDot,SlantDashDot }
+    { 29  ;   ;Border Color        ;Text10        ;CaptionML=ENU=Border Color }
     { 30  ;   ;Left Border Style   ;Option        ;CaptionML=ENU=Left Border Style;
                                                    OptionCaptionML=ENU=None,Thin,Medium,Dashed,Dotted,Thick,Double,Hair,MediumDashed,DashDot,MediumDashDot,DashDotDot,MediumDashDotDot,SlantDashDot;
                                                    OptionString=None,Thin,Medium,Dashed,Dotted,Thick,Double,Hair,MediumDashed,DashDot,MediumDashDot,DashDotDot,MediumDashDotDot,SlantDashDot }
@@ -235,6 +239,8 @@ OBJECT Table 50000 Excel Buffer Extended
       CurrSheetID@1000000029 : Integer;
       ActiveSheetID@1000000030 : Integer;
       PathDoesNotExistErr@1000000031 : TextConst 'DEU=Der Pfad "%1" ist nicht vorhanden.;ENU=The path %1 does not exist.';
+      InvalidValueErr@1000000033 : TextConst 'DEU=Der Parameter ''%1'' hat einen ungltigen Wert.;ENU=The parameter ''%1'' has invalid value.';
+      InvalidColumnCodeErr@1000000034 : TextConst 'DEU=%1 ist ungltiger Spaltencode.;ENU=%1 is invalid Column Code.';
 
     PROCEDURE CreateBook@1(FileName@1001 : Text;SheetName@1000 : Text[250]);
     BEGIN
@@ -1183,10 +1189,15 @@ OBJECT Table 50000 Excel Buffer Extended
       END;
     END;
 
-    PROCEDURE SetColumnsProperty@1000000007(FromColumnNo@1000000000 : Integer;ToColumnNo@1000000001 : Integer;PropertyType@1000000004 : 'Width,,OutlineLevel,Hidden';Value@1000000002 : Variant);
+    PROCEDURE SetColumnsProperty@1000000007(ColumnNo@1000000005 : Variant;PropertyType@1000000004 : 'Width,,OutlineLevel,Hidden';Value@1000000002 : Variant);
     VAR
+      FromColumnNo@1000000001 : Integer;
+      ToColumnNo@1000000000 : Integer;
       I@1000000003 : Integer;
     BEGIN
+      IF NOT GetIntegertRange(ColumnNo, FromColumnNo, ToColumnNo, TRUE) THEN
+        ERROR(InvalidValueErr, 'ColumnNo');
+
       FOR I := FromColumnNo TO ToColumnNo DO BEGIN
         GetColumnRecord(I);
         CASE PropertyType OF
@@ -1216,10 +1227,15 @@ OBJECT Table 50000 Excel Buffer Extended
       END;
     END;
 
-    PROCEDURE SetRowsProperty@1000000012(FromRowNo@1000000000 : Integer;ToRowNo@1000000001 : Integer;PropertyType@1000000004 : ',Height,OutlineLevel,Hidden';Value@1000000002 : Variant);
+    PROCEDURE SetRowsProperty@1000000012(RowNo@1000000006 : Variant;PropertyType@1000000004 : ',Height,OutlineLevel,Hidden';Value@1000000002 : Variant);
     VAR
+      FromRowNo@1000000001 : Integer;
+      ToRowNo@1000000000 : Integer;
       I@1000000003 : Integer;
     BEGIN
+      IF NOT GetIntegertRange(RowNo,FromRowNo,ToRowNo,FALSE) THEN
+        ERROR(InvalidValueErr, 'RowNo');
+
       FOR I := FromRowNo TO ToRowNo DO BEGIN
         GetRowRecord(I);
         CASE PropertyType OF
@@ -1237,6 +1253,83 @@ OBJECT Table 50000 Excel Buffer Extended
     PROCEDURE SetRowsSummaryAbove@1000000004(Value@1000000000 : Boolean);
     BEGIN
       SummaryRowsAbove := Value;
+    END;
+
+    LOCAL PROCEDURE GetIntegertRange@1000000048(SourceValue@1000000000 : Variant;VAR FromInt@1000000001 : Integer;VAR ToInt@1000000002 : Integer;IsColumns@1000000003 : Boolean) : Boolean;
+    VAR
+      FromText@1000000004 : Text;
+      ToText@1000000005 : Text;
+    BEGIN
+      FromInt := 0;
+      ToInt := 0;
+      IF SourceValue.ISINTEGER THEN BEGIN
+        FromInt := SourceValue;
+        ToInt := SourceValue;
+        EXIT(TRUE);
+      END;
+
+      IF SourceValue.ISTEXT OR SourceValue.ISCODE THEN BEGIN
+        IF EVALUATE(FromInt, SourceValue) THEN BEGIN
+          ToInt := FromInt;
+          EXIT(TRUE);
+        END;
+
+        IF (STRPOS(SourceValue,':') = 0) THEN BEGIN
+          IF IsColumns THEN BEGIN
+            FromInt := GetColumnInt(SourceValue);
+            ToInt := FromInt;
+            EXIT(TRUE);
+          END ELSE
+            EXIT(FALSE);
+        END ELSE BEGIN
+          IF STRPOS(SourceValue,':') IN [1, STRLEN(SourceValue)] THEN
+            EXIT(FALSE);
+
+          FromText := COPYSTR(SourceValue,1, STRPOS(SourceValue,':') - 1);
+          ToText := COPYSTR(SourceValue,STRPOS(SourceValue,':') + 1);
+
+          IF EVALUATE(FromInt,FromText) THEN
+            IF EVALUATE(ToInt, ToText) THEN
+              EXIT(TRUE)
+            ELSE
+              EXIT(FALSE);
+
+          IF IsColumns THEN BEGIN
+            FromInt := GetColumnInt(FromText);
+            ToInt := GetColumnInt(ToText);
+            EXIT(TRUE);
+          END ELSE
+            EXIT(FALSE);
+        END;
+
+      END;
+
+      EXIT(FALSE);
+    END;
+
+    LOCAL PROCEDURE GetColumnInt@1000000049(ColumnCode@1000000000 : Text[3]) : Integer;
+    VAR
+      I@1000000001 : Integer;
+      J@1000000003 : Integer;
+      ReturnValue@1000000002 : Integer;
+    BEGIN
+      ColumnCode := UPPERCASE(ColumnCode);
+
+      IF ColumnCode = '' THEN
+        EXIT(0);
+
+      J := 0;
+      FOR I := STRLEN(ColumnCode) DOWNTO 1 DO BEGIN
+        IF NOT (ColumnCode[I] IN [65..91]) THEN
+          ERROR('%1 is invalid Column Code', ColumnCode);
+        IF J > 0 THEN
+          ReturnValue += (ColumnCode[I] - 64) * POWER(26, J)
+        ELSE
+          ReturnValue := ReturnValue + (ColumnCode[I] - 64);
+        J += 1;
+      END;
+
+      EXIT(ReturnValue);
     END;
 
     PROCEDURE AddImage@1000000016(RowID@1000000000 : Integer;ColID@1000000001 : Integer;FileName@1000000002 : Text[1000];FileIsOnServer@1000000003 : Boolean);
@@ -1405,33 +1498,60 @@ OBJECT Table 50000 Excel Buffer Extended
 
     LOCAL PROCEDURE GetFillDecorator@1119429003(ExcelBuffer@1119429013 : Record 50000;VAR Decorator@1119429001 : DotNet "'Microsoft.Dynamics.Nav.OpenXml, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Nav.OpenXml.Spreadsheet.CellDecorator");
     BEGIN
-      IF ("Background Color" = '') THEN
-        EXIT;
+      WITH ExcelBuffer DO BEGIN
+        IF ("Background Color" = '') THEN
+          EXIT;
 
-      Decorator.Fill.InnerXml('<x:patternFill xmlns:x="http://schemas.openxmlformats.org/spreadsheetml/2006/main" patternType="solid">' +
-                               '<x:fgColor rgb="' + GetHEXColorCode("Background Color") + '" />' +
-                             '</x:patternFill>');
+        Decorator.Fill.InnerXml('<x:patternFill xmlns:x="http://schemas.openxmlformats.org/spreadsheetml/2006/main" patternType="solid">' +
+                                 '<x:fgColor rgb="' + GetHEXColorCode("Background Color") + '" />' +
+                               '</x:patternFill>');
+      END;
     END;
 
     LOCAL PROCEDURE GetBorderDecorator@1119429004(ExcelBuffer@1119429013 : Record 50000;VAR Decorator@1119429001 : DotNet "'Microsoft.Dynamics.Nav.OpenXml, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Nav.OpenXml.Spreadsheet.CellDecorator");
     VAR
       BorderXMLString@1119429005 : Text;
     BEGIN
-      IF (ExcelBuffer."Left Border Style" = ExcelBuffer."Left Border Style"::None) AND
-         (ExcelBuffer."Right Border Style" = ExcelBuffer."Right Border Style"::None) AND
-         (ExcelBuffer."Top Border Style" = ExcelBuffer."Top Border Style"::None) AND
-         (ExcelBuffer."Bottom Border Style" = ExcelBuffer."Bottom Border Style"::None) AND
-         (ExcelBuffer."Diagonal Border Style" = ExcelBuffer."Diagonal Border Style"::None)
-      THEN
-        EXIT;
+      WITH ExcelBuffer DO BEGIN
+        IF "Border Style" <> "Border Style"::None THEN BEGIN
 
-      BorderXMLString := '';
-      WriteBorderXML('left', "Left Border Style", "Left Border Color", BorderXMLString);
-      WriteBorderXML('right', "Right Border Style", "Right Border Color", BorderXMLString);
-      WriteBorderXML('top', "Top Border Style", "Top Border Color", BorderXMLString);
-      WriteBorderXML('bottom', "Bottom Border Style", "Bottom Border Color", BorderXMLString);
-      WriteBorderXML('diagonal', "Diagonal Border Style", "Diagonal Border Color", BorderXMLString);
-      Decorator.Border.InnerXml(BorderXMLString);
+          IF "Left Border Style" = "Left Border Style"::None THEN
+            "Left Border Style" := "Border Style";
+          IF "Right Border Style" = "Right Border Style"::None THEN
+            "Right Border Style" := "Border Style";
+          IF "Top Border Style" = "Top Border Style"::None THEN
+            "Top Border Style" := "Border Style";
+          IF "Bottom Border Style" = "Bottom Border Style"::None THEN
+            "Bottom Border Style" := "Border Style";
+
+          IF "Border Color" <> '' THEN BEGIN
+            IF "Left Border Color" = '' THEN
+              "Left Border Color" := "Border Color";
+            IF "Right Border Color" = '' THEN
+              "Right Border Color" := "Border Color";
+            IF "Top Border Color" = '' THEN
+              "Top Border Color" := "Border Color";
+            IF "Bottom Border Color" = '' THEN
+              "Bottom Border Color" := "Border Color";
+          END;
+        END;
+
+        IF ("Left Border Style" = "Left Border Style"::None) AND
+           ("Right Border Style" = "Right Border Style"::None) AND
+           ("Top Border Style" = "Top Border Style"::None) AND
+           ("Bottom Border Style" = "Bottom Border Style"::None) AND
+           ("Diagonal Border Style" = "Diagonal Border Style"::None)
+        THEN
+          EXIT;
+
+        BorderXMLString := '';
+        WriteBorderXML('left', "Left Border Style", "Left Border Color", BorderXMLString);
+        WriteBorderXML('right', "Right Border Style", "Right Border Color", BorderXMLString);
+        WriteBorderXML('top', "Top Border Style", "Top Border Color", BorderXMLString);
+        WriteBorderXML('bottom', "Bottom Border Style", "Bottom Border Color", BorderXMLString);
+        WriteBorderXML('diagonal', "Diagonal Border Style", "Diagonal Border Color", BorderXMLString);
+        Decorator.Border.InnerXml(BorderXMLString);
+      END;
     END;
 
     LOCAL PROCEDURE GetHEXColorCode@1119429001(ColorName@1119429000 : Text[10]) : Text[10];
@@ -1620,7 +1740,6 @@ OBJECT Table 50000 Excel Buffer Extended
 
     LOCAL PROCEDURE WriteRowsProperties@1000000017();
     VAR
-      WrkShtHelper@1000000008 : DotNet "'Microsoft.Dynamics.Nav.OpenXml, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Nav.OpenXml.Spreadsheet.WorksheetHelper";
       OpenXmlElement@1000000010 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.OpenXmlElement";
       OpenXmlSheetData@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.SheetData";
       OpenXmlRow@1000000002 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Row";
