@@ -1,0 +1,372 @@
+OBJECT Page 50000 Performance Profiler
+{
+  OBJECT-PROPERTIES
+  {
+    Date=;
+    Time=;
+    Version List=Performance Profiler;
+  }
+  PROPERTIES
+  {
+    Permissions=;
+    InsertAllowed=No;
+    DeleteAllowed=No;
+    ModifyAllowed=Yes;
+    SourceTable=Table50000;
+    PageType=List;
+    PromotedActionCategoriesML=ENU=New,Process,Report,Archive;
+    OnInit=BEGIN
+             MaxStatementLength := 250;
+             Threshold := 0;
+             TargetSessionID := SESSIONID;
+             TargetSessionIDEditable := TRUE;
+             MultipleSessionsId := -1;
+           END;
+
+    OnOpenPage=BEGIN
+                 // Assume that profiler hasn't been started.
+                 // This assumption might be wrong.
+                 ProfilerStarted := FALSE;
+                 IF (TargetSessionID <> MultipleSessionsId) THEN
+                   Rec.SETFILTER("Session ID", '=%1', TargetSessionID);
+
+                 IF (Rec.ISEMPTY) THEN BEGIN
+                   Rec."Session ID" := TargetSessionID;
+                   Rec.INSERT;
+                 END;
+
+                 PerformanceProfiler := PerformanceProfiler.EtwPerformanceProfiler();
+               END;
+
+    OnAfterGetRecord=VAR
+                       LinesHit@1003 : Integer;
+                     BEGIN
+                     END;
+
+    OnAfterGetCurrRecord=BEGIN
+                           CALCFIELDS(Total);
+                         END;
+
+    ActionList=ACTIONS
+    {
+      { 15      ;    ;ActionContainer;
+                      ActionContainerType=ActionItems }
+      { 14      ;1   ;Action    ;
+                      Name=Start;
+                      Promoted=Yes;
+                      Enabled=NOT ProfilerStarted;
+                      PromotedIsBig=Yes;
+                      Image=Start;
+                      PromotedCategory=Process;
+                      OnAction=VAR
+                                 ProfilerRecord@1000 : Record 50000;
+                                 i@1001 : Integer;
+                               BEGIN
+                                 CLEAR(Rec);
+
+                                 IF (MultipleSessionsId = TargetSessionID) THEN BEGIN
+                                   CLEAR(Rec);
+                                   Rec.INIT;
+                                   Rec.DELETEALL;
+                                 END ELSE BEGIN
+                                   Rec.SETFILTER("Session ID", '=%1', TargetSessionID);
+                                   Rec.DELETEALL;
+                                 END;
+
+                                 PerformanceProfiler.Start(TargetSessionID, Threshold);
+
+                                 ProfilerStarted := TRUE;
+                               END;
+                                }
+      { 3       ;1   ;Action    ;
+                      Name=Stop;
+                      Promoted=Yes;
+                      Enabled=ProfilerStarted;
+                      PromotedIsBig=Yes;
+                      Image=Stop;
+                      PromotedCategory=Process;
+                      OnAction=BEGIN
+                                 WaitForDataToBeCollected;
+                                 PerformanceProfiler.Stop;
+
+                                 ProfilerStarted := FALSE;
+
+                                 CopyEventsFromProfilerToTable;
+                                 IF (TargetSessionID <> MultipleSessionsId) THEN
+                                   Rec.SETFILTER("Session ID", '=%1', TargetSessionID);
+                               END;
+                                }
+      { 20      ;1   ;Action    ;
+                      Name=Analyze ETL File;
+                      Promoted=Yes;
+                      Enabled=NOT ProfilerStarted;
+                      PromotedIsBig=Yes;
+                      Image=AnalysisView;
+                      PromotedCategory=Process;
+                      OnAction=VAR
+                                 ETLFileName@1000 : Text;
+                               BEGIN
+                                 ETLFileName := OpenFileDialog('Analyze ETL File', 'Trace Files (*.etl)|*.etl');
+
+                                 IF (ETLFileName <> '') THEN BEGIN
+                                   PerformanceProfiler.AnalyzeETLFile(ETLFileName,Threshold);
+
+                                   CLEAR(Rec);
+                                   Rec.INIT;
+                                   Rec.DELETEALL;
+
+                                   CopyEventsFromProfilerToTable;
+                                 END;
+                               END;
+                                }
+      { 10      ;1   ;Action    ;
+                      Name=Clear Codeunit 1 calls;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=ClearFilter;
+                      PromotedCategory=Process;
+                      OnAction=VAR
+                                 codeUnit1Call@1000 : Boolean;
+                               BEGIN
+                                 codeUnit1Call := FALSE;
+
+                                 FINDFIRST;
+
+                                 REPEAT
+                                   IF (Indentation = 0) THEN BEGIN
+                                     IF (("Object Type" = "Object Type"::Codeunit) AND ("Object ID" = 1)) THEN
+                                       codeUnit1Call := TRUE
+                                     ELSE
+                                       codeUnit1Call := FALSE;
+                                   END;
+
+                                   IF (codeUnit1Call) THEN
+                                    DELETE;
+                                 UNTIL NEXT = 0;
+                               END;
+                                }
+      { 25      ;1   ;Action    ;
+                      Name=Get Statement;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=Comment;
+                      PromotedCategory=Process;
+                      OnAction=VAR
+                                 InStream@1000 : InStream;
+                                 StatementBigTxt@1001 : BigText;
+                                 StatementTxt@1002 : Text;
+                               BEGIN
+                                 CALCFIELDS(FullStatement);
+
+                                 FullStatement.CREATEINSTREAM(InStream);
+                                 StatementBigTxt.READ(InStream);
+
+                                 StatementBigTxt.GETSUBTEXT(StatementTxt, 1, StatementBigTxt.LENGTH);
+
+                                 MESSAGE(StatementTxt);
+                               END;
+                                }
+      { 27      ;1   ;Action    ;
+                      Name=Copy To Archive;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=CopyWorksheet;
+                      PromotedCategory=Category4;
+                      OnAction=BEGIN
+                                 CopyToArchive("Session ID");
+                               END;
+                                }
+      { 26      ;1   ;Action    ;
+                      Name=Archive;
+                      RunObject=Page 50001;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=Archive;
+                      PromotedCategory=Category4 }
+    }
+  }
+  CONTROLS
+  {
+    { 1   ;0   ;Container ;
+                ContainerType=ContentArea }
+
+    { 16  ;1   ;Group     ;
+                CaptionML=ENU=Configuration;
+                GroupType=Group }
+
+    { 12  ;2   ;Field     ;
+                Name=Target Session ID;
+                Lookup=Yes;
+                SourceExpr=TargetSessionID;
+                TableRelation="Active Session"."Session ID";
+                Editable=TargetSessionIDEditable;
+                OnValidate=BEGIN
+                             IF (TargetSessionID <> MultipleSessionsId) THEN
+                               Rec.SETFILTER("Session ID", '=%1', TargetSessionID);
+                           END;
+                            }
+
+    { 19  ;2   ;Field     ;
+                Name=Threshold;
+                SourceExpr=Threshold }
+
+    { 21  ;2   ;Field     ;
+                Name=ProfileMultipleSessions;
+                CaptionML=ENU=Profile multiple Sessions;
+                SourceExpr=ProfileMultipleSessions;
+                OnValidate=BEGIN
+                             IF (ProfileMultipleSessions) THEN BEGIN
+                               TargetSessionID := MultipleSessionsId;
+                               TargetSessionIDEditable := FALSE
+                             END ELSE BEGIN
+                               TargetSessionID := SESSIONID;
+                               TargetSessionIDEditable := TRUE
+                             END;
+                           END;
+                            }
+
+    { 2   ;1   ;Group     ;
+                Name=Call Tree;
+                Editable=FALSE;
+                IndentationColumnName=Indentation;
+                ShowAsTree=Yes;
+                GroupType=Repeater }
+
+    { 7   ;2   ;Field     ;
+                SourceExpr="Object Type";
+                Enabled=FALSE;
+                Editable=FALSE }
+
+    { 4   ;2   ;Field     ;
+                SourceExpr="Object ID" }
+
+    { 11  ;2   ;Field     ;
+                SourceExpr="Line No" }
+
+    { 5   ;2   ;Field     ;
+                SourceExpr=Statement }
+
+    { 9   ;2   ;Field     ;
+                CaptionML=ENU=Duration (ms);
+                SourceExpr=Duration;
+                Style=Attention }
+
+    { 13  ;2   ;Field     ;
+                SourceExpr=MinDuration }
+
+    { 22  ;2   ;Field     ;
+                SourceExpr=MaxDuration }
+
+    { 23  ;2   ;Field     ;
+                SourceExpr=LastActive }
+
+    { 24  ;2   ;Field     ;
+                SourceExpr=HitCount }
+
+    { 6   ;2   ;Field     ;
+                SourceExpr=Id }
+
+    { 8   ;2   ;Field     ;
+                SourceExpr="Session ID" }
+
+    { 17  ;1   ;Group     ;
+                GroupType=Group }
+
+    { 18  ;2   ;Field     ;
+                CaptionML=ENU=Total Time (ms):;
+                SourceExpr=Total;
+                Enabled=FALSE;
+                Editable=FALSE;
+                Style=Strong;
+                StyleExpr=TRUE }
+
+  }
+  CODE
+  {
+    VAR
+      ProgressDialog@1004 : Dialog;
+      PerformanceProfiler@1000 : DotNet "'EtwPerformanceProfiler, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.EtwPerformanceProfiler.EtwPerformanceProfiler";
+      ProfilerStarted@1001 : Boolean INDATASET;
+      TargetSessionIDEditable@1008 : Boolean;
+      TargetSessionID@1003 : Integer INDATASET;
+      PleaseWaitCollectingData@1005 : TextConst 'ENU=Collecting performance data \\Please wait #1';
+      Threshold@1006 : Integer;
+      MultipleSessionsId@1002 : Integer;
+      MaxStatementLength@1010 : Integer;
+      ProfileMultipleSessions@1007 : Boolean;
+
+    LOCAL PROCEDURE WaitForDataToBeCollected@4();
+    VAR
+      SecondsToWait@1000 : Integer;
+    BEGIN
+      SecondsToWait := 3;
+      ProgressDialog.OPEN(PleaseWaitCollectingData);
+      WHILE SecondsToWait > 0 DO BEGIN
+        ProgressDialog.UPDATE(1,STRSUBSTNO('%1 s',SecondsToWait));
+        SLEEP(1000);
+        SecondsToWait -= 1;
+      END;
+      ProgressDialog.CLOSE;
+    END;
+
+    PROCEDURE OpenFileDialog@1(WindowTitle@1000 : Text[50];FilterString@1002 : Text) : Text;
+    VAR
+      OpenFileDialog@1006 : DotNet "'System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.OpenFileDialog" RUNONCLIENT;
+      DialagResult@1003 : DotNet "'System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DialogResult" RUNONCLIENT;
+    BEGIN
+      OpenFileDialog := OpenFileDialog.OpenFileDialog;
+      OpenFileDialog.ShowReadOnly := FALSE;
+      OpenFileDialog.Title := WindowTitle;
+      OpenFileDialog.Filter := FilterString;
+
+      DialagResult := OpenFileDialog.ShowDialog;
+      IF DialagResult.CompareTo(DialagResult.OK) = 0 THEN
+        EXIT(OpenFileDialog.FileName);
+      EXIT('');
+    END;
+
+    LOCAL PROCEDURE CopyEventsFromProfilerToTable@12();
+    VAR
+      OutStream@1003 : OutStream;
+      I@1000 : Integer;
+      StatementTxt@1002 : Text;
+      StatementBigTxt@1001 : BigText;
+    BEGIN
+      I := 1;
+
+      WHILE (PerformanceProfiler.CallTreeMoveNext) DO BEGIN
+        CLEAR(Rec);
+        Rec.INIT;
+        Rec.Id := I;
+        Rec."Session ID" := PerformanceProfiler.CallTreeCurrentStatementSessionId;
+        Rec.Indentation := PerformanceProfiler.CallTreeCurrentStatementIndentation;
+        Rec."Object Type" := PerformanceProfiler.CallTreeCurrentStatementOwningObjectType;
+        Rec."Object ID" := PerformanceProfiler.CallTreeCurrentStatementOwningObjectId;
+        Rec."Line No" := PerformanceProfiler.CallTreeCurrentStatementLineNo;
+
+        StatementTxt := PerformanceProfiler.CallTreeCurrentStatement;
+        IF(STRLEN(StatementTxt) > MaxStatementLength) THEN BEGIN
+          Statement := COPYSTR(StatementTxt,1,MaxStatementLength);
+        END ELSE BEGIN
+          Rec.Statement := StatementTxt;
+        END;
+        CLEAR(StatementBigTxt);
+        StatementBigTxt.ADDTEXT(StatementTxt);
+        FullStatement.CREATEOUTSTREAM(OutStream);
+        StatementBigTxt.WRITE(OutStream);
+
+        Rec.Duration := PerformanceProfiler.CallTreeCurrentStatementDurationMs;
+        Rec.MinDuration := PerformanceProfiler.CallTreeCurrentStatementMinDurationMs;
+        Rec.MaxDuration := PerformanceProfiler.CallTreeCurrentStatementMaxDurationMs;
+        Rec.LastActive := PerformanceProfiler.CallTreeCurrentStatementLastActiveMs;
+        Rec.HitCount := PerformanceProfiler.CallTreeCurrentStatementHitCount;
+        Rec.INSERT;
+
+        I += 1;
+      END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
