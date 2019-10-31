@@ -11,3 +11,6 @@ Installing and Running the Sample Code
 
 Source:
 https://archive.codeplex.com/?p=navappprofiler
+
+Explantion:
+https://www.archerpoint.com/blog/Posts/using-application-profiler-run-code-coverage-nav-2013-r2
