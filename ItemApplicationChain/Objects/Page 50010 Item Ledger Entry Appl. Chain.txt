@@ -2,8 +2,8 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
 {
   OBJECT-PROPERTIES
   {
-    Date=07.10.19;
-    Time=12:39:24;
+    Date=16.01.20;
+    Time=14:24:21;
     Modified=Yes;
     Version List=ASD;
   }
@@ -30,7 +30,9 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
     OnAfterGetRecord=BEGIN
                        ItemApplEntryTmp.RESET;
                        ItemApplEntryTmp.SETRANGE("Item Ledger Entry No.", "Entry No.");
-                       IF NOT ItemApplEntryTmp.FINDFIRST THEN
+                       IF ItemApplEntryTmp.FINDFIRST THEN
+                         ItemApplEntryTmp.CALCSUMS(Quantity)
+                       ELSE
                          CLEAR(ItemApplEntryTmp);
                      END;
 
@@ -569,6 +571,9 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
       RESET;
       DELETEALL;
 
+      ItemApplEntryTmp.RESET;
+      ItemApplEntryTmp.DELETEALL;
+
       MainEntryNo := EntryNo;
 
       AddEntry(MainEntryNo,0,0);
@@ -584,9 +589,7 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
     BEGIN
       ItemLedgerEntry.GET(EntryNo);
       Rec := ItemLedgerEntry;
-      IF NOT INSERT THEN
-        IF NOT ((EntryNo = MainEntryNo) AND (Direction = Direction::Backward)) THEN
-          EXIT;
+      IF INSERT THEN;
 
       IF Direction = Direction::Forward THEN BEGIN
         ItemApplicationEntry.RESET;
@@ -620,18 +623,27 @@ OBJECT Page 50010 Item Ledger Entry Appl. Chain
       IF ItemApplicationEntry.FINDSET THEN
         REPEAT
 
-          ItemApplEntryTmp := ItemApplicationEntry;
-          IF ItemApplEntryTmp.INSERT THEN;
-
           IF (Direction = Direction::Backward) THEN
             TransfFromEntryNo := ItemApplicationEntry."Transferred-from Entry No.";
 
-          IF ItemApplicationEntry."Inbound Item Entry No." = ItemLedgerEntry."Entry No." THEN
-            AddEntry(ItemApplicationEntry."Outbound Item Entry No.", TransfFromEntryNo, Direction)
-          ELSE
-            AddEntry(ItemApplicationEntry."Inbound Item Entry No.", TransfFromEntryNo, Direction);
+          IF AddApplEntry(ItemApplicationEntry, "Entry No.") THEN
+            AddEntry(ItemApplEntryTmp."Item Ledger Entry No.", TransfFromEntryNo, Direction);
 
         UNTIL ItemApplicationEntry.NEXT = 0;
+    END;
+
+    LOCAL PROCEDURE AddApplEntry@1000000000(ItemApplicationEntry@1000000000 : Record 339;ItemLedgerEntryNo@1000000001 : Integer) : Boolean;
+    BEGIN
+      IF ItemApplEntryTmp.GET(ItemApplicationEntry."Entry No.") THEN
+        EXIT(FALSE);
+
+      ItemApplEntryTmp := ItemApplicationEntry;
+      IF ItemApplicationEntry."Inbound Item Entry No." = ItemLedgerEntryNo THEN
+        ItemApplEntryTmp."Item Ledger Entry No." := ItemApplicationEntry."Outbound Item Entry No."
+      ELSE
+        ItemApplEntryTmp."Item Ledger Entry No." := ItemApplicationEntry."Inbound Item Entry No.";
+      ItemApplEntryTmp.INSERT;
+      EXIT(TRUE);
     END;
 
     BEGIN
