@@ -1,1 +1,1 @@
-Page allows to view contaont of Object Metadata table
+Page allows to view content of the "Object Metadata" table
