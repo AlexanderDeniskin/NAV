@@ -1,1 +1,164 @@
+OBJECT Page 50013 Objects Metadata
+{
+  OBJECT-PROPERTIES
+  {
+    Date=04.03.20;
+    Time=11:50:30;
+    Modified=Yes;
+    Version List=ASD;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Objects Metadata;
+    InsertAllowed=No;
+    DeleteAllowed=No;
+    ModifyAllowed=No;
+    SourceTable=Table2000000058;
+    SourceTableView=SORTING(Object Type,Object ID)
+                    WHERE(Object Type=FILTER(Table..));
+    PageType=List;
+    OnAfterGetRecord=BEGIN
+                       IF NOT ObjectMetadata.GET("Object Type", "Object ID") THEN
+                         CLEAR(ObjectMetadata);
+                     END;
+
+    ActionList=ACTIONS
+    {
+      { 1000000000;  ;ActionContainer;
+                      ActionContainerType=ActionItems }
+      { 1000000001;1 ;Action    ;
+                      Name=Metadata;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=XMLFile;
+                      PromotedCategory=Process;
+                      PromotedOnly=Yes;
+                      OnAction=BEGIN
+                                 ShowBlobContent(ObjectMetadata.FIELDNO(Metadata));
+                               END;
+                                }
+      { 1000000002;1 ;Action    ;
+                      Name=UserCode;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=VariableList;
+                      PromotedCategory=Process;
+                      PromotedOnly=Yes;
+                      OnAction=BEGIN
+                                 ShowBlobContent(ObjectMetadata.FIELDNO("User Code"));
+                               END;
+                                }
+      { 1000000003;1 ;Action    ;
+                      Name=UserALCode;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=DesignCodeBehind;
+                      PromotedCategory=Process;
+                      PromotedOnly=Yes;
+                      OnAction=BEGIN
+                                 ShowBlobContent(ObjectMetadata.FIELDNO("User AL Code"));
+                               END;
+                                }
+    }
+  }
+  CONTROLS
+  {
+    { 1500000;0;Container ;
+                ContainerType=ContentArea }
+
+    { 1500001;1;Group     ;
+                Name=Group;
+                GroupType=Repeater }
+
+    { 1500002;2;Field     ;
+                SourceExpr="Object Type" }
+
+    { 1500003;2;Field     ;
+                SourceExpr="Object ID" }
+
+    { 1500013;2;Field     ;
+                CaptionML=ENU=Name;
+                SourceExpr="Object Name";
+                Editable=FALSE }
+
+    { 1000000004;2;Field  ;
+                SourceExpr="Object Caption" }
+
+    { 1500007;2;Field     ;
+                Name="Metadata Version";
+                SourceExpr=ObjectMetadata."Metadata Version";
+                CaptionClass=ObjectMetadata.FIELDCAPTION("Metadata Version") }
+
+    { 1500008;2;Field     ;
+                Name=Hash;
+                SourceExpr=ObjectMetadata.Hash;
+                CaptionClass=ObjectMetadata.FIELDCAPTION(Hash);
+                Visible=FALSE }
+
+    { 1500009;2;Field     ;
+                Name="Object Subtype";
+                SourceExpr=ObjectMetadata."Object Subtype";
+                CaptionClass=ObjectMetadata.FIELDCAPTION("Object Subtype") }
+
+    { 1500010;2;Field     ;
+                Name="Has Subscribers";
+                SourceExpr=ObjectMetadata."Has Subscribers";
+                CaptionClass=ObjectMetadata.FIELDCAPTION("Has Subscribers") }
+
+  }
+  CODE
+  {
+    VAR
+      ObjectMetadata@1000000000 : Record 2000000071;
+
+    LOCAL PROCEDURE ShowBlobContent@1500000(FieldID@1500000 : Integer);
+    VAR
+      TempBlob@1000000002 : Record 99008535;
+      BlobPreview@1000000001 : Page 50014;
+      PageCaption@1500001 : Text;
+      Content@1000000000 : Text;
+      RecRef@1000000003 : RecordRef;
+      FieldRef@1000000004 : FieldRef;
+    BEGIN
+      ObjectMetadata.GET("Object Type", "Object ID");
+
+      RecRef.GETTABLE(ObjectMetadata);
+      FieldRef := RecRef.FIELD(FieldID);
+
+      IF FORMAT(FieldRef.TYPE) <> 'BLOB' THEN
+        EXIT;
+
+      FieldRef.CALCFIELD;
+      TempBlob.Blob := FieldRef.VALUE;
+
+      Content := ReadAsTextWithCRLFLineSeparator(TempBlob);
+
+      PageCaption := STRSUBSTNO('%1 %2 %3 - %4', "Object Type", "Object ID", "Object Name", FieldRef.NAME);
+      CASE FieldID OF
+        ObjectMetadata.FIELDNO(Metadata):
+          PageCaption += '.xml';
+        ObjectMetadata.FIELDNO("User Code"):
+          PageCaption += '.cs';
+        ELSE
+          PageCaption += '.txt';
+      END;
+      CLEAR(BlobPreview);
+      BlobPreview.SetContent(Content);
+      BlobPreview.CAPTION(PageCaption);
+      BlobPreview.RUNMODAL;
+    END;
+
+    PROCEDURE ReadAsTextWithCRLFLineSeparator@20(VAR TempBlob@1000000000 : Record 99008535) : Text;
+    VAR
+      CRLF@1000 : Text[2];
+    BEGIN
+      CRLF[1] := 13;
+      CRLF[2] := 10;
+      EXIT(TempBlob.ReadAsText(CRLF,TEXTENCODING::UTF8));
+    END;
+
+    BEGIN
+    END.
+  }
+}
 

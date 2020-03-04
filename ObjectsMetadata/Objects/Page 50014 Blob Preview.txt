@@ -1,0 +1,86 @@
+OBJECT Page 50014 Blob Preview
+{
+  OBJECT-PROPERTIES
+  {
+    Date=04.03.20;
+    Time=11:47:45;
+    Modified=Yes;
+    Version List=ASD;
+  }
+  PROPERTIES
+  {
+    Editable=No;
+    CaptionML=ENU=Blob Preview;
+    PageType=Card;
+  }
+  CONTROLS
+  {
+    { 1500000; ;Container ;
+                Name=Container;
+                ContainerType=ContentArea }
+
+    { 1500001;1;Field     ;
+                Name=WebBrowser;
+                ControlAddIn=[Microsoft.Dynamics.Nav.Client.WebPageViewer;PublicKeyToken=31bf3856ad364e35] }
+
+  }
+  CODE
+  {
+    VAR
+      HTMLContent@1500000 : Text;
+
+    PROCEDURE SetContent@1500000(NewContent@1500000 : Text);
+    VAR
+      HttpUtility@1000000000 : DotNet "'System.Web, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.System.Web.HttpUtility";
+    BEGIN
+      FormatXML(NewContent, HTMLContent);
+
+      HttpUtility := HttpUtility.HttpUtility;
+      HTMLContent := STRSUBSTNO('<pre style="white-space: pre-wrap;">%1</pre>',HttpUtility.HtmlEncode(HTMLContent))
+    END;
+
+    LOCAL PROCEDURE FormatXML@1101495000(InText@1000000001 : Text;VAR OutText@1000000002 : Text) : Boolean;
+    VAR
+      XMLDOMMngt@1000000003 : Codeunit 6224;
+      XMLDoc@1000000000 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlDocument";
+      StringBld@1101495001 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Text.StringBuilder";
+      StringWriter@1101495002 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.IO.StringWriter";
+      XmlTextWriter@1101495003 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlTextWriter";
+    BEGIN
+      OutText := InText;
+
+      IF NOT XMLDOMMngt.LoadXMLDocumentFromText(InText, XMLDoc) THEN
+       EXIT(FALSE);
+
+      StringBld := StringBld.StringBuilder;
+      StringWriter := StringWriter.StringWriter(StringBld);
+      XmlTextWriter := XmlTextWriter.XmlTextWriter(StringWriter);
+      XmlTextWriter.Formatting := 1;
+      XMLDoc.WriteTo(XmlTextWriter);
+      OutText := StringBld.ToString();
+      EXIT(TRUE);
+    END;
+
+    EVENT WebBrowser@-1500001::ControlAddInReady@8(callbackUrl@1000000000 : Text);
+    BEGIN
+      CurrPage.WebBrowser.SetContent(HTMLContent);
+    END;
+
+    EVENT WebBrowser@-1500001::DocumentReady@9();
+    BEGIN
+    END;
+
+    EVENT WebBrowser@-1500001::Callback@10(data@1000000000 : Text);
+    BEGIN
+    END;
+
+    EVENT WebBrowser@-1500001::Refresh@11(callbackUrl@1000000000 : Text);
+    BEGIN
+      CurrPage.WebBrowser.SetContent(HTMLContent);
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
