@@ -10,7 +10,7 @@ This tool allows to export data from NAV to Excel with extended formatting:
 
 No additional or external components required.
 
-## Instalation
+## Installation
 
 1. Download file [Table 50000 Excel Buffer Extended.txt](Objects/Table%2050000%20Excel%20Buffer%20Extended.txt).
 2. If you want to change object id then open file in text editor and replace all instances of the string "Record 50000" with the new object id ("Record 50050", for example) and change object id in the first line of file.
