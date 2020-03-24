@@ -2,8 +2,8 @@ OBJECT Table 50000 Excel Buffer Extended
 {
   OBJECT-PROPERTIES
   {
-    Date=09.10.19;
-    Time=09:59:48;
+    Date=24.03.20;
+    Time=16:10:44;
     Modified=Yes;
     Version List=;
   }
@@ -20,9 +20,11 @@ OBJECT Table 50000 Excel Buffer Extended
                                                                   xlRowID := FORMAT("Row No.");
                                                               END;
 
+                                                   DataClassification=SystemMetadata;
                                                    CaptionML=[DEU=Zeilennr.;
                                                               ENU=Row No.] }
-    { 2   ;   ;xlRowID             ;Text10        ;CaptionML=[DEU=XlZeileID;
+    { 2   ;   ;xlRowID             ;Text10        ;DataClassification=SystemMetadata;
+                                                   CaptionML=[DEU=XlZeileID;
                                                               ENU=xlRowID] }
     { 3   ;   ;Column No.          ;Integer       ;OnValidate=VAR
                                                                 x@1000 : Integer;
@@ -51,36 +53,50 @@ OBJECT Table 50000 Excel Buffer Extended
                                                                   xlColID[x] := t[1 + i - x];
                                                               END;
 
+                                                   DataClassification=SystemMetadata;
                                                    CaptionML=[DEU=Spaltennr.;
                                                               ENU=Column No.] }
-    { 4   ;   ;xlColID             ;Text10        ;CaptionML=[DEU=XlSpalteID;
+    { 4   ;   ;xlColID             ;Text10        ;DataClassification=SystemMetadata;
+                                                   CaptionML=[DEU=XlSpalteID;
                                                               ENU=xlColID] }
-    { 5   ;   ;Cell Value as Text  ;Text250       ;CaptionML=[DEU=Zellenwert als Text;
+    { 5   ;   ;Cell Value as Text  ;Text250       ;DataClassification=SystemMetadata;
+                                                   CaptionML=[DEU=Zellenwert als Text;
                                                               ENU=Cell Value as Text] }
-    { 6   ;   ;Comment             ;Text250       ;CaptionML=[DEU=Bemerkung;
+    { 6   ;   ;Comment             ;Text250       ;DataClassification=SystemMetadata;
+                                                   CaptionML=[DEU=Bemerkung;
                                                               ENU=Comment] }
-    { 7   ;   ;Formula             ;Text250       ;CaptionML=[DEU=Formel;
+    { 7   ;   ;Formula             ;Text250       ;DataClassification=SystemMetadata;
+                                                   CaptionML=[DEU=Formel;
                                                               ENU=Formula] }
-    { 8   ;   ;Bold                ;Boolean       ;CaptionML=[DEU=Fett;
+    { 8   ;   ;Bold                ;Boolean       ;DataClassification=SystemMetadata;
+                                                   CaptionML=[DEU=Fett;
                                                               ENU=Bold] }
-    { 9   ;   ;Italic              ;Boolean       ;CaptionML=[DEU=Kursiv;
+    { 9   ;   ;Italic              ;Boolean       ;DataClassification=SystemMetadata;
+                                                   CaptionML=[DEU=Kursiv;
                                                               ENU=Italic] }
-    { 10  ;   ;Underline           ;Boolean       ;CaptionML=[DEU=Unterstrichen;
+    { 10  ;   ;Underline           ;Boolean       ;DataClassification=SystemMetadata;
+                                                   CaptionML=[DEU=Unterstrichen;
                                                               ENU=Underline] }
-    { 11  ;   ;NumberFormat        ;Text30        ;CaptionML=[DEU=Nummernformat;
+    { 11  ;   ;NumberFormat        ;Text30        ;DataClassification=SystemMetadata;
+                                                   CaptionML=[DEU=Nummernformat;
                                                               ENU=NumberFormat] }
-    { 12  ;   ;Formula2            ;Text250       ;CaptionML=[DEU=Formel 2;
+    { 12  ;   ;Formula2            ;Text250       ;DataClassification=SystemMetadata;
+                                                   CaptionML=[DEU=Formel 2;
                                                               ENU=Formula2] }
-    { 13  ;   ;Formula3            ;Text250       ;CaptionML=[DEU=Formel 3;
+    { 13  ;   ;Formula3            ;Text250       ;DataClassification=SystemMetadata;
+                                                   CaptionML=[DEU=Formel 3;
                                                               ENU=Formula3] }
-    { 14  ;   ;Formula4            ;Text250       ;CaptionML=[DEU=Formel 4;
+    { 14  ;   ;Formula4            ;Text250       ;DataClassification=SystemMetadata;
+                                                   CaptionML=[DEU=Formel 4;
                                                               ENU=Formula4] }
-    { 15  ;   ;Cell Type           ;Option        ;CaptionML=[DEU=Zellentyp;
+    { 15  ;   ;Cell Type           ;Option        ;DataClassification=SystemMetadata;
+                                                   CaptionML=[DEU=Zellentyp;
                                                               ENU=Cell Type];
                                                    OptionCaptionML=[DEU=Nummer,Text,Datum,Uhrzeit;
                                                                     ENU=Number,Text,Date,Time];
                                                    OptionString=Number,Text,Date,Time }
-    { 16  ;   ;Double Underline    ;Boolean       ;CaptionML=[DEU=Doppelt unterstrichen;
+    { 16  ;   ;Double Underline    ;Boolean       ;DataClassification=SystemMetadata;
+                                                   CaptionML=[DEU=Doppelt unterstrichen;
                                                               ENU=Double Underline] }
     { 20  ;   ;Font Name           ;Text30        ;CaptionML=ENU=Font Name }
     { 21  ;   ;Font Size           ;Integer       ;CaptionML=ENU=Font Size }
@@ -129,14 +145,16 @@ OBJECT Table 50000 Excel Buffer Extended
     { 101 ;   ;Height              ;Integer       ;CaptionML=ENU=Height }
     { 102 ;   ;Hidden              ;Boolean       ;CaptionML=ENU=Hidden }
     { 103 ;   ;Outline Level       ;Integer       ;CaptionML=ENU=Outline Level }
+    { 104 ;   ;Collapsed           ;Boolean       ;DataClassification=ToBeClassified;
+                                                   CaptionML=ENU=Collapsed }
     { 1000;   ;Color               ;Option        ;FieldClass=FlowFilter;
                                                    CaptionML=ENU=Color;
                                                    OptionCaptionML=ENU=Black,White,Dark Red,Red,Orange,Yellow,Light Green,Green,Light Blue,Blue,Dark Blue,Purple;
                                                    OptionString=Black,White,Dark Red,Red,Orange,Yellow,Light Green,Green,Light Blue,Blue,Dark Blue,Purple }
     { 1001;   ;Property            ;Option        ;FieldClass=FlowFilter;
                                                    CaptionML=ENU=Property;
-                                                   OptionCaptionML=ENU=Width,Height,Outline Level,Hidden;
-                                                   OptionString=Width,Height,Outline Level,Hidden }
+                                                   OptionCaptionML=ENU=Width,Height,Outline Level,Hidden,Collapsed;
+                                                   OptionString=Width,Height,Outline Level,Hidden,Collapsed }
     { 1002;   ;Fit To Page         ;Option        ;FieldClass=FlowFilter;
                                                    CaptionML=ENU=Fit To Page;
                                                    OptionCaptionML=ENU=NoScale,Sheet,Columns,Rows;
@@ -214,8 +232,9 @@ OBJECT Table 50000 Excel Buffer Extended
       Text040@1008 : TextConst '@@@="{Locked=""Excel""}";DEU=Excel-Datei exportieren;ENU=Export Excel File';
       SavingDocumentMsg@1010 : TextConst 'DEU=Das folgende Dokument wird gespeichert: %1.;ENU=Saving the following document: %1.';
       ExcelFileExtensionTok@1012 : TextConst '@@@={Locked};DEU=.xlsx;ENU=.xlsx';
+      SkipAutoFit@1055 : Boolean;
       HideDialog@1119429000 : Boolean;
-      UseCustomWidth@1000000004 : Boolean;
+      UseCustomColumns@1000000004 : Boolean;
       SummaryColumnsToLeft@1000000007 : Boolean;
       SummaryRowsAbove@1000000005 : Boolean;
 
@@ -265,7 +284,7 @@ OBJECT Table 50000 Excel Buffer Extended
         ActiveSheetName := SheetName;
       END;
 
-      UseCustomWidth := FALSE;
+      UseCustomColumns := FALSE;
       CurrSheetID := 0;
     END;
 
@@ -289,7 +308,29 @@ OBJECT Table 50000 Excel Buffer Extended
       END;
     END;
 
+    PROCEDURE OpenBookStream@44(FileStream@1000 : InStream;SheetName@1001 : Text) : Text;
+    BEGIN
+      IF SheetName = '' THEN
+        EXIT(Text002);
+
+      IF SheetName = 'G/L Account' THEN
+        SheetName := 'GL Account';
+
+      XlWrkBkReader := XlWrkBkReader.Open(FileStream);
+      IF XlWrkBkReader.HasWorksheet(SheetName) THEN
+        XlWrkShtReader := XlWrkBkReader.GetWorksheetByName(SheetName)
+      ELSE BEGIN
+        QuitExcel;
+        ERROR(Text004,SheetName);
+      END;
+    END;
+
     PROCEDURE UpdateBook@5(FileName@1000 : Text;SheetName@1001 : Text[250]);
+    BEGIN
+      UpdateBookExcel(FileName,SheetName,TRUE);
+    END;
+
+    PROCEDURE UpdateBookExcel@48(FileName@1001 : Text;SheetName@1000 : Text[250];PreserveDataOnUpdate@1002 : Boolean);
     BEGIN
       IF FileName = '' THEN
         ERROR(Text001);
@@ -304,7 +345,7 @@ OBJECT Table 50000 Excel Buffer Extended
         // Set PreserverDataOnUpdate to false if the sheet writer should clear all empty cells
         // in which NAV does not have new data. Notice that the sheet writer will only clear Excel
         // cells that are addressed by the writer. All other cells will be left unmodified.
-        XlWrkShtWriter.PreserveDataOnUpdate := TRUE;
+        XlWrkShtWriter.PreserveDataOnUpdate := PreserveDataOnUpdate;
         ActiveSheetName := SheetName;
       END ELSE BEGIN
         QuitExcel;
@@ -810,6 +851,24 @@ OBJECT Table 50000 Excel Buffer Extended
       INSERT;
     END;
 
+    PROCEDURE AddColumnHREF@1000000046(Value@1000 : Variant;Link@1001 : Text;CellType@1007 : Option;Properties@1000000000 : Text);
+    BEGIN
+      IF CurrentRow < 1 THEN
+        NewRow;
+
+      CurrentCol := CurrentCol + 1;
+      INIT;
+      TRANSFERFIELDS(TempDefaultsExcelBuf,FALSE);
+      VALIDATE("Row No.",CurrentRow);
+      VALIDATE("Column No.",CurrentCol);
+      SetFormula(STRSUBSTNO('=HYPERLINK("%1","%2")',Link, Value));
+      "Cell Type" := CellType;
+      Underline := TRUE;
+      "Font Color" := 'FF0000FF';
+      SetProperties(Properties);
+      INSERT;
+    END;
+
     PROCEDURE AddAutoFilter@1000000025(RangeText@1000000000 : Text);
     BEGIN
       AutoFilterRange := RangeText;
@@ -1022,6 +1081,17 @@ OBJECT Table 50000 Excel Buffer Extended
       PostOpenExcel;
     END;
 
+    PROCEDURE OpenExcelWithName@99(FileName@1000 : Text);
+    BEGIN
+      IF FileName = '' THEN
+        ERROR(Text001);
+
+      IF OpenUsingDocumentService(FileName) THEN
+        EXIT;
+
+      FileManagement.DownloadHandler(FileNameServer,'','',Text034,FileName);
+    END;
+
     LOCAL PROCEDURE OpenUsingDocumentService@21(FileName@1000 : Text) : Boolean;
     VAR
       DocumentServiceMgt@1005 : Codeunit 9510;
@@ -1082,7 +1152,7 @@ OBJECT Table 50000 Excel Buffer Extended
         ERROR(Text036);
 
       // autofit all columns on all worksheets
-      IF NOT UseCustomWidth THEN
+      IF (NOT UseCustomColumns) AND (NOT SkipAutoFit) THEN
         XlHelper.AutoFitColumnsInAllWorksheets(XlWrkBk);
 
       // activate the previous saved sheet name in the workbook
@@ -1146,6 +1216,11 @@ OBJECT Table 50000 Excel Buffer Extended
       DotNetDateTime := DotNetDateTime.FromOADate(DateTimeAsOADate);
       DotNetDateTimeWithKind := DotNetDateTime.DateTime(DotNetDateTime.Ticks,DotNetDateTimeKind.Local);
       EXIT(DotNetDateTimeWithKind);
+    END;
+
+    PROCEDURE SetSkipAutoFit@51();
+    BEGIN
+      SkipAutoFit := TRUE;
     END;
 
     PROCEDURE AddNewSheet@1119429000(SheetName@1119429000 : Text[250]);
@@ -1227,7 +1302,7 @@ OBJECT Table 50000 Excel Buffer Extended
       END;
     END;
 
-    PROCEDURE SetRowsProperty@1000000012(RowNo@1000000006 : Variant;PropertyType@1000000004 : ',Height,OutlineLevel,Hidden';Value@1000000002 : Variant);
+    PROCEDURE SetRowsProperty@1000000012(RowNo@1000000006 : Variant;PropertyType@1000000004 : ',Height,OutlineLevel,Hidden,Collapsed';Value@1000000002 : Variant);
     VAR
       FromRowNo@1000000001 : Integer;
       ToRowNo@1000000000 : Integer;
@@ -1245,6 +1320,8 @@ OBJECT Table 50000 Excel Buffer Extended
             TempRowsExcelBuf."Outline Level" := Value;
           PropertyType::Hidden:
             TempRowsExcelBuf.Hidden := Value;
+          PropertyType::Collapsed:
+            TempRowsExcelBuf.Collapsed := Value;
         END;
         TempRowsExcelBuf.MODIFY;
       END;
@@ -1447,7 +1524,7 @@ OBJECT Table 50000 Excel Buffer Extended
       ActiveSheetID := CurrSheetID + 1;
     END;
 
-    LOCAL PROCEDURE GetCellDecorator@44(ExcelBuffer@1119429013 : Record 50000;VAR Decorator@1119429001 : DotNet "'Microsoft.Dynamics.Nav.OpenXml, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Nav.OpenXml.Spreadsheet.CellDecorator");
+    LOCAL PROCEDURE GetCellDecorator@33(ExcelBuffer@1119429013 : Record 50000;VAR Decorator@1119429001 : DotNet "'Microsoft.Dynamics.Nav.OpenXml, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Nav.OpenXml.Spreadsheet.CellDecorator");
     BEGIN
       Decorator := XlWrkShtWriter.DefaultCellDecorator;
 
@@ -1502,9 +1579,10 @@ OBJECT Table 50000 Excel Buffer Extended
         IF ("Background Color" = '') THEN
           EXIT;
 
-        Decorator.Fill.InnerXml('<x:patternFill xmlns:x="http://schemas.openxmlformats.org/spreadsheetml/2006/main" patternType="solid">' +
-                                 '<x:fgColor rgb="' + GetHEXColorCode("Background Color") + '" />' +
-                               '</x:patternFill>');
+        Decorator.Fill.InnerXml(
+          '<x:patternFill xmlns:x="http://schemas.openxmlformats.org/spreadsheetml/2006/main" patternType="solid">' +
+            '<x:fgColor rgb="' + GetHEXColorCode("Background Color") + '" />' +
+          '</x:patternFill>');
       END;
     END;
 
@@ -1695,7 +1773,8 @@ OBJECT Table 50000 Excel Buffer Extended
           WHILE DoNext DO BEGIN
             IF (TempColumnsExcelBuf.Width = TempColumnsExcelBuf2.Width) AND
                (TempColumnsExcelBuf.Hidden = TempColumnsExcelBuf2.Hidden) AND
-               (TempColumnsExcelBuf."Outline Level" = TempColumnsExcelBuf2."Outline Level")
+               (TempColumnsExcelBuf."Outline Level" = TempColumnsExcelBuf2."Outline Level") AND
+               (TempColumnsExcelBuf."Column No." = TempColumnsExcelBuf2."Column No." + 1)
             THEN BEGIN
               TempColumnsExcelBuf2 := TempColumnsExcelBuf;
               MaxColNo := TempColumnsExcelBuf2."Column No.";
@@ -1712,7 +1791,6 @@ OBJECT Table 50000 Excel Buffer Extended
           IF TempColumnsExcelBuf.Width > 0 THEN BEGIN
             OpenXmlColumn.CustomWidth := OpenXmlBoolValue.BooleanValue(TRUE);
             OpenXmlColumn.Width := OpenXmlDoubleValue.FromDouble(TempColumnsExcelBuf.Width / 7);
-            UseCustomWidth := TRUE;
           END;
 
           IF TempColumnsExcelBuf.Hidden THEN
@@ -1728,8 +1806,10 @@ OBJECT Table 50000 Excel Buffer Extended
           IF (TempColumnsExcelBuf.Width > 0) OR
              (TempColumnsExcelBuf.Hidden) OR
              (TempColumnsExcelBuf."Outline Level" > 0)
-          THEN
+          THEN BEGIN
             WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlColumns, OpenXmlColumn);
+            UseCustomColumns := TRUE;
+          END;
 
         UNTIL TempColumnsExcelBuf.NEXT = 0;
       END;
@@ -1791,6 +1871,8 @@ OBJECT Table 50000 Excel Buffer Extended
             IF TempRowsExcelBuf."Outline Level" > 0 THEN
               OpenXmlRow.OutlineLevel := OpenXmlByteValue.FromByte(TempRowsExcelBuf."Outline Level");
 
+            IF TempRowsExcelBuf.Collapsed THEN
+              OpenXmlRow.Collapsed := OpenXmlBoolValue.BooleanValue(TRUE);
           END;
         UNTIL TempRowsExcelBuf.NEXT = 0;
       END;
@@ -1958,7 +2040,7 @@ OBJECT Table 50000 Excel Buffer Extended
       IF PortraitOrientation THEN
         XlWrkShtWriter.AddPageSetup(OrientationValues.Portrait)
       ELSE
-        XlWrkShtWriter.AddPageSetup(OrientationValues.Landscape);
+        XlWrkShtWriter.AddPageSetup(OrientationValues.Landscape,9);
       PortraitOrientation := FALSE;
 
       IF FitToPageMode IN [FitToPageMode::Columns,FitToPageMode::Rows] THEN BEGIN
@@ -2199,7 +2281,6 @@ OBJECT Table 50000 Excel Buffer Extended
 
       IF SheetChanged THEN BEGIN
         XlWrkShtWriter.Worksheet.InnerXml(XmlWrkShtDoc.DocumentElement.InnerXml);
-
         OpenXmlCellFormats := XlWrkBkWriter.Workbook.WorkbookPart.WorkbookStylesPart.Stylesheet.CellFormats;
         OpenXmlCellFormats.InnerXml(XmlCellFormatsDoc.DocumentElement.InnerXml);
 
@@ -2620,9 +2701,11 @@ OBJECT Table 50000 Excel Buffer Extended
     END;
 
     PROCEDURE CalcFormulasAndOpen@1000000045();
+    VAR
+      FileNameClient@1000 : Text;
     BEGIN
-      CalcFormulasAndSave(FALSE);
-      GiveUserControl;
+      FileNameClient := CalcFormulasAndSave(FALSE);
+      XlWrkBk := XlHelper.CallOpen(XlApp,FileNameClient);
     END;
 
     EVENT XmlWrkShtDoc@1000000000::NodeInserting@94(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNodeChangedEventArgs");
