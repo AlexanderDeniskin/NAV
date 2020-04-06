@@ -1,0 +1,266 @@
+OBJECT Codeunit 50013 Object Metadata Management
+{
+  OBJECT-PROPERTIES
+  {
+    Date=06.04.20;
+    Time=14:14:03;
+    Modified=Yes;
+    Version List=ASD;
+  }
+  PROPERTIES
+  {
+    OnRun=VAR
+            PurchaseLine@1000000000 : Record 39;
+            RelatedRecRef@1000000001 : RecordRef;
+            FieldID@1000000002 : Integer;
+          BEGIN
+            GetFieldTableRelationRef(PurchaseLine,PurchaseLine.FIELDNO("No."), FALSE, RelatedRecRef, FieldID);
+
+            MESSAGE(
+              'Table: %1\'+
+              'Field: %2\'+
+              'Related Table: %3\' +
+              'Related Table View: %4\' +
+              'Related Table Field: %5\',
+              PurchaseLine.TABLECAPTION,
+              PurchaseLine.FIELDCAPTION("No."),
+              RelatedRecRef.CAPTION,
+              RelatedRecRef.GETFILTERS,
+              RelatedRecRef.FIELD(FieldID).CAPTION);
+
+            PurchaseLine.Type := PurchaseLine.Type::"G/L Account";
+
+            CLEAR(RelatedRecRef);
+            GetFieldTableRelationRef(PurchaseLine,PurchaseLine.FIELDNO("No."), TRUE, RelatedRecRef, FieldID);
+
+            MESSAGE(
+              'Table: %1\'+
+              'Field: %2\'+
+              'Related Table: %3\' +
+              'Related Table View: %4\' +
+              'Related Table Field: %5\',
+              PurchaseLine.TABLECAPTION,
+              PurchaseLine.FIELDCAPTION("No."),
+              RelatedRecRef.CAPTION,
+              RelatedRecRef.GETFILTERS,
+              RelatedRecRef.FIELD(FieldID).CAPTION);
+          END;
+
+  }
+  CODE
+  {
+
+    PROCEDURE LoadObjectMetadata@1000000001(ObjectType@1000000000 : 'TableData,Table,,Report,,Codeunit,XMLport,MenuSuite,Page,Query,System,FieldNumber';ObjectID@1000000001 : Integer;VAR XMLDoc@1000000004 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlDocument");
+    VAR
+      ObjectMetadata@1000000002 : Record 2000000071;
+      String@1000000007 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.String";
+      InStrm@1000000003 : InStream;
+      Content@1000000005 : Text;
+      ContentLine@1000000006 : Text;
+    BEGIN
+      ObjectMetadata.GET(ObjectType,ObjectID);
+      IF NOT ObjectMetadata.Metadata.HASVALUE THEN
+        ERROR('%1 %2 has no available metadata.', ObjectMetadata."Object Type", ObjectMetadata."Object ID");
+
+      ObjectMetadata.CALCFIELDS(Metadata);
+      ObjectMetadata.Metadata.CREATEINSTREAM(InStrm, TEXTENCODING::UTF8);
+
+      InStrm.READTEXT(Content);
+      WHILE NOT InStrm.EOS DO BEGIN
+        InStrm.READTEXT(ContentLine);
+        Content += ContentLine;
+      END;
+
+      String := Content;
+      String := String.Replace('xmlns="urn:schemas-microsoft-com:dynamics:NAV:MetaObjects"','');
+
+      XMLDoc := XMLDoc.XmlDocument;
+      XMLDoc.LoadXml(String);
+    END;
+
+    LOCAL PROCEDURE LoadFieldXML@1000000003(TableNo@1000000001 : Integer;FieldNo@1000000000 : Integer;VAR XMLNode@1000000003 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNode");
+    VAR
+      XMLDoc@1000000002 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlDocument";
+    BEGIN
+      LoadObjectMetadata(1,TableNo, XMLDoc);
+
+      IF ISNULL(XMLDoc) THEN
+        ERROR('XML Document is not initialized');
+
+      XMLNode := XMLDoc.SelectSingleNode(STRSUBSTNO('.//Field[@ID=%1]',FieldNo));
+    END;
+
+    PROCEDURE GetFieldTableRelationRef@1000000004(ParentRec@1000000000 : Variant;FieldNo@1000000012 : Integer;CheckCondition@1000000002 : Boolean;VAR ReturnRecRef@1000000001 : RecordRef;VAR RelatedFieldNo@1000000007 : Integer) : Boolean;
+    VAR
+      XMLDOMMgt@1000000006 : Codeunit 6224;
+      XMLNodeField@1000000004 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNode";
+      XMLNodeTableRel@1000000005 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNode";
+      AttrValue@1000000009 : Text;
+      RecRef@1000000003 : RecordRef;
+      RelatedTableNo@1000000014 : Integer;
+    BEGIN
+      CASE TRUE OF
+        ParentRec.ISRECORD:
+          RecRef.GETTABLE(ParentRec);
+        ParentRec.ISRECORDREF:
+          RecRef := ParentRec;
+        ParentRec.ISRECORDID:
+          RecRef.GET(ParentRec);
+        ParentRec.ISINTEGER:
+          RecRef.OPEN(ParentRec);
+        ELSE
+          ERROR('Incorrect parameter ParentRec');
+      END;
+
+      LoadFieldXML(RecRef.NUMBER,FieldNo,XMLNodeField);
+
+      GetRelationNode(RecRef, XMLNodeField, CheckCondition, XMLNodeTableRel);
+
+      AttrValue := XMLDOMMgt.GetAttributeValue(XMLNodeTableRel,'TableID');
+      EVALUATE(RelatedTableNo, AttrValue);
+      AttrValue := XMLDOMMgt.GetAttributeValue(XMLNodeTableRel,'FieldID');
+      EVALUATE(RelatedFieldNo, AttrValue);
+
+      GetRelatedRecRef(RecRef,XMLNodeTableRel,RelatedTableNo,CheckCondition,ReturnRecRef);
+      IF RelatedFieldNo = 0 THEN
+        RelatedFieldNo := GetFirstKeyFieldNo(ReturnRecRef);
+
+      EXIT(TRUE);
+    END;
+
+    LOCAL PROCEDURE GetRelationNode@1000000007(RecRef@1000000001 : RecordRef;XMLNodeField@1000000011 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNode";CheckCondition@1000000012 : Boolean;VAR FoundXMLNode@1000000003 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNode") : Boolean;
+    VAR
+      XMLDOMMgt@1000000007 : Codeunit 6224;
+      RelationsNodes@1000000005 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNodeList";
+      ConditionsNodes@1000000004 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNodeList";
+      ConditionNode@1000000002 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNode";
+      RecRefCheck@1000000000 : RecordRef;
+      FieldRef@1000000010 : FieldRef;
+      FieldID@1000000006 : Integer;
+      ConditionValue@1000000008 : Text;
+      ConditionType@1000000009 : Text;
+    BEGIN
+      RelationsNodes := XMLNodeField.SelectNodes('TableRelations');
+      IF ISNULL(RelationsNodes) THEN
+        EXIT(FALSE);
+
+      IF RelationsNodes.Count = 0 THEN
+        EXIT(FALSE);
+
+      IF NOT CheckCondition THEN BEGIN
+        FoundXMLNode := RelationsNodes.Item(0);  // First table relation
+        EXIT(TRUE);
+      END;
+
+      CreateTempRecRef(RecRef, RecRefCheck);
+
+      FOREACH FoundXMLNode IN RelationsNodes DO BEGIN
+        RecRefCheck.RESET;
+        {
+        RecRefCheck.GET(RecRef.RECORDID);
+        RecRefCheck.FILTERGROUP(2);
+        RecRefCheck.SETRECFILTER;
+        RecRefCheck.FILTERGROUP(0);
+        }
+        ConditionsNodes := FoundXMLNode.SelectNodes('Conditions');
+        FOREACH ConditionNode IN ConditionsNodes DO BEGIN
+
+          EVALUATE(FieldID, XMLDOMMgt.GetAttributeValue(ConditionNode, 'FieldID'));
+          ConditionType := XMLDOMMgt.GetAttributeValue(ConditionNode, 'ConditionType');
+          ConditionValue := XMLDOMMgt.GetAttributeValue(ConditionNode, 'ConditionValue');
+
+          FieldRef := RecRefCheck.FIELD(FieldID);
+          IF ConditionType = 'CONST' THEN BEGIN
+            EVALUATE(FieldRef, ConditionValue);
+            FieldRef.SETRANGE(FieldRef.VALUE);
+          END ELSE
+            FieldRef.SETFILTER(ConditionValue);
+
+        END;
+        IF NOT RecRefCheck.ISEMPTY THEN
+          EXIT(TRUE);
+
+      END;
+      EXIT(FALSE);
+    END;
+
+    LOCAL PROCEDURE GetRelatedRecRef@1000000000(RecRef@1000000001 : RecordRef;XMLNode@1000000003 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNode";RelatedTableNo@1000000002 : Integer;UseParentTableFields@1000000012 : Boolean;VAR RecRefRel@1000000004 : RecordRef);
+    VAR
+      XMLDOMMgt@1000000007 : Codeunit 6224;
+      FiltersNodes@1000000011 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNodeList";
+      FilterNode@1000000009 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNode";
+      FieldRefRel@1000000010 : FieldRef;
+      FieldRefParent@1000000000 : FieldRef;
+      FilterType@1000000008 : Text;
+      FilterValue@1000000006 : Text;
+      FieldID@1000000005 : Integer;
+    BEGIN
+      RecRefRel.OPEN(RelatedTableNo);
+
+      FiltersNodes := XMLNode.SelectNodes('Filters');
+      FOREACH FilterNode IN FiltersNodes DO BEGIN
+        EVALUATE(FieldID, XMLDOMMgt.GetAttributeValue(FilterNode,'FieldID'));
+        FieldRefRel := RecRefRel.FIELD(FieldID);
+
+        FilterType := XMLDOMMgt.GetAttributeValue(FilterNode,'FilterType');
+        FilterValue := XMLDOMMgt.GetAttributeValue(FilterNode,'FilterValue');
+        CASE FilterType OF
+          'CONST':
+            BEGIN
+              EVALUATE(FieldRefRel,FilterValue);
+              FieldRefRel.SETRANGE(FieldRefRel.VALUE);
+            END;
+          'FILTER':
+            BEGIN
+              FieldRefRel.SETFILTER(FilterValue);
+            END;
+          'FIELD':
+            IF UseParentTableFields THEN BEGIN
+              EVALUATE(FieldID, FilterValue);
+              FieldRefParent := RecRef.FIELD(FieldID);
+              FieldRefRel.SETRANGE(FieldRefParent.VALUE);
+            END;
+        END;
+      {
+      <Filters FieldID="1" FilterValue="3.." FilterType="FILTER" FilterGroup="0"/>
+      <Filters FieldID="2" FilterValue="5401" FilterType="FIELD" FilterGroup="0"/>
+      <Filters FieldID="13" FilterValue="0" FilterType="CONST" FilterGroup="0"/>
+      }
+      END;
+    END;
+
+    LOCAL PROCEDURE GetFirstKeyFieldNo@1000000002(RecRef@1000000000 : RecordRef) : Integer;
+    BEGIN
+      EXIT(RecRef.KEYINDEX(1).FIELDINDEX(1).NUMBER);
+    END;
+
+    PROCEDURE CreateTempRecRef@15(FromRec@1000 : RecordRef;VAR ToRec@1001 : RecordRef);
+    VAR
+      FromField@1004 : FieldRef;
+      ToField@1003 : FieldRef;
+      RecIDFrom@1005 : RecordID;
+      RecIDTo@1006 : RecordID;
+      I@1002 : Integer;
+    BEGIN
+      ToRec.OPEN(FromRec.NUMBER,TRUE);
+      ToRec.INIT;
+
+      FOR I := 1 TO FromRec.FIELDCOUNT DO BEGIN
+        FromField := FromRec.FIELDINDEX(I);
+        ToField := ToRec.FIELD(FromField.NUMBER);
+
+        IF (FORMAT(FromField.TYPE) <> 'BLOB') AND
+           (FORMAT(FromField.TYPE) <> 'Binary') AND
+           (FORMAT(FromField.TYPE) <> 'TableFilter')
+        THEN
+          ToField.VALUE := FromField.VALUE;
+      END;
+
+      ToRec.INSERT;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
