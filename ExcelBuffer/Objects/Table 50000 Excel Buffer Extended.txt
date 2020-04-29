@@ -2,8 +2,8 @@ OBJECT Table 50000 Excel Buffer Extended
 {
   OBJECT-PROPERTIES
   {
-    Date=24.03.20;
-    Time=16:10:44;
+    Date=29.04.20;
+    Time=15:47:06;
     Modified=Yes;
     Version List=;
   }
@@ -204,10 +204,14 @@ OBJECT Table 50000 Excel Buffer Extended
       XlWrkSht@1009 : DotNet "'Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c'.Microsoft.Office.Interop.Excel.Worksheet" RUNONCLIENT;
       XlHelper@1052 : DotNet "'Microsoft.Dynamics.Nav.Integration.Office, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Nav.Integration.Office.Excel.ExcelHelper" RUNONCLIENT;
       VmlDrawingPart@1000000012 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Packaging.VmlDrawingPart";
+      PivotTablePart@1000000037 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Packaging.PivotTablePart";
       XmlWrkShtDoc@1000000000 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlDocument";
       XmlCellFormatsDoc@1000000002 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlDocument";
       MergedCellsList@1119429001 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Collections.Generic.List`1";
       StringBld@1000000013 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Text.StringBuilder";
+      OpenXmlStringValue@1101495002 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.StringValue";
+      OpenXmlUInt32Value@1101495001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.UInt32Value";
+      OpenXmlBoolValue@1101495000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.BooleanValue";
       ActiveSheetName@1049 : Text[250];
       RangeStartXlRow@1034 : Text[30];
       RangeStartXlCol@1033 : Text[30];
@@ -258,8 +262,12 @@ OBJECT Table 50000 Excel Buffer Extended
       CurrSheetID@1000000029 : Integer;
       ActiveSheetID@1000000030 : Integer;
       PathDoesNotExistErr@1000000031 : TextConst 'DEU=Der Pfad "%1" ist nicht vorhanden.;ENU=The path %1 does not exist.';
-      InvalidValueErr@1000000033 : TextConst 'DEU=Der Parameter ''%1'' hat einen ungÅltigen Wert.;ENU=The parameter ''%1'' has invalid value.';
+      InvalidValueErr@1000000033 : TextConst 'DEU=Der Parameter ''%1'' hat einen ungÅltigen Wert.;ENU=The parameter ''%1'' has invalid value %2.';
       InvalidColumnCodeErr@1000000034 : TextConst 'DEU=%1 ist ungÅltiger Spaltencode.;ENU=%1 is invalid Column Code.';
+      InvalidCellAddrErr@1000000035 : TextConst 'DEU=%1 ist ungÅltiger Zellenadresse.;ENU=%1 is invalid cell address.';
+      InvalidRangeErr@1000000036 : TextConst 'DEU=%1 ist ungÅltiger Bereich.;ENU=%1 is invalid range.';
+      PivotFieldDoesntExistErr@1000000038 : TextConst 'DEU=Pivot Field %1 ist nicht vorhanden.;ENU=Pivot Field %1 does not exist.';
+      NoSubtotalFuncErr@1000000039 : TextConst 'DEU=Sie mÅssen die subtotal funktion fÅr das Feld %1 angeben.;ENU=You must specify subtotal function for %1 field.';
 
     PROCEDURE CreateBook@1(FileName@1001 : Text;SheetName@1000 : Text[250]);
     BEGIN
@@ -1266,12 +1274,22 @@ OBJECT Table 50000 Excel Buffer Extended
 
     PROCEDURE SetColumnsProperty@1000000007(ColumnNo@1000000005 : Variant;PropertyType@1000000004 : 'Width,,OutlineLevel,Hidden';Value@1000000002 : Variant);
     VAR
+      FromRowNo@1000000006 : Integer;
+      ToRowNo@1000000007 : Integer;
       FromColumnNo@1000000001 : Integer;
       ToColumnNo@1000000000 : Integer;
       I@1000000003 : Integer;
     BEGIN
-      IF NOT GetIntegertRange(ColumnNo, FromColumnNo, ToColumnNo, TRUE) THEN
-        ERROR(InvalidValueErr, 'ColumnNo');
+      IF NOT GetIntegerRange(ColumnNo,FromRowNo,FromColumnNo,ToRowNo,ToColumnNo) THEN
+        ERROR(InvalidValueErr, 'ColumnNo', ColumnNo);
+
+      IF (FromColumnNo = 0) AND (ToColumnNo = 0) THEN BEGIN
+        FromColumnNo := FromRowNo;
+        ToColumnNo := ToRowNo;
+      END;
+
+      IF FromColumnNo < 1 THEN
+        EXIT;
 
       FOR I := FromColumnNo TO ToColumnNo DO BEGIN
         GetColumnRecord(I);
@@ -1306,10 +1324,15 @@ OBJECT Table 50000 Excel Buffer Extended
     VAR
       FromRowNo@1000000001 : Integer;
       ToRowNo@1000000000 : Integer;
+      FromColNo@1000000007 : Integer;
+      ToColNo@1000000005 : Integer;
       I@1000000003 : Integer;
     BEGIN
-      IF NOT GetIntegertRange(RowNo,FromRowNo,ToRowNo,FALSE) THEN
-        ERROR(InvalidValueErr, 'RowNo');
+      IF NOT GetIntegerRange(RowNo,FromRowNo,FromColNo,ToRowNo,ToColNo) THEN
+        ERROR(InvalidValueErr, 'RowNo',RowNo);
+
+      IF FromRowNo < 1 THEN
+        EXIT;
 
       FOR I := FromRowNo TO ToRowNo DO BEGIN
         GetRowRecord(I);
@@ -1332,59 +1355,54 @@ OBJECT Table 50000 Excel Buffer Extended
       SummaryRowsAbove := Value;
     END;
 
-    LOCAL PROCEDURE GetIntegertRange@1000000048(SourceValue@1000000000 : Variant;VAR FromInt@1000000001 : Integer;VAR ToInt@1000000002 : Integer;IsColumns@1000000003 : Boolean) : Boolean;
+    [TryFunction]
+    LOCAL PROCEDURE GetIntegerRange@1000000055(SourceValue@1000000000 : Variant;VAR FromRow@1000000001 : Integer;VAR FromCol@1000000006 : Integer;VAR ToRow@1000000002 : Integer;VAR ToCol@1000000007 : Integer);
     VAR
       FromText@1000000004 : Text;
       ToText@1000000005 : Text;
+      ColumnCode@1000000008 : Code[3];
     BEGIN
-      FromInt := 0;
-      ToInt := 0;
+      FromRow := 0;
+      FromCol := 0;
+      ToRow := 0;
+      ToCol := 0;
+
       IF SourceValue.ISINTEGER THEN BEGIN
-        FromInt := SourceValue;
-        ToInt := SourceValue;
-        EXIT(TRUE);
+        FromRow := SourceValue;
+        ToRow := SourceValue;
+        EXIT;
       END;
 
       IF SourceValue.ISTEXT OR SourceValue.ISCODE THEN BEGIN
-        IF EVALUATE(FromInt, SourceValue) THEN BEGIN
-          ToInt := FromInt;
-          EXIT(TRUE);
+        IF EVALUATE(FromRow, SourceValue) THEN BEGIN
+          ToRow := FromRow;
+          EXIT;
         END;
 
-        IF (STRPOS(SourceValue,':') = 0) THEN BEGIN
-          IF IsColumns THEN BEGIN
-            FromInt := GetColumnInt(SourceValue);
-            ToInt := FromInt;
-            EXIT(TRUE);
-          END ELSE
-            EXIT(FALSE);
-        END ELSE BEGIN
-          IF STRPOS(SourceValue,':') IN [1, STRLEN(SourceValue)] THEN
-            EXIT(FALSE);
-
+        IF (STRPOS(SourceValue,':') > 0) THEN BEGIN
           FromText := COPYSTR(SourceValue,1, STRPOS(SourceValue,':') - 1);
-          ToText := COPYSTR(SourceValue,STRPOS(SourceValue,':') + 1);
-
-          IF EVALUATE(FromInt,FromText) THEN
-            IF EVALUATE(ToInt, ToText) THEN
-              EXIT(TRUE)
-            ELSE
-              EXIT(FALSE);
-
-          IF IsColumns THEN BEGIN
-            FromInt := GetColumnInt(FromText);
-            ToInt := GetColumnInt(ToText);
-            EXIT(TRUE);
-          END ELSE
-            EXIT(FALSE);
+          SplitCellAddress(FromText, ColumnCode, FromRow);
+          IF ColumnCode <> '' THEN
+            FromCol := GetColumnInt(ColumnCode);
+          SourceValue := COPYSTR(SourceValue,STRPOS(SourceValue,':') + 1);
         END;
 
+        SplitCellAddress(SourceValue, ColumnCode, ToRow);
+        IF ColumnCode <> '' THEN
+          ToCol := GetColumnInt(ColumnCode);
+
+        IF (FromRow = 0) AND (FromCol = 0) THEN BEGIN
+          FromRow := ToRow;
+          FromCol := ToCol;
+        END;
+
+        EXIT;
       END;
 
-      EXIT(FALSE);
+      ERROR(InvalidRangeErr, SourceValue);
     END;
 
-    LOCAL PROCEDURE GetColumnInt@1000000049(ColumnCode@1000000000 : Text[3]) : Integer;
+    LOCAL PROCEDURE GetColumnInt@1000000054(ColumnCode@1000000000 : Text[3]) : Integer;
     VAR
       I@1000000001 : Integer;
       J@1000000003 : Integer;
@@ -1397,8 +1415,8 @@ OBJECT Table 50000 Excel Buffer Extended
 
       J := 0;
       FOR I := STRLEN(ColumnCode) DOWNTO 1 DO BEGIN
-        IF NOT (ColumnCode[I] IN [65..91]) THEN
-          ERROR('%1 is invalid Column Code', ColumnCode);
+        IF NOT (ColumnCode[I] IN ['A'..'Z']) THEN
+          ERROR(InvalidColumnCodeErr, ColumnCode);
         IF J > 0 THEN
           ReturnValue += (ColumnCode[I] - 64) * POWER(26, J)
         ELSE
@@ -1407,6 +1425,33 @@ OBJECT Table 50000 Excel Buffer Extended
       END;
 
       EXIT(ReturnValue);
+    END;
+
+    LOCAL PROCEDURE SplitCellAddress@1000000056(CellAddress@1000000000 : Text;VAR ColumnCode@1000000001 : Code[3];VAR RowId@1000000002 : Integer);
+    VAR
+      I@1000000003 : Integer;
+    BEGIN
+      ColumnCode := '';
+      RowId := 0;
+
+      IF CellAddress = '' THEN
+        EXIT;
+
+      CellAddress := UPPERCASE(CellAddress);
+
+      FOR I := 1 TO STRLEN(CellAddress) DO BEGIN
+        IF CellAddress[I] IN ['1'..'9'] THEN BEGIN
+          IF NOT EVALUATE(RowId,COPYSTR(CellAddress,I)) THEN
+            ERROR(InvalidCellAddrErr, CellAddress);
+          IF I > 1 THEN
+            ColumnCode := COPYSTR(CellAddress,1,I-1);
+          EXIT;
+        END;
+
+        IF NOT (CellAddress[I] IN ['A'..'Z']) THEN
+          ERROR(InvalidCellAddrErr, CellAddress);
+      END;
+      ColumnCode := CellAddress;
     END;
 
     PROCEDURE AddImage@1000000016(RowID@1000000000 : Integer;ColID@1000000001 : Integer;FileName@1000000002 : Text[1000];FileIsOnServer@1000000003 : Boolean);
@@ -1673,13 +1718,12 @@ OBJECT Table 50000 Excel Buffer Extended
     LOCAL PROCEDURE WriteAutoFilter@1000000026();
     VAR
       XlAutoFilter@1000000000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.AutoFilter";
-      StringValue@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.StringValue";
     BEGIN
       IF AutoFilterRange = '' THEN
         EXIT;
 
       XlAutoFilter := XlAutoFilter.AutoFilter;
-      XlAutoFilter.Reference := StringValue.StringValue(AutoFilterRange);
+      XlAutoFilter.Reference := OpenXmlStringValue.StringValue(AutoFilterRange);
       WrkShtHelper.AppendElementToOpenXmlElement(XlWrkShtWriter.Worksheet, XlAutoFilter);
 
       AutoFilterRange := '';
@@ -1690,7 +1734,6 @@ OBJECT Table 50000 Excel Buffer Extended
       XlWorkSheet@1119429004 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Worksheet";
       XlMergeCells@1119429003 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.MergeCells";
       XlMergeCell@1119429002 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.MergeCell";
-      StringValue@1119429001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.StringValue";
       I@1119429000 : Integer;
     BEGIN
       IF ISNULL(MergedCellsList) THEN
@@ -1702,10 +1745,8 @@ OBJECT Table 50000 Excel Buffer Extended
 
       XlMergeCells := XlMergeCells.MergeCells();
       FOR I := 1 TO MergedCellsList.Count DO BEGIN
-        StringValue := StringValue.StringValue;
-        StringValue.Value := MergedCellsList.Item(I-1);
         XlMergeCell := XlMergeCell.MergeCell();
-        XlMergeCell.Reference := StringValue;
+        XlMergeCell.Reference := OpenXmlStringValue.FromString(MergedCellsList.Item(I-1));
         WrkShtHelper.AppendElementToOpenXmlElement(XlMergeCells, XlMergeCell);
       END;
       WrkShtHelper.AppendElementToOpenXmlElement(XlWorkSheet, XlMergeCells);
@@ -1737,10 +1778,8 @@ OBJECT Table 50000 Excel Buffer Extended
       OpenXmlElement@1000000010 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.OpenXmlElement";
       OpenXmlColumns@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Columns";
       OpenXmlColumn@1000000002 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Column";
-      OpenXmlBoolValue@1000000000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.BooleanValue";
       OpenXmlByteValue@1000000009 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.ByteValue";
       OpenXmlDoubleValue@1000000015 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.DoubleValue";
-      OpenXmlUInt32Value@1000000003 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.UInt32Value";
       MinColNo@1000000004 : Integer;
       MaxColNo@1000000005 : Integer;
       Pos@1000000006 : Integer;
@@ -1823,10 +1862,8 @@ OBJECT Table 50000 Excel Buffer Extended
       OpenXmlElement@1000000010 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.OpenXmlElement";
       OpenXmlSheetData@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.SheetData";
       OpenXmlRow@1000000002 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Row";
-      OpenXmlBoolValue@1000000000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.BooleanValue";
       OpenXmlByteValue@1000000009 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.ByteValue";
       OpenXmlDoubleValue@1000000015 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.DoubleValue";
-      OpenXmlUInt32Value@1000000003 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.UInt32Value";
       I@1000000004 : Integer;
       FromRowNo@1000000005 : Integer;
     BEGIN
@@ -1887,7 +1924,6 @@ OBJECT Table 50000 Excel Buffer Extended
       OpenXmlOutlineProperties@1000000002 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.OutlineProperties";
       OpenXmlPageSetupPr@1000000005 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PageSetupProperties";
       OpenXmlTabColor@1000000004 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.TabColor";
-      OpenXmlBoolValue@1000000000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.BooleanValue";
       OpenXmlHexBinValue@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.HexBinaryValue";
     BEGIN
       IF SummaryColumnsToLeft OR SummaryRowsAbove OR (TabColor <> '') OR (FitToPageMode <> FitToPageMode::NoScale) THEN BEGIN
@@ -1934,10 +1970,7 @@ OBJECT Table 50000 Excel Buffer Extended
       OpenXmlPane@1000000005 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Pane";
       OpenXmlSelection@1000000012 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Selection";
       OpenXmlAttribute@1000000013 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.OpenXmlAttribute";
-      OpenXmlBoolValue@1000000003 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.BooleanValue";
       OpenXmlDoubleValue@1000000011 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.DoubleValue";
-      OpenXmlStringValue@1000000010 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.StringValue";
-      OpenXmlUInt32Value@1000000004 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.UInt32Value";
       ColumnCode@1000000009 : Code[10];
     BEGIN
       IF (FreezePaneColNo < 2) AND (FreezePaneRowNo < 2) THEN
@@ -2010,7 +2043,6 @@ OBJECT Table 50000 Excel Buffer Extended
       OpenXmlPageMargins@1000000006 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PageMargins";
       OpenXmlElement@1000000002 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.OpenXmlElement";
       OpenXmlDoubleValue@1000000007 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.DoubleValue";
-      OpenXmlUInt32Value@1000000004 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.UInt32Value";
       NeedAppend@1000000003 : Boolean;
     BEGIN
       IF CustomPageMargins THEN BEGIN
@@ -2067,7 +2099,6 @@ OBJECT Table 50000 Excel Buffer Extended
       OpenXmlWorkSheetPart@1000000006 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Packaging.WorksheetPart";
       OpenXmlDrawing@1000000011 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Drawing";
       OpenXmlElement@1000000010 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.OpenXmlElement";
-      OpenXmlStringValue@1000000012 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.StringValue";
       Type@1000000005 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Type";
       ArrOfTypes@1000000004 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Array";
       ArrNull@1000000003 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Array";
@@ -2079,21 +2110,8 @@ OBJECT Table 50000 Excel Buffer Extended
       OpenXmlWorkSheetPart := OpenXmlWorksheet.WorksheetPart;
       OpenXmlDrawingsPart := OpenXmlWorkSheetPart.DrawingsPart;
 
-      IF ISNULL(OpenXmlDrawingsPart) THEN BEGIN
-        //XlDrawingsPart := XlWorkSheetPart<DrawingsPart>.AddNewPart();
-
-        Type := GETDOTNETTYPE(OpenXmlWorkSheetPart);
-        ArrNull := ArrNull.CreateInstance(GETDOTNETTYPE(Type), 0);
-        Method := Type.GetMethod('AddNewPart', ArrNull);
-
-        ArrOfTypes := ArrOfTypes.CreateInstance(GETDOTNETTYPE(Type),1);
-        ArrOfTypes.SetValue(GETDOTNETTYPE(OpenXmlDrawingsPart),0);
-
-        GenericMethod := Method.MakeGenericMethod(ArrOfTypes);
-
-        ArrNull := ArrOfTypes.CreateInstance(GETDOTNETTYPE(Object),0);
-        OpenXmlDrawingsPart := GenericMethod.Invoke(OpenXmlWorkSheetPart, ArrNull);
-      END;
+      IF ISNULL(OpenXmlDrawingsPart) THEN
+        AddNewPart(OpenXmlWorkSheetPart,OpenXmlDrawingsPart);
 
       FOREACH OpenXmlElement IN OpenXmlWorksheet.ChildElements DO
         IF OpenXmlElement.GetType.Equals(GETDOTNETTYPE(OpenXmlDrawing)) THEN
@@ -2169,9 +2187,6 @@ OBJECT Table 50000 Excel Buffer Extended
       OpenXmlOffset@1000000054 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Drawing.Offset";
       OpenXmlPresetGeom@1000000030 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Drawing.PresetGeometry";
       OpenXmlClientData@1000000032 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Drawing.Spreadsheet.ClientData";
-      OpenXmlStringValue@1000000007 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.StringValue";
-      OpenXmlUInt32Value@1000000006 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.UInt32Value";
-      OpenXmlBoolValue@1000000003 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.BooleanValue";
       Cx@1000000018 : BigInteger;
       Cy@1000000017 : BigInteger;
       NvpId@1000000034 : Integer;
@@ -2266,7 +2281,6 @@ OBJECT Table 50000 Excel Buffer Extended
     LOCAL PROCEDURE WriteAlignment@1000000001();
     VAR
       OpenXmlCellFormats@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.CellFormats";
-      OpenXmlUInt32Value@1000000003 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.UInt32Value";
       SheetChanged@1000000000 : Boolean;
     BEGIN
       FirstCustomStyleID := 0;
@@ -2432,8 +2446,6 @@ OBJECT Table 50000 Excel Buffer Extended
       Comment@1004 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Comment";
       CommentText@1003 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.CommentText";
       Run@1006 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Run";
-      UInt32Value@1014 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.UInt32Value";
-      StringValue@1015 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.StringValue";
       Int32Value@1020 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Int32Value";
       CommentList@1008 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.CommentList";
       Comments@1005 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Comments";
@@ -2469,8 +2481,8 @@ OBJECT Table 50000 Excel Buffer Extended
         CommentList := XlWrkShtWriter.CreateCommentList(Comments);
 
       Comment := Comment.Comment;
-      Comment.AuthorId := UInt32Value.FromUInt32(0);
-      Comment.Reference := StringValue.StringValue(CellReference);
+      Comment.AuthorId := OpenXmlUInt32Value.FromUInt32(0);
+      Comment.Reference := OpenXmlStringValue.StringValue(CellReference);
 
       CommentText := CommentText.CommentText;
 
@@ -2483,10 +2495,10 @@ OBJECT Table 50000 Excel Buffer Extended
       FontSize.Val := DoubleValue.FromDouble(9);
 
       Color := Color.Color;
-      Color.Indexed := UInt32Value.FromUInt32(81);
+      Color.Indexed := OpenXmlUInt32Value.FromUInt32(81);
 
       RunFont := RunFont.RunFont;
-      RunFont.Val := StringValue.FromString('Tahoma');
+      RunFont.Val := OpenXmlStringValue.FromString('Tahoma');
 
       RunPropCharSet := RunPropCharSet.RunPropertyCharSet;
       RunPropCharSet.Val := Int32Value.FromInt32(1);
@@ -2559,7 +2571,6 @@ OBJECT Table 50000 Excel Buffer Extended
       FileMode@1000000001 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.IO.FileMode";
       Encoding@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Text.Encoding";
       LegacyDrawing@1000000004 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.LegacyDrawing";
-      StringValue@1000000005 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.StringValue";
       VmlPartId@1000000003 : Text;
     BEGIN
       IF ISNULL(StringBld) OR ISNULL(VmlDrawingPart) THEN
@@ -2574,7 +2585,7 @@ OBJECT Table 50000 Excel Buffer Extended
 
       VmlPartId := XlWrkShtWriter.Worksheet.WorksheetPart.GetIdOfPart(VmlDrawingPart);
       LegacyDrawing := LegacyDrawing.LegacyDrawing;
-      LegacyDrawing.Id := StringValue.FromString(VmlPartId);
+      LegacyDrawing.Id := OpenXmlStringValue.FromString(VmlPartId);
       WrkShtHelper.AppendElementToOpenXmlElement(XlWrkShtWriter.Worksheet.WorksheetPart.Worksheet,LegacyDrawing);
 
       CLEAR(StringBld);
@@ -2599,7 +2610,6 @@ OBJECT Table 50000 Excel Buffer Extended
       OpenXmlWorkbook@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Workbook";
       OpenXmlBookViews@1000000003 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.BookViews";
       OpenXmlWorkbookView@1000000004 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.WorkbookView";
-      OpenXmlUInt32Value@1000000005 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.UInt32Value";
       PartId@1000000000 : Text;
     BEGIN
       IF ActiveSheetID = 0 THEN
@@ -2637,8 +2647,6 @@ OBJECT Table 50000 Excel Buffer Extended
     VAR
       OpenXmlDefinedNames@1000000005 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.DefinedNames";
       OpenXmlDefinedName@1000000004 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.DefinedName";
-      OpenXmlUInt32Value@1000000003 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.UInt32Value";
-      OpenXmlStringValue@1000000006 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.StringValue";
     BEGIN
       OpenXmlDefinedNames := XlWrkBkWriter.Workbook.DefinedNames;
       IF ISNULL(OpenXmlDefinedNames) THEN BEGIN
@@ -2659,6 +2667,468 @@ OBJECT Table 50000 Excel Buffer Extended
         WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlDefinedNames, OpenXmlDefinedName);
       END;
       XlWrkBkWriter.Workbook.Save;
+    END;
+
+    PROCEDURE AddPivotTableSheet@1000000049(SheetName@1000000000 : Text;SourceSheetName@1000000001 : Text;SourceRange@1000000002 : Text);
+    VAR
+      OpenXmlWorkSheetPart@1000000015 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Packaging.WorksheetPart";
+    BEGIN
+      AddNewSheet(SheetName);
+      WritePageSetup;
+
+      // 1. Add PivotTablePart to Sheet1 WorksheetPart
+      OpenXmlWorkSheetPart := XlWrkShtWriter.Worksheet.WorksheetPart;
+      AddNewPart(OpenXmlWorkSheetPart, PivotTablePart);
+      InitPivotTablePart();
+
+      // 2. Add PivotTableCacheDefinitionPart to PivotTablePart
+      InitPivotTableCacheDefinitionPart(SourceSheetName, SourceRange);
+    END;
+
+    LOCAL PROCEDURE InitPivotTablePart@1000000060();
+    VAR
+      OpenXmlPivotTblDefinition@1000000004 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PivotTableDefinition";
+      OpenXmlPivotTblDefExtList@1000000003 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PivotTableDefinitionExtensionList";
+      OpenXmlLocation@1000000002 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Location";
+      OpenXmlPivotFields@1000000000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PivotFields";
+      OpenXmlPivotField@1000000006 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PivotField";
+      OpenXmlPivotTableStyle@1000000012 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PivotTableStyle";
+      OpenXmlElement@1000000009 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.OpenXmlElement";
+      OpenXmlByteValue@1000000011 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.ByteValue";
+    BEGIN
+      OpenXmlPivotTblDefinition := OpenXmlPivotTblDefinition.PivotTableDefinition;
+      OpenXmlPivotTblDefinition.Name := OpenXmlStringValue.FromString('PivotTable1');
+      OpenXmlPivotTblDefinition.CacheId := OpenXmlUInt32Value.FromUInt32(10); // 2 (UInt32Value)2U;
+      OpenXmlPivotTblDefinition.ApplyFontFormats := OpenXmlBoolValue.BooleanValue(FALSE);
+      OpenXmlPivotTblDefinition.ApplyBorderFormats := OpenXmlBoolValue.BooleanValue(FALSE);
+      OpenXmlPivotTblDefinition.ApplyFontFormats := OpenXmlBoolValue.BooleanValue(FALSE);
+      OpenXmlPivotTblDefinition.ApplyPatternFormats := OpenXmlBoolValue.BooleanValue(FALSE);
+      OpenXmlPivotTblDefinition.ApplyAlignmentFormats := OpenXmlBoolValue.BooleanValue(FALSE);
+      OpenXmlPivotTblDefinition.ApplyWidthHeightFormats := OpenXmlBoolValue.BooleanValue(TRUE);
+      OpenXmlPivotTblDefinition.DataCaption := OpenXmlStringValue.FromString('Values');
+      OpenXmlPivotTblDefinition.UpdatedVersion := OpenXmlByteValue.FromByte(4);
+      OpenXmlPivotTblDefinition.MinRefreshableVersion := OpenXmlByteValue.FromByte(3);
+      OpenXmlPivotTblDefinition.UseAutoFormatting := OpenXmlBoolValue.BooleanValue(TRUE);
+      OpenXmlPivotTblDefinition.ItemPrintTitles := OpenXmlBoolValue.BooleanValue(TRUE);
+      OpenXmlPivotTblDefinition.CreatedVersion := OpenXmlByteValue.FromByte(4);
+      OpenXmlPivotTblDefinition.Indent := OpenXmlUInt32Value.FromUInt32(0);
+      OpenXmlPivotTblDefinition.Outline := OpenXmlBoolValue.BooleanValue(TRUE);
+      OpenXmlPivotTblDefinition.OutlineData := OpenXmlBoolValue.BooleanValue(TRUE);
+      OpenXmlPivotTblDefinition.MultipleFieldFilters := OpenXmlBoolValue.BooleanValue(FALSE);
+
+      OpenXmlLocation := OpenXmlLocation.Location;
+      OpenXmlLocation.Reference := OpenXmlStringValue.FromString('A1:C18');
+      OpenXmlLocation.FirstHeaderRow := OpenXmlUInt32Value.FromUInt32(1);
+      OpenXmlLocation.FirstDataRow := OpenXmlUInt32Value.FromUInt32(1);
+      OpenXmlLocation.FirstDataColumn := OpenXmlUInt32Value.FromUInt32(0);
+      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotTblDefinition, OpenXmlLocation);
+
+      OpenXmlPivotFields := OpenXmlPivotFields.PivotFields;
+      OpenXmlPivotFields.Count := OpenXmlUInt32Value.FromUInt32(0);
+      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotTblDefinition, OpenXmlPivotFields);
+
+      OpenXmlPivotTableStyle := OpenXmlPivotTableStyle.PivotTableStyle;
+      OpenXmlPivotTableStyle.Name := OpenXmlStringValue.FromString('PivotStyleLight16'); //'PivotStyleMedium9'
+      OpenXmlPivotTableStyle.ShowRowHeaders := OpenXmlBoolValue.BooleanValue(TRUE);
+      OpenXmlPivotTableStyle.ShowColumnHeaders := OpenXmlBoolValue.BooleanValue(TRUE);
+      OpenXmlPivotTableStyle.ShowRowStripes := OpenXmlBoolValue.BooleanValue(FALSE);
+      OpenXmlPivotTableStyle.ShowColumnStripes := OpenXmlBoolValue.BooleanValue(FALSE);
+      OpenXmlPivotTableStyle.ShowLastColumn := OpenXmlBoolValue.BooleanValue(TRUE);
+      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotTblDefinition, OpenXmlPivotTableStyle);
+
+      OpenXmlPivotTblDefExtList := OpenXmlPivotTblDefExtList.PivotTableDefinitionExtensionList;
+      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotTblDefinition, OpenXmlPivotTblDefExtList);
+
+      PivotTablePart.PivotTableDefinition := OpenXmlPivotTblDefinition;
+    END;
+
+    LOCAL PROCEDURE InitPivotTableCacheDefinitionPart@1000000063(SourceSheetName@1000000009 : Text;SourceRange@1000000010 : Text);
+    VAR
+      OpenXmlPivotTblCacheDefPart@1000000024 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Packaging.PivotTableCacheDefinitionPart";
+      OpenXmlWorkbookPart@1000000021 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Packaging.WorkbookPart";
+      OpenXmlPivotTblCacheRecsPart@1000000020 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Packaging.PivotTableCacheRecordsPart";
+      OpenXmlPivotCacheDefinition@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PivotCacheDefinition";
+      OpenXmlPivotCacheDefinitionExtList@1000000016 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PivotCacheDefinitionExtensionList";
+      OpenXmlCacheSource@1000000006 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.CacheSource";
+      OpenXmlWorksheetSource@1000000008 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.WorksheetSource";
+      OpenXmlPivotCaches@1000000023 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PivotCaches";
+      OpenXmlPivotCache@1000000022 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PivotCache";
+      OpenXmlByteValue@1000000002 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.ByteValue";
+      OpenXmlDoubleValue@1000000014 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.DoubleValue";
+      OpenXmlAttribute@1000000017 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.OpenXmlAttribute";
+      DecimalDate@1000000011 : Decimal;
+    BEGIN
+      DecimalDate := TODAY - DMY2DATE(1,1,1900) + 2 + (TIME-000000T)/(235959T-000000T);
+
+      AddNewPart(PivotTablePart, OpenXmlPivotTblCacheDefPart);
+      OpenXmlPivotTblCacheDefPart.PivotCacheDefinition := OpenXmlPivotCacheDefinition.PivotCacheDefinition;
+      OpenXmlPivotCacheDefinition := OpenXmlPivotTblCacheDefPart.PivotCacheDefinition;
+
+      //OpenXmlPivotCacheDefinition := OpenXmlPivotCacheDefinition.PivotCacheDefinition;
+      OpenXmlPivotCacheDefinition.Id := OpenXmlStringValue.FromString('rId1');
+      OpenXmlPivotCacheDefinition.RefreshedBy := OpenXmlStringValue.FromString(USERID);
+      OpenXmlPivotCacheDefinition.RefreshedDate := OpenXmlDoubleValue.FromDouble(DecimalDate);
+      OpenXmlPivotCacheDefinition.CreatedVersion := OpenXmlByteValue.FromByte(4);
+      OpenXmlPivotCacheDefinition.RefreshedVersion := OpenXmlByteValue.FromByte(4);
+      OpenXmlPivotCacheDefinition.MinRefreshableVersion := OpenXmlByteValue.FromByte(3);
+      OpenXmlPivotCacheDefinition.RecordCount := OpenXmlUInt32Value.FromUInt32(0); // (UInt32Value)3U };
+      OpenXmlPivotCacheDefinition.SaveData := OpenXmlBoolValue.BooleanValue(FALSE);
+      OpenXmlPivotCacheDefinition.RefreshOnLoad := OpenXmlBoolValue.BooleanValue(TRUE);
+
+      OpenXmlCacheSource := OpenXmlCacheSource.CacheSource;
+      OpenXmlCacheSource.SetAttribute(OpenXmlAttribute.OpenXmlAttribute('type','','worksheet'));
+      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotCacheDefinition, OpenXmlCacheSource);
+
+      OpenXmlWorksheetSource := OpenXmlWorksheetSource.WorksheetSource;
+      OpenXmlWorksheetSource.Reference := OpenXmlStringValue.FromString(SourceRange);
+      OpenXmlWorksheetSource.Sheet := OpenXmlStringValue.FromString(SourceSheetName);
+      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlCacheSource, OpenXmlWorksheetSource);
+
+      InitPivotTableFields(SourceSheetName,SourceRange);
+
+      OpenXmlPivotCacheDefinition.PivotCacheDefinitionExtensionList := OpenXmlPivotCacheDefinitionExtList.PivotCacheDefinitionExtensionList;
+
+      // 3. Add PivotTableCacheDefinitionPart to PivotTableCacheDefinitionPart
+      AddNewPart(OpenXmlPivotTblCacheDefPart, OpenXmlPivotTblCacheRecsPart);
+      InitPivotTableCacheRecordsPart(OpenXmlPivotTblCacheRecsPart);
+
+      // 4. workbookPart1.AddPart(pivotTableCacheDefinitionPart1, "rId4");
+      OpenXmlWorkbookPart := XlWrkBkWriter.Workbook.WorkbookPart;
+      AddPart(OpenXmlWorkbookPart,OpenXmlPivotTblCacheDefPart);
+
+      IF ISNULL(XlWrkBkWriter.Workbook.PivotCaches) THEN
+        XlWrkBkWriter.Workbook.PivotCaches := OpenXmlPivotCaches.PivotCaches();
+      OpenXmlPivotCaches := XlWrkBkWriter.Workbook.PivotCaches;
+
+      OpenXmlPivotCache := OpenXmlPivotCache.PivotCache();
+      OpenXmlPivotCache.CacheId := PivotTablePart.PivotTableDefinition.CacheId; // OpenXmlUInt32Value.FromUInt32(10);
+      OpenXmlPivotCache.Id := OpenXmlStringValue.StringValue(OpenXmlWorkbookPart.GetIdOfPart(OpenXmlPivotTblCacheDefPart));
+      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotCaches, OpenXmlPivotCache);
+    END;
+
+    LOCAL PROCEDURE InitPivotTableFields@1000000062(SourceSheetName@1000000003 : Text;SourceRange@1000000002 : Text);
+    VAR
+      xlBufferSource@1000000004 : Record 50000;
+      OpenXmlPivotFields@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PivotFields";
+      OpenXmlPivotField@1000000008 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PivotField";
+      OpenXmlCacheFields@1000000000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.CacheFields";
+      OpenXmlCacheField@1000000007 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.CacheField";
+      OpenXmlSharedItems@1000000006 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.SharedItems";
+      OpenXmlNumberItem@1000000005 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.NumberItem";
+      OpenXmlByteValue@1000000010 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.ByteValue";
+      OpenXmlDoubleValue@1000000009 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.DoubleValue";
+    BEGIN
+      OpenXmlPivotFields := PivotTablePart.PivotTableDefinition.PivotFields;
+
+      OpenXmlCacheFields := OpenXmlCacheFields.CacheFields;
+
+      ReadSourceSheet(SourceSheetName,SourceRange,TRUE, xlBufferSource);
+      xlBufferSource.RESET;
+      IF xlBufferSource.FINDSET THEN
+        REPEAT
+          OpenXmlPivotField := OpenXmlPivotField.PivotField();
+          OpenXmlPivotField.ShowAll := OpenXmlBoolValue.BooleanValue(FALSE);
+          WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotFields, OpenXmlPivotField);
+
+          OpenXmlCacheField := OpenXmlCacheField.CacheField;
+          OpenXmlCacheField.Name := OpenXmlStringValue.FromString(xlBufferSource."Cell Value as Text");
+          OpenXmlCacheField.NumberFormatId := OpenXmlUInt32Value.FromUInt32(0);
+          OpenXmlCacheField.SharedItems := OpenXmlSharedItems.SharedItems;
+          WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlCacheFields, OpenXmlCacheField);
+        UNTIL xlBufferSource.NEXT = 0;
+
+      OpenXmlPivotFields.Count := OpenXmlUInt32Value.FromUInt32(OpenXmlPivotFields.ChildElements.Count);
+      OpenXmlCacheFields.Count := OpenXmlUInt32Value.FromUInt32(OpenXmlCacheFields.ChildElements.Count);
+      WrkShtHelper.AppendElementToOpenXmlElement(PivotTablePart.PivotTableCacheDefinitionPart.PivotCacheDefinition, OpenXmlCacheFields);
+    END;
+
+    LOCAL PROCEDURE InitPivotTableCacheRecordsPart@1000000064(VAR OpenXmlPivotTblCacheRecsPart@1000000000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Packaging.PivotTableCacheRecordsPart");
+    VAR
+      OpenXmlPivotCacheRecords@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PivotCacheRecords";
+      OpenXmlPivotCacheRecord@1000000003 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PivotCacheRecord";
+      OpenXmlFieldItem@1000000004 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.FieldItem";
+      OpenXmlNumberItem@1000000005 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.NumberItem";
+    BEGIN
+      OpenXmlPivotCacheRecords := OpenXmlPivotCacheRecords.PivotCacheRecords;
+      OpenXmlPivotCacheRecords.Count := OpenXmlUInt32Value.FromUInt32(0);
+      OpenXmlPivotTblCacheRecsPart.PivotCacheRecords := OpenXmlPivotCacheRecords;
+
+      {
+      OpenXmlPivotCacheRecord := OpenXmlPivotCacheRecord.PivotCacheRecord;
+      OpenXmlFieldItem := OpenXmlFieldItem.FieldItem;
+      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotCacheRecord,OpenXmlFieldItem);
+      OpenXmlFieldItem := OpenXmlFieldItem.FieldItem;
+      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotCacheRecord,OpenXmlFieldItem);
+      OpenXmlFieldItem := OpenXmlFieldItem.FieldItem;
+      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotCacheRecord,OpenXmlFieldItem);
+      OpenXmlFieldItem := OpenXmlFieldItem.FieldItem;
+      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotCacheRecord,OpenXmlFieldItem);
+      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotCacheRecords,OpenXmlPivotCacheRecord);
+      }
+    END;
+
+    PROCEDURE AddPivotTableField@1000000066(PivotFieldName@1000000000 : Text;Axis@1000000002 : 'None,axisRow,axisCol,axisPage,axisValues';IsDataField@1000000003 : Boolean;DataFieldSubtotal@1101495002 : ' ,sum,count,average,max,min,product,countNums,stdDev,stdDevp,var,varp');
+    VAR
+      OpenXmlPivotTblDefinition@1000000004 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PivotTableDefinition";
+      OpenXmlPivotFields@1000000011 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PivotFields";
+      OpenXmlCacheFields@1000000010 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.CacheFields";
+      OpenXmlPivotField@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PivotField";
+      OpenXmlCacheField@1000000005 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.CacheField";
+      PageFields@1101495003 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PageFields";
+      PageField@1101495004 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PageField";
+      RowFields@1000000017 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.RowFields";
+      ColumnFields@1000000020 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.ColumnFields";
+      DataFields@1101495000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.DataFields";
+      DataField@1101495001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.DataField";
+      Field@1000000018 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Field";
+      RowItems@1000000014 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.RowItems";
+      RowItem@1000000015 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.RowItem";
+      Items@1101495005 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Items";
+      Item@1101495006 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Item";
+      MemberPropertyIndex@1000000016 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.MemberPropertyIndex";
+      ColumnItems@1000000013 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.ColumnItems";
+      OpenXmlInt32Value@1000000019 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Int32Value";
+      OpenXmlAttribute@1000000006 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.OpenXmlAttribute";
+      FieldID@1000000012 : Integer;
+    BEGIN
+      IF PivotFieldName = '' THEN
+        EXIT;
+
+      IF IsDataField AND (DataFieldSubtotal = DataFieldSubtotal::" ") THEN
+          ERROR(NoSubtotalFuncErr, PivotFieldName);
+
+      OpenXmlPivotTblDefinition := PivotTablePart.PivotTableDefinition;
+      OpenXmlPivotFields := OpenXmlPivotTblDefinition.PivotFields;
+      OpenXmlCacheFields := PivotTablePart.PivotTableCacheDefinitionPart.PivotCacheDefinition.CacheFields;
+
+      FindPivotTableField(PivotFieldName,OpenXmlCacheFields,OpenXmlCacheField,FieldID);
+
+      OpenXmlPivotField := OpenXmlPivotFields.ChildElements.Item(FieldID);
+      IF Axis <> Axis::None THEN BEGIN
+        OpenXmlPivotField.SetAttribute(OpenXmlAttribute.OpenXmlAttribute('axis','',FORMAT(Axis)));
+        IF Axis <> Axis::axisPage THEN
+          OpenXmlPivotField.DefaultSubtotal := OpenXmlBoolValue.BooleanValue(FALSE);
+      END;
+      IF IsDataField THEN
+        OpenXmlPivotField.DataField := OpenXmlBoolValue.FromBoolean(TRUE);
+
+
+      IF ISNULL(OpenXmlPivotTblDefinition.RowItems) THEN BEGIN
+        OpenXmlPivotTblDefinition.RowItems := RowItems.RowItems;
+        RowItems := OpenXmlPivotTblDefinition.RowItems;
+        RowItems.Count := OpenXmlUInt32Value.FromUInt32(1);
+        RowItem := RowItem.RowItem;
+        WrkShtHelper.AppendElementToOpenXmlElement(RowItems, RowItem);
+      END ELSE
+        RowItems := OpenXmlPivotTblDefinition.RowItems;
+
+
+      IF ISNULL(OpenXmlPivotTblDefinition.ColumnItems) THEN BEGIN
+        OpenXmlPivotTblDefinition.ColumnItems := ColumnItems.ColumnItems;
+        ColumnItems := OpenXmlPivotTblDefinition.ColumnItems;
+        ColumnItems.Count := OpenXmlUInt32Value.FromUInt32(1);
+        RowItem := RowItem.RowItem;
+        WrkShtHelper.AppendElementToOpenXmlElement(ColumnItems, RowItem);
+      END ELSE
+        ColumnItems := OpenXmlPivotTblDefinition.ColumnItems;
+
+
+      IF Axis = Axis::axisRow THEN BEGIN
+        IF ISNULL(OpenXmlPivotTblDefinition.RowFields) THEN
+          OpenXmlPivotTblDefinition.RowFields := RowFields.RowFields;
+        RowFields := OpenXmlPivotTblDefinition.RowFields;
+        Field := Field.Field;
+        Field.Index := OpenXmlInt32Value.FromInt32(FieldID);
+        WrkShtHelper.AppendElementToOpenXmlElement(RowFields, Field);
+        RowFields.Count := OpenXmlUInt32Value.FromUInt32(RowFields.ChildElements.Count);
+
+        IF RowItems.ChildElements.Count = 1 THEN BEGIN
+          RowItem := RowItems.ChildElements.Item(0);
+          MemberPropertyIndex := MemberPropertyIndex.MemberPropertyIndex;
+          WrkShtHelper.AppendElementToOpenXmlElement(RowItem, MemberPropertyIndex);
+
+          RowItem := RowItem.RowItem;
+          RowItem.SetAttribute(OpenXmlAttribute.OpenXmlAttribute('t','','grand'));
+          MemberPropertyIndex := MemberPropertyIndex.MemberPropertyIndex;
+          WrkShtHelper.AppendElementToOpenXmlElement(RowItem, MemberPropertyIndex);
+          WrkShtHelper.AppendElementToOpenXmlElement(RowItems, RowItem);
+          RowItems.Count := OpenXmlUInt32Value.FromUInt32(2);
+        END;
+      END;
+
+      IF Axis = Axis::axisCol THEN BEGIN
+        IF ISNULL(OpenXmlPivotTblDefinition.ColumnFields) THEN
+          OpenXmlPivotTblDefinition.ColumnFields := ColumnFields.ColumnFields;
+        ColumnFields := OpenXmlPivotTblDefinition.ColumnFields;
+        Field := Field.Field;
+        Field.Index := OpenXmlInt32Value.FromInt32(FieldID);
+        WrkShtHelper.AppendElementToOpenXmlElement(ColumnFields, Field);
+        ColumnFields.Count := OpenXmlUInt32Value.FromUInt32(ColumnFields.ChildElements.Count);
+
+        IF ColumnItems.ChildElements.Count = 1 THEN BEGIN
+          RowItem := ColumnItems.ChildElements.Item(0);
+          MemberPropertyIndex := MemberPropertyIndex.MemberPropertyIndex;
+          WrkShtHelper.AppendElementToOpenXmlElement(RowItem, MemberPropertyIndex);
+
+          RowItem := RowItem.RowItem;
+          RowItem.SetAttribute(OpenXmlAttribute.OpenXmlAttribute('t','','grand'));
+          MemberPropertyIndex := MemberPropertyIndex.MemberPropertyIndex;
+          WrkShtHelper.AppendElementToOpenXmlElement(RowItem, MemberPropertyIndex);
+          WrkShtHelper.AppendElementToOpenXmlElement(ColumnItems, RowItem);
+          ColumnItems.Count := OpenXmlUInt32Value.FromUInt32(2);
+        END;
+      END;
+
+      IF Axis = Axis::axisPage THEN BEGIN
+        IF ISNULL(OpenXmlPivotTblDefinition.PageFields) THEN BEGIN
+          OpenXmlPivotTblDefinition.Location.RowPageCount := OpenXmlUInt32Value.FromUInt32(1);
+          OpenXmlPivotTblDefinition.Location.ColumnsPerPage := OpenXmlUInt32Value.FromUInt32(1);
+          OpenXmlPivotTblDefinition.Location.Reference := OpenXmlStringValue.FromString('A3:B5');
+
+          OpenXmlPivotTblDefinition.PageFields := PageFields.PageFields;
+        END;
+
+        PageFields := OpenXmlPivotTblDefinition.PageFields;
+        PageField := PageField.PageField;
+        PageField.Field := OpenXmlInt32Value.FromInt32(FieldID);
+        PageField.Hierarchy := OpenXmlInt32Value.FromInt32(-1);
+        WrkShtHelper.AppendElementToOpenXmlElement(PageFields, PageField);
+
+        IF NOT OpenXmlPivotField.HasChildren THEN BEGIN
+          Items := Items.Items;
+          Items.Count := OpenXmlUInt32Value.FromUInt32(1);
+          Item := Item.Item;
+          Item.SetAttribute(OpenXmlAttribute.OpenXmlAttribute('t','','default'));
+          WrkShtHelper.AppendElementToOpenXmlElement(Items, Item);
+          WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotField, Items);
+        END;
+        PageFields.Count := OpenXmlUInt32Value.FromUInt32(PageFields.ChildElements.Count);
+      END;
+
+      IF IsDataField THEN BEGIN
+        IF ISNULL(OpenXmlPivotTblDefinition.DataFields) THEN
+          OpenXmlPivotTblDefinition.DataFields := DataFields.DataFields;
+
+        DataFields := OpenXmlPivotTblDefinition.DataFields;
+
+        DataField := DataField.DataField;
+        DataField.SetAttribute(OpenXmlAttribute.OpenXmlAttribute('subtotal','',FORMAT(DataFieldSubtotal)));
+        DataField.Name := OpenXmlStringValue.FromString(FORMAT(DataFieldSubtotal) + ' of ' + PivotFieldName);
+
+        DataField.Field := OpenXmlUInt32Value.FromUInt32(FieldID);
+        DataField.BaseField := OpenXmlInt32Value.FromInt32(0);
+        DataField.BaseItem := OpenXmlUInt32Value.FromUInt32(0);
+
+        WrkShtHelper.AppendElementToOpenXmlElement(DataFields, DataField);
+        DataFields.Count := OpenXmlUInt32Value.FromUInt32(DataFields.ChildElements.Count);
+      END;
+
+      {
+      ID | Format Code
+      0  | General
+      1  | 0
+      2  | 0.00
+      3  | #,##0
+      4  | #,##0.00
+      9  | 0%
+      10 | 0.00%
+      11 | 0.00E+00
+      12 | # ?/?
+      13 | # ??/??
+      14 | d/m/yyyy
+      15 | d-mmm-yy
+      16 | d-mmm
+      17 | mmm-yy
+      18 | h:mm tt
+      19 | h:mm:ss tt
+      20 | H:mm
+      21 | H:mm:ss
+      22 | m/d/yyyy H:mm
+      37 | #,##0 ;(#,##0)
+      38 | #,##0 ;[Red](#,##0)
+      39 | #,##0.00;(#,##0.00)
+      40 | #,##0.00;[Red](#,##0.00)
+      45 | mm:ss
+      46 | [h]:mm:ss
+      47 | mmss.0
+      48 | ##0.0E+0
+      49 | @
+      }
+    END;
+
+    [TryFunction]
+    LOCAL PROCEDURE FindPivotTableField@1000000059(FieldName@1000000001 : Text;VAR CacheFields@1000000000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.CacheFields";VAR CacheField@1000000003 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.CacheField";VAR FieldID@1000000002 : Integer);
+    BEGIN
+      FieldID := 0;
+      FOREACH CacheField IN CacheFields DO BEGIN
+        IF FORMAT(CacheField.Name) = FieldName THEN
+          EXIT;
+
+        FieldID += 1;
+      END;
+
+      ERROR(PivotFieldDoesntExistErr, FieldName);
+    END;
+
+    LOCAL PROCEDURE AddNewPart@1101495001(VAR ParentOpenXmlPart@1101495006 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Packaging.OpenXmlPart";VAR ChildOpenXmlPart@1101495002 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Packaging.OpenXmlPart");
+    VAR
+      Method@1101495000 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Reflection.MethodInfo";
+      GenericMethod@1101495001 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Reflection.MethodInfo";
+      Type@1101495005 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Type";
+      Object@1101495008 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Object";
+      ArrOfTypes@1101495003 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Array";
+      ArrOfValues@1101495007 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Array";
+    BEGIN
+      Type := GETDOTNETTYPE(ParentOpenXmlPart);
+      ArrOfTypes := ArrOfTypes.CreateInstance(GETDOTNETTYPE(Type), 0);
+      Method := Type.GetMethod('AddNewPart', ArrOfTypes);
+
+      ArrOfTypes := ArrOfTypes.CreateInstance(GETDOTNETTYPE(Type),1);
+      ArrOfTypes.SetValue(GETDOTNETTYPE(ChildOpenXmlPart),0);
+
+      GenericMethod := Method.MakeGenericMethod(ArrOfTypes);
+
+      ArrOfValues := ArrOfValues.CreateInstance(GETDOTNETTYPE(Object),0);
+      ChildOpenXmlPart := GenericMethod.Invoke(ParentOpenXmlPart, ArrOfValues);
+    END;
+
+    LOCAL PROCEDURE AddPart@1000000053(VAR ParentOpenXmlPart@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Packaging.OpenXmlPart";VAR ChildOpenXmlPart@1000000000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Packaging.OpenXmlPart");
+    VAR
+      Type@1000000010 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Type";
+      ArrOfTypes@1000000009 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Array";
+      ArrOfValues@1000000008 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Array";
+      Method@1000000007 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Reflection.MethodInfo";
+      GenericMethod@1000000004 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Reflection.MethodInfo";
+      Object@1000000003 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Object";
+    BEGIN
+      IF NOT FindMethod(GETDOTNETTYPE(ParentOpenXmlPart),'AddPart',1, Method) THEN
+        EXIT;
+
+      ArrOfTypes := ArrOfTypes.CreateInstance(GETDOTNETTYPE(Type),1);
+      ArrOfTypes.SetValue(GETDOTNETTYPE(ChildOpenXmlPart),0);
+
+      GenericMethod := Method.MakeGenericMethod(ArrOfTypes);
+
+      ArrOfValues := ArrOfValues.CreateInstance(GETDOTNETTYPE(Object),1);
+      ArrOfValues.SetValue(ChildOpenXmlPart,0);
+
+      GenericMethod.Invoke(ParentOpenXmlPart,ArrOfValues);
+    END;
+
+    LOCAL PROCEDURE FindMethod@1101495003(Type@1101495004 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Type";MethodName@1101495005 : Text;ParamsCount@1101495006 : Integer;VAR FoundMethod@1101495002 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Reflection.MethodInfo") : Boolean;
+    VAR
+      Method@1101495003 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Reflection.MethodInfo";
+      ParamInfo@1101495001 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Reflection.ParameterInfo";
+      MethodFound@1101495000 : Boolean;
+    BEGIN
+      FOREACH Method IN Type.GetMethods() DO
+        IF Method.Name = MethodName THEN
+          IF Method.GetParameters.Length = ParamsCount THEN BEGIN
+            FoundMethod := Method;
+            EXIT(TRUE);
+          END;
+
+      EXIT(FALSE);
     END;
 
     PROCEDURE CalcFormulasAndSave@1000000044(WithQuit@1000000000 : Boolean) FileNameClient : Text;
@@ -2706,6 +3176,93 @@ OBJECT Table 50000 Excel Buffer Extended
     BEGIN
       FileNameClient := CalcFormulasAndSave(FALSE);
       XlWrkBk := XlHelper.CallOpen(XlApp,FileNameClient);
+    END;
+
+    LOCAL PROCEDURE ReadSourceSheet@1000000058(SheetName@1000000001 : Text;RangeAddress@1000000000 : Text;OnlyHeaderRow@1000000005 : Boolean;VAR xlBufferRead@1000000015 : Record 50000);
+    VAR
+      Reader@1000000002 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.OpenXmlReader";
+      Row@1000000007 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Row";
+      Cell@1000000004 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Cell";
+      Text@1000000003 : Text;
+      Type@1000000006 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Type";
+      FromRowNo@1000000012 : Integer;
+      FromColNo@1000000011 : Integer;
+      ToRowNo@1000000010 : Integer;
+      ToColNo@1000000009 : Integer;
+      RowIndex@1000000013 : Integer;
+      ColIndex@1000000014 : Integer;
+    BEGIN
+      IF NOT XlWrkBkWriter.HasWorksheet(SheetName) THEN
+        ERROR(Text004,SheetName);
+
+      GetIntegerRange(RangeAddress,FromRowNo,FromColNo,ToRowNo,ToColNo);
+
+      IF FromRowNo = 0 THEN
+        FromRowNo := 1;
+
+      IF OnlyHeaderRow THEN
+        ToRowNo := FromRowNo;
+
+      IF ToRowNo = 0 THEN
+        ToRowNo := 1048576; // Maximum number of rows in Excel
+
+      xlBufferRead.DELETEALL;
+
+      Reader := Reader.Create(XlWrkBkWriter.GetWorksheetByName(SheetName).Worksheet);
+      WHILE Reader.Read() DO BEGIN
+        Type := Reader.ElementType;
+        IF Type.Name = 'Row' THEN BEGIN
+           Row := Reader.LoadCurrentElement;
+           EVALUATE(RowIndex,FORMAT(Row.RowIndex));
+           IF RowIndex IN [FromRowNo..ToRowNo] THEN
+             FOREACH Cell IN Row.ChildElements DO BEGIN
+               ColIndex := GetColumnInt(DELCHR(FORMAT(Cell.CellReference),'=',FORMAT(RowIndex)));
+               Text := GetCellValue(Cell);
+               IF Text <> '' THEN BEGIN
+                 xlBufferRead.VALIDATE("Row No.",RowIndex);
+                 xlBufferRead.VALIDATE("Column No.",ColIndex);
+                 xlBufferRead."Cell Type" := xlBufferRead."Cell Type"::Text;
+                 xlBufferRead."Cell Value as Text" := Text;
+                 IF NOT ISNULL(Cell.DataType) THEN
+                   CASE FORMAT(Cell.DataType.Value) OF
+                     'Number':
+                       xlBufferRead."Cell Type" := xlBufferRead."Cell Type"::Number;
+                     'Date':
+                       xlBufferRead."Cell Type" := xlBufferRead."Cell Type"::Date;
+                     'Boolean',
+                     'Error',
+                     'InlineString',
+                     'SharedString',
+                     'String':
+                       xlBufferRead."Cell Type" := xlBufferRead."Cell Type"::Text;
+                   END;
+                 xlBufferRead.INSERT;
+               END;
+             END;
+           IF RowIndex >= ToRowNo THEN
+             EXIT;
+        END;
+      END;
+    END;
+
+    LOCAL PROCEDURE GetCellValue@1000000057(Cell@1000000000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Cell") : Text;
+    VAR
+      Value@1000000002 : Text;
+      IntValue@1000000003 : Integer;
+    BEGIN
+      IF NOT ISNULL(Cell.CellValue) THEN
+        Value := Cell.CellValue.InnerText;
+
+      IF NOT ISNULL(Cell.DataType) THEN BEGIN
+
+        IF FORMAT(Cell.DataType.Value) = 'InlineString' THEN
+          EXIT(FORMAT(Cell.InlineString.InnerText));
+
+        IF FORMAT(Cell.DataType.Value) = 'SharedString' THEN
+          IF EVALUATE(IntValue, Value) THEN
+            EXIT(XlWrkBkWriter.Workbook.WorkbookPart.SharedStringTablePart.SharedStringTable.ChildElements.GetItem(IntValue).InnerText);
+      END;
+      EXIT(Value);
     END;
 
     EVENT XmlWrkShtDoc@1000000000::NodeInserting@94(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNodeChangedEventArgs");
