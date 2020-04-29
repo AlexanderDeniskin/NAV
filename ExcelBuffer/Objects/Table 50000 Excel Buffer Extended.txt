@@ -3,7 +3,7 @@ OBJECT Table 50000 Excel Buffer Extended
   OBJECT-PROPERTIES
   {
     Date=29.04.20;
-    Time=15:47:06;
+    Time=15:55:47;
     Modified=Yes;
     Version List=;
   }
@@ -2867,7 +2867,7 @@ OBJECT Table 50000 Excel Buffer Extended
       }
     END;
 
-    PROCEDURE AddPivotTableField@1000000066(PivotFieldName@1000000000 : Text;Axis@1000000002 : 'None,axisRow,axisCol,axisPage,axisValues';IsDataField@1000000003 : Boolean;DataFieldSubtotal@1101495002 : ' ,sum,count,average,max,min,product,countNums,stdDev,stdDevp,var,varp');
+    PROCEDURE AddPivotTableField@1000000066(PivotFieldName@1000000000 : Text;Axis@1000000002 : 'None,axisRow,axisCol,axisPage,axisValues';DataFieldSubtotal@1101495002 : ' ,sum,count,average,max,min,product,countNums,stdDev,stdDevp,var,varp');
     VAR
       OpenXmlPivotTblDefinition@1000000004 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PivotTableDefinition";
       OpenXmlPivotFields@1000000011 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.PivotFields";
@@ -2889,13 +2889,18 @@ OBJECT Table 50000 Excel Buffer Extended
       ColumnItems@1000000013 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.ColumnItems";
       OpenXmlInt32Value@1000000019 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Int32Value";
       OpenXmlAttribute@1000000006 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.OpenXmlAttribute";
+      IsDataField@1000000003 : Boolean;
       FieldID@1000000012 : Integer;
     BEGIN
       IF PivotFieldName = '' THEN
         EXIT;
 
-      IF IsDataField AND (DataFieldSubtotal = DataFieldSubtotal::" ") THEN
+      IF Axis = Axis::axisValues THEN BEGIN
+        IF DataFieldSubtotal = DataFieldSubtotal::" " THEN
           ERROR(NoSubtotalFuncErr, PivotFieldName);
+        IsDataField := TRUE;
+        Axis := Axis::None
+      END;
 
       OpenXmlPivotTblDefinition := PivotTablePart.PivotTableDefinition;
       OpenXmlPivotFields := OpenXmlPivotTblDefinition.PivotFields;
