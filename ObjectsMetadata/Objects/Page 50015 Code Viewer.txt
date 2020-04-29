@@ -1,0 +1,143 @@
+OBJECT Page 50015 Code Viewer
+{
+  OBJECT-PROPERTIES
+  {
+    Date=29.04.20;
+    Time=11:28:18;
+    Modified=Yes;
+    Version List=ASD;
+  }
+  PROPERTIES
+  {
+    ActionList=ACTIONS
+    {
+      { 21094452;    ;ActionContainer;
+                      ActionContainerType=NewDocumentItems }
+      { 21094453;1   ;Action    ;
+                      Name=LoadCode;
+                      CaptionML=ENU=Load Code;
+                      Promoted=Yes;
+                      Image=DesignCodeBehind;
+                      PromotedOnly=Yes;
+                      OnAction=BEGIN
+                                 LoadCode;
+                               END;
+                                }
+    }
+  }
+  CONTROLS
+  {
+    { 10000001;;Container ;
+                ContainerType=ContentArea }
+
+    { 12000001;1;Group    ;
+                GroupType=Group }
+
+    { 123000001;2;Field   ;
+                Name=ObjectType;
+                CaptionML=ENU=Object Type;
+                SourceExpr=ObjType;
+                OnValidate=BEGIN
+                             GetObjectName;
+                           END;
+                            }
+
+    { 123000002;2;Field   ;
+                CaptionML=ENU=Object ID;
+                SourceExpr=ObjectID;
+                OnValidate=BEGIN
+                             GetObjectName;
+                           END;
+                            }
+
+    { 123000003;2;Field   ;
+                CaptionML=ENU=Code type;
+                SourceExpr=CodeType }
+
+    { 123000004;2;Field   ;
+                CaptionML=ENU=Object Name;
+                SourceExpr=ObjectName;
+                Editable=false;
+                OnDrillDown=BEGIN
+                              //
+                            END;
+                             }
+
+    { 13000001;1;Group    ;
+                GroupType=Group }
+
+    { 13100001;2;Field    ;
+                Name=CodeViewer;
+                ControlAddIn=[Microsoft.Dynamics.Nav.Client.CodeViewer;PublicKeyToken=31bf3856ad364e35] }
+
+  }
+  CODE
+  {
+    VAR
+      ObjType@21094450 : ',Table,,Report,,Codeunit,XMLport,,Page,Query';
+      ObjectID@21094451 : Integer;
+      CodeType@21094452 : 'CAL,C#,XML';
+      ObjectName@21094453 : Text;
+
+    LOCAL PROCEDURE LoadCode@21094444();
+    VAR
+      ObjectMetadata@1101495001 : Record 2000000071;
+      BreakpointCollection@1101495002 : DotNet "'Microsoft.Dynamics.Nav.Client.CodeViewerTypes, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Nav.Client.CodeViewerTypes.BreakpointCollection";
+      InStream@1101495004 : InStream;
+      BigText@1101495003 : BigText;
+    BEGIN
+      IF ObjectMetadata.GET(ObjType,ObjectID) THEN BEGIN
+        CASE CodeType OF
+          CodeType::CAL:
+            BEGIN
+              ObjectMetadata.CALCFIELDS("User AL Code");
+              ObjectMetadata."User AL Code".CREATEINSTREAM(InStream,TEXTENCODING::UTF8);
+            END;
+          CodeType::"C#":
+            BEGIN
+              ObjectMetadata.CALCFIELDS("User Code");
+              ObjectMetadata."User Code".CREATEINSTREAM(InStream,TEXTENCODING::UTF8);
+            END;
+          CodeType::XML:
+            BEGIN
+              ObjectMetadata.CALCFIELDS(Metadata);
+              ObjectMetadata.Metadata.CREATEINSTREAM(InStream,TEXTENCODING::UTF8);
+            END;
+        END;
+        BigText.READ(InStream);
+        CurrPage.CodeViewer.LoadCode(BigText,0,BreakpointCollection,TRUE);
+      END ELSE BEGIN
+        MESSAGE('Object %1 %2 does not exist',ObjType,ObjectID);
+        CurrPage.CodeViewer.Clear;
+      END
+    END;
+
+    LOCAL PROCEDURE GetObjectName@1101495000();
+    VAR
+      AllObj@1101495000 : Record 2000000038;
+    BEGIN
+      ObjectName := '';
+      IF AllObj.GET(ObjType,ObjectID) THEN
+        ObjectName := AllObj."Object Name";
+    END;
+
+    EVENT CodeViewer@-13100001::SetBreakpoint@8(lineNo@21094444 : Integer);
+    BEGIN
+    END;
+
+    EVENT CodeViewer@-13100001::GetVariableValue@9(variableName@21094445 : Text;leftContext@21094444 : Text);
+    BEGIN
+    END;
+
+    EVENT CodeViewer@-13100001::AddWatch@10(variablePath@21094444 : Text);
+    BEGIN
+    END;
+
+    BEGIN
+    {
+      Author: DA_NEAL
+    }
+    END.
+  }
+}
+
