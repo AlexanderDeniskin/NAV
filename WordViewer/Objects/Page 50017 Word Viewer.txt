@@ -1,0 +1,105 @@
+OBJECT Page 50017 Word Viewer
+{
+  OBJECT-PROPERTIES
+  {
+    Date=14.04.20;
+    Time=15:23:31;
+    Modified=Yes;
+    Version List=ASD;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=Word Viewer;
+    OnOpenPage=BEGIN
+                 IF WordDocumentPath = '' THEN
+                   WordDocumentPath := FileManagement.OpenFileDialog('Select file', '',FileManagement.GetToFilterText('','*.docx'));
+
+                 IF WordDocumentPath = '' THEN
+                   EXIT;
+
+                 IF NOT FileManagement.ClientFileExists(WordDocumentPath) THEN
+                   ERROR('File %1 doesn''t exist', WordDocumentPath);
+
+                 ConvertToHtml;
+               END;
+
+    OnClosePage=BEGIN
+                  IF EXISTS(ServerFileNameHtml) THEN
+                    IF ERASE(ServerFileNameHtml) THEN;
+                END;
+
+  }
+  CONTROLS
+  {
+    { 1   ;    ;Container ;
+                ContainerType=ContentArea }
+
+    { 2   ;1   ;Field     ;
+                Name=WebPageViewer;
+                ApplicationArea=#Basic,#Suite;
+                ControlAddIn=[Microsoft.Dynamics.Nav.Client.WebPageViewer;PublicKeyToken=31bf3856ad364e35] }
+
+  }
+  CODE
+  {
+    VAR
+      FileManagement@1119429000 : Codeunit 419;
+      WordDocumentPath@1000 : Text;
+      NoDocErr@1001 : TextConst 'DEU=Es wurde kein Beleg angegeben.;ENU=No document has been specified.';
+      ServerFileNameHtml@1119429001 : Text;
+
+    PROCEDURE SetFileName@1(NewFileName@1119429000 : Text);
+    BEGIN
+      WordDocumentPath := NewFileName;
+    END;
+
+    LOCAL PROCEDURE ConvertToHtml@22();
+    VAR
+      TempBlobHtml@1006 : Record 99008535;
+      PdfWriter@1119429000 : DotNet "'Microsoft.Dynamics.Nav.PdfWriter, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Nav.PdfWriter.WordToPdf";
+      InStreamWordDoc@1007 : InStream;
+      OutStreamHtmlDoc@1008 : OutStream;
+      WordFile@1119429002 : File;
+      HtmlFile@1119429003 : File;
+      ServerFileNameWord@1119429001 : Text;
+    BEGIN
+      ServerFileNameWord := FileManagement.UploadFileSilent(WordDocumentPath);
+      ServerFileNameHtml := FileManagement.GetFileNameWithoutExtension(ServerFileNameWord) + '.html';
+
+      WordFile.OPEN(ServerFileNameWord);
+      WordFile.CREATEINSTREAM(InStreamWordDoc);
+
+      HtmlFile.CREATE(ServerFileNameHtml);
+      HtmlFile.CREATEOUTSTREAM(OutStreamHtmlDoc);
+
+      PdfWriter.ConvertToHtml(InStreamWordDoc,OutStreamHtmlDoc);
+      HtmlFile.CLOSE;
+    END;
+
+    EVENT WebPageViewer@-2::ControlAddInReady@8(callbackUrl@1000 : Text);
+    BEGIN
+      IF ServerFileNameHtml = '' THEN
+        ERROR(NoDocErr);
+
+      CurrPage.WebPageViewer.SetContent(FileManagement.GetFileContent(ServerFileNameHtml));
+    END;
+
+    EVENT WebPageViewer@-2::DocumentReady@9();
+    BEGIN
+    END;
+
+    EVENT WebPageViewer@-2::Callback@10(data@1000 : Text);
+    BEGIN
+    END;
+
+    EVENT WebPageViewer@-2::Refresh@11(callbackUrl@1000 : Text);
+    BEGIN
+      IF ServerFileNameHtml <> '' THEN
+        CurrPage.WebPageViewer.SetContent(FileManagement.GetFileContent(ServerFileNameHtml));
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
