@@ -1,0 +1,160 @@
+OBJECT Page 50016 WebPage Interaction
+{
+  OBJECT-PROPERTIES
+  {
+    Date=29.04.20;
+    Time=09:41:18;
+    Modified=Yes;
+    Version List=ASD;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=WebPage Interaction;
+    PageType=Card;
+    OnOpenPage=BEGIN
+                 HTMLContent :=
+                   '<div id="t2">Waiting for a message</div><br/>' +
+                   '<input type="text" id="inp1" onchange="send2Nav(this)"><br/>' +
+                   '<input type="text" id="inp2" onchange="send2Nav(this)"><br/>';
+
+                 JavaScriptContent :=
+                   'function send2Nav(el) { ' +
+                   '  var str = JSON.stringify({id: el.id, val: el.value}); ' +
+                   '  parent.WebPageViewerHelper.TriggerCallback(str); ' +
+                   '} ' +
+
+                   'parent.PostMessage=function(n,t,i) { ' +
+                   '   if(typeof n!="string"||!n)return; ' +
+                   '   if(typeof t!="string"||!t)return; ' +
+                   '   if(i)n=JSON.parse(n); ' +
+                   '   parent.iframe.contentWindow.postMessage(n,t); ' +
+                   '}; ' +
+
+                   'function listener(event) { ' +
+                   '  document.getElementById("t2").innerHTML = JSON.stringify(event.data); ' +
+                   '}  ' +
+
+                   'window.setTimeout(function() { ' +
+                   '  window.addEventListener?window.addEventListener("message",listener,false):window.attachEvent("onmessage",listener); ' +
+                   '  parent.WebPageViewerHelper.Properties.SubscribedEvents.push("message"); ' +
+                   '}, 0);';
+               END;
+
+    ActionList=ACTIONS
+    {
+      { 1000000000;  ;ActionContainer;
+                      ActionContainerType=ActionItems }
+      { 1000000002;1 ;Action    ;
+                      Name=PostMessage;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      PromotedCategory=Process;
+                      PromotedOnly=Yes;
+                      OnAction=BEGIN
+                                 CurrPage.WebBrowser.PostMessage('{"msgType":"text","msgText":"Data from Nav"}','*',TRUE);
+                               END;
+                                }
+    }
+  }
+  CONTROLS
+  {
+    { 1500000; ;Container ;
+                Name=Container;
+                ContainerType=ContentArea }
+
+    { 1500001;1;Field     ;
+                Name=WebBrowser;
+                ControlAddIn=[Microsoft.Dynamics.Nav.Client.WebPageViewer;PublicKeyToken=31bf3856ad364e35] }
+
+  }
+  CODE
+  {
+    VAR
+      JObject@1000000002 : DotNet "'Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed'.Newtonsoft.Json.Linq.JObject";
+      HTMLContent@1500000 : Text;
+      JavaScriptContent@1000000000 : Text;
+      ParseFailureErr@1000000001 : TextConst '@@@="JSON parsing error. %1=target property name";DEU=Fehler beim Extrahieren der Eigenschaft "%1" aus JSON-Objekt.;ENU=Failed to extract ''%1'' property from JSON object.';
+
+    [TryFunction]
+    LOCAL PROCEDURE TryParseJSON@35(data@1000 : Text);
+    VAR
+      id@1000000000 : Text;
+      value@1000000001 : Text;
+    BEGIN
+      JObject := JObject.Parse(data);
+      id := GetValue(JObject,'id',TRUE);
+      value := GetValue(JObject,'val',TRUE);
+
+      MESSAGE('ID: %1\Value: %2', id, value);
+    END;
+
+    LOCAL PROCEDURE GetValue@4(JObject@1000 : DotNet "'Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed'.Newtonsoft.Json.Linq.JObject";Property@1001 : Text;ThrowError@1002 : Boolean) : Text;
+    VAR
+      ReturnValue@1000000000 : Text;
+    BEGIN
+      // Helper for extracting a property value out of a JObject
+      IF TryGetValue(JObject,Property,ReturnValue) THEN
+        EXIT(ReturnValue);
+
+      IF ThrowError THEN
+        ERROR(ParseFailureErr,Property);
+
+      EXIT('');
+    END;
+
+    [TryFunction]
+    LOCAL PROCEDURE TryGetValue@5(JObject@1001 : DotNet "'Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed'.Newtonsoft.Json.Linq.JObject";Property@1002 : Text;VAR ReturnValue@1000000000 : Text);
+    VAR
+      StringComparison@1000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.StringComparison";
+      JToken@1003 : DotNet "'Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed'.Newtonsoft.Json.Linq.JToken";
+    BEGIN
+      // Helper to 'safely' extract the value of a JProperty. Ignores case and 'catches' exceptions
+      JToken := JObject.GetValue(Property,StringComparison.OrdinalIgnoreCase);
+      ReturnValue := JToken.ToString();
+    END;
+
+    EVENT WebBrowser@-1500001::ControlAddInReady@8(callbackUrl@1000000000 : Text);
+    BEGIN
+      CurrPage.WebBrowser.SetContent(HTMLContent,JavaScriptContent);
+    END;
+
+    EVENT WebBrowser@-1500001::DocumentReady@9();
+    BEGIN
+    END;
+
+    EVENT WebBrowser@-1500001::Callback@10(data@1000000000 : Text);
+    BEGIN
+      MESSAGE(data);
+      //TryParseJSON(data);
+    END;
+
+    EVENT WebBrowser@-1500001::Refresh@11(callbackUrl@1000000000 : Text);
+    BEGIN
+      CurrPage.WebBrowser.SetContent(HTMLContent,JavaScriptContent);
+    END;
+
+    EVENT JObject@1000000002::PropertyChanged@105(sender@1000000001 : Variant;e@1000000000 : DotNet "'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.ComponentModel.PropertyChangedEventArgs");
+    BEGIN
+    END;
+
+    EVENT JObject@1000000002::PropertyChanging@106(sender@1000000001 : Variant;e@1000000000 : DotNet "'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.ComponentModel.PropertyChangingEventArgs");
+    BEGIN
+    END;
+
+    EVENT JObject@1000000002::ListChanged@107(sender@1000000001 : Variant;e@1000000000 : DotNet "'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.ComponentModel.ListChangedEventArgs");
+    BEGIN
+    END;
+
+    EVENT JObject@1000000002::AddingNew@108(sender@1000000001 : Variant;e@1000000000 : DotNet "'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.ComponentModel.AddingNewEventArgs");
+    BEGIN
+    END;
+
+    EVENT JObject@1000000002::CollectionChanged@109(sender@1000000001 : Variant;e@1000000000 : DotNet "'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Collections.Specialized.NotifyCollectionChangedEventArgs");
+    BEGIN
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
