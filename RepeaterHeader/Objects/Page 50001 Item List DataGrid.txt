@@ -2,21 +2,21 @@ OBJECT Page 50001 Item List DataGrid
 {
   OBJECT-PROPERTIES
   {
-    Date=16.11.18;
-    Time=17:35:18;
+    Date=29.04.20;
+    Time=12:10:07;
     Modified=Yes;
-    Version List=NAVW110.00.00.15052,NAVDACH10.00.00.15052;
+    Version List=NAVW110.00.00.15052,NAVDACH10.00.00.15052,ASD;
   }
   PROPERTIES
   {
     Editable=No;
-    CaptionML=[DEU=Artikel¬Åbersicht;
+    CaptionML=[DEU=ArtikelÅbersicht;
                ENU=Item List];
     SourceTable=Table27;
     PageType=List;
     CardPageID=Item Card;
     RefreshOnActivate=Yes;
-    PromotedActionCategoriesML=[DEU=Neu,Verarbeiten,Melden,Artikel,Historie,Son&derpreise und -rabatte,Genehmigung anfordern,Periodische Aktivit‚Äûten,Lager,Attribute;
+    PromotedActionCategoriesML=[DEU=Neu,Verarbeiten,Melden,Artikel,Historie,Son&derpreise und -rabatte,Genehmigung anfordern,Periodische AktivitÑten,Lager,Attribute;
                                 ENU=New,Process,Report,Item,History,Special Prices & Discounts,Request Approval,Periodic Activities,Inventory,Attributes];
     OnOpenPage=VAR
                  CRMIntegrationManagement@1000 : Codeunit 5330;
@@ -58,7 +58,7 @@ OBJECT Page 50001 Item List DataGrid
       { 25      ;2   ;Action    ;
                       CaptionML=[DEU=&Einheiten;
                                  ENU=&Units of Measure];
-                      ToolTipML=[DEU=Richten Sie verschiedene Einheiten ein, in denen der ausgew‚Äûhlte Artikel gehandelt werden kann, wie St¬Åck, Karton oder Stunde.;
+                      ToolTipML=[DEU=Richten Sie verschiedene Einheiten ein, in denen der ausgewÑhlte Artikel gehandelt werden kann, wie StÅck, Karton oder Stunde.;
                                  ENU=Set up the different units that the selected item can be traded in, such as piece, box, or hour.];
                       RunObject=Page 5404;
                       RunPageLink=Item No.=FIELD(No.);
@@ -70,7 +70,7 @@ OBJECT Page 50001 Item List DataGrid
                       AccessByPermission=TableData 7500=R;
                       CaptionML=[DEU=Attribute;
                                  ENU=Attributes];
-                      ToolTipML=[DEU=Zeigt die Attribute des Artikels wie Farbe, Gr‚Äù√°e oder andere Eigenschaften, die bei der Beschreibung helfen, an oder bearbeitet diese.;
+                      ToolTipML=[DEU=Zeigt die Attribute des Artikels wie Farbe, Grî·e oder andere Eigenschaften, die bei der Beschreibung helfen, an oder bearbeitet diese.;
                                  ENU=View or edit the item's attributes, such as color, size, or other characteristics that help to describe the item.];
                       Image=Category;
                       PromotedCategory=Category4;
@@ -134,9 +134,9 @@ OBJECT Page 50001 Item List DataGrid
       { 139     ;2   ;Action    ;
                       Name=ClearAttributes;
                       AccessByPermission=TableData 7500=R;
-                      CaptionML=[DEU=Attributefilter l‚Äùschen;
+                      CaptionML=[DEU=Attributefilter lîschen;
                                  ENU=Clear Attributes Filter];
-                      ToolTipML=[DEU=Entfernt den Filter f¬År bestimmte Artikelattribute.;
+                      ToolTipML=[DEU=Entfernt den Filter fÅr bestimmte Artikelattribute.;
                                  ENU=Remove the filter for specific item attributes.];
                       ApplicationArea=#Basic,#Suite;
                       Promoted=Yes;
@@ -155,7 +155,7 @@ OBJECT Page 50001 Item List DataGrid
       { 82      ;2   ;Action    ;
                       CaptionML=[DEU=Re&ferenzen;
                                  ENU=Cross Re&ferences];
-                      ToolTipML=[DEU=Richtet eine eigene Benutzereinrichtung des Debitors oder Kreditors f¬År den ausgew‚Äûhlten Artikel ein. Querverweise auf die Artikelnummer des Debitors bedeuten, dass ihre Artikelnummer automatisch anstelle der von Ihnen verwendeten Nummer auf den Verkaufsbelegen angezeigt wird.;
+                      ToolTipML=[DEU=Richtet eine eigene Benutzereinrichtung des Debitors oder Kreditors fÅr den ausgewÑhlten Artikel ein. Querverweise auf die Artikelnummer des Debitors bedeuten, dass ihre Artikelnummer automatisch anstelle der von Ihnen verwendeten Nummer auf den Verkaufsbelegen angezeigt wird.;
                                  ENU=Set up a customer's or vendor's own identification of the selected item. Cross-references to the customer's item number means that the item number is automatically shown on sales documents instead of the number that you use.];
                       ApplicationArea=#Basic,#Suite;
                       RunObject=Page 5721;
@@ -168,7 +168,7 @@ OBJECT Page 50001 Item List DataGrid
       { 28      ;2   ;Action    ;
                       CaptionML=[DEU=&Textbausteine;
                                  ENU=E&xtended Texts];
-                      ToolTipML=[DEU=Richten Sie einen zus‚Äûtzlichen Text f¬År die Beschreibung des ausgew‚Äûhlten Artikels ein. Erweiterter Text kann im Feld "Beschreibung" in Belegzeilen f¬År den Artikel eingef¬Ågt werden.;
+                      ToolTipML=[DEU=Richten Sie einen zusÑtzlichen Text fÅr die Beschreibung des ausgewÑhlten Artikels ein. Erweiterter Text kann im Feld "Beschreibung" in Belegzeilen fÅr den Artikel eingefÅgt werden.;
                                  ENU=Set up additional text for the description of the selected item. Extended text can be inserted under the Description field on document lines for the item.];
                       RunObject=Page 391;
                       RunPageView=SORTING(Table Name,No.,Language Code,All Language Codes,Starting Date,Ending Date);
@@ -177,9 +177,9 @@ OBJECT Page 50001 Item List DataGrid
                       Image=Text;
                       Scope=Repeater }
       { 27      ;2   ;Action    ;
-                      CaptionML=[DEU=≈°bersetzungen;
+                      CaptionML=[DEU=öbersetzungen;
                                  ENU=Translations];
-                      ToolTipML=[DEU=Richten Sie ¬Åbersetzte Artikelbeschreibungen f¬År den ausgew‚Äûhlten Artikel ein. ≈°bersetzte Artikelbeschreibungen werden automatisch gem‚Äû√° dem Sprachcode in Belege eingef¬Ågt.;
+                      ToolTipML=[DEU=Richten Sie Åbersetzte Artikelbeschreibungen fÅr den ausgewÑhlten Artikel ein. öbersetzte Artikelbeschreibungen werden automatisch gemÑ· dem Sprachcode in Belege eingefÅgt.;
                                  ENU=Set up translated item descriptions for the selected item. Translated item descriptions are automatically inserted on documents according to the language code.];
                       RunObject=Page 35;
                       RunPageLink=Item No.=FIELD(No.),
@@ -193,7 +193,7 @@ OBJECT Page 50001 Item List DataGrid
                       Name=AdjustInventory;
                       CaptionML=[DEU=Lager regulieren;
                                  ENU=Adjust Inventory];
-                      ToolTipML=[DEU=Erh‚Äùhen oder senken Sie die Lagerbestandsmenge des Artikels manuell, indem Sie eine neue Menge eingeben. Das manuelle Regulieren des Lagerbestands ist m‚Äùglicherweise nach einer physischen Z‚Äûhlung relevant, oder falls keine erworbenen Mengen erfasst wurden.;
+                      ToolTipML=[DEU=Erhîhen oder senken Sie die Lagerbestandsmenge des Artikels manuell, indem Sie eine neue Menge eingeben. Das manuelle Regulieren des Lagerbestands ist mîglicherweise nach einer physischen ZÑhlung relevant, oder falls keine erworbenen Mengen erfasst wurden.;
                                  ENU=Increase or decrease the item's inventory quantity manually by entering a new quantity. Adjusting the inventory quantity manually may be relevant after a physical count or if you do not record purchased quantities.];
                       ApplicationArea=#Basic,#Suite;
                       Promoted=Yes;
@@ -214,7 +214,7 @@ OBJECT Page 50001 Item List DataGrid
                       Image=Dimensions }
       { 184     ;3   ;Action    ;
                       ShortCutKey=Shift+Ctrl+D;
-                      CaptionML=[DEU=Zuordnung f¬År aktuellen Datensatz;
+                      CaptionML=[DEU=Zuordnung fÅr aktuellen Datensatz;
                                  ENU=Dimensions-Single];
                       RunObject=Page 540;
                       RunPageLink=Table ID=CONST(27),
@@ -223,7 +223,7 @@ OBJECT Page 50001 Item List DataGrid
                       Scope=Repeater }
       { 93      ;3   ;Action    ;
                       AccessByPermission=TableData 348=R;
-                      CaptionML=[DEU=Zuordnung f¬År &markierte Datens‚Äûtze;
+                      CaptionML=[DEU=Zuordnung fÅr &markierte DatensÑtze;
                                  ENU=Dimensions-&Multiple];
                       Image=DimensionSets;
                       OnAction=VAR
@@ -247,7 +247,7 @@ OBJECT Page 50001 Item List DataGrid
                       ShortCutKey=Ctrl+F7;
                       CaptionML=[DEU=&Posten;
                                  ENU=Ledger E&ntries];
-                      ToolTipML=[DEU=Zeigen Sie die Historie der positiven und negativen Bestands‚Äûnderungen an, die Transaktionen mit dem ausgew‚Äûhlten Artikel widerspiegeln.;
+                      ToolTipML=[DEU=Zeigen Sie die Historie der positiven und negativen BestandsÑnderungen an, die Transaktionen mit dem ausgewÑhlten Artikel widerspiegeln.;
                                  ENU=View the history of positive and negative inventory changes that reflect transactions with the selected item.];
                       RunObject=Page 38;
                       RunPageView=SORTING(Item No.)
@@ -273,7 +273,7 @@ OBJECT Page 50001 Item List DataGrid
                       Name=Prices_Prices;
                       CaptionML=[DEU=Sonderpreise;
                                  ENU=Special Prices];
-                      ToolTipML=[DEU=Richten Sie verschiedene Preise f¬År den ausgew‚Äûhlten Artikel ein. Ein Artikelpreis wird automatisch in Rechnungszeilen verwendet, wenn die angegebenen Kriterien erf¬Ållt sind, wie Debitor, Menge oder Enddatum.;
+                      ToolTipML=[DEU=Richten Sie verschiedene Preise fÅr den ausgewÑhlten Artikel ein. Ein Artikelpreis wird automatisch in Rechnungszeilen verwendet, wenn die angegebenen Kriterien erfÅllt sind, wie Debitor, Menge oder Enddatum.;
                                  ENU=Set up different prices for the selected item. An item price is automatically used on invoice lines when the specified criteria are met, such as customer, quantity, or ending date.];
                       RunObject=Page 7002;
                       RunPageView=SORTING(Item No.);
@@ -285,7 +285,7 @@ OBJECT Page 50001 Item List DataGrid
                       Name=Prices_LineDiscounts;
                       CaptionML=[DEU=Sonderrabatte;
                                  ENU=Special Discounts];
-                      ToolTipML=[DEU=Richten Sie verschiedene Rabatte f¬År den ausgew‚Äûhlten Artikel ein. Ein Artikelrabatt wird automatisch in Rechnungszeilen gew‚Äûhrt, wenn die angegebenen Kriterien erf¬Ållt sind, wie Debitor, Menge oder Enddatum.;
+                      ToolTipML=[DEU=Richten Sie verschiedene Rabatte fÅr den ausgewÑhlten Artikel ein. Ein Artikelrabatt wird automatisch in Rechnungszeilen gewÑhrt, wenn die angegebenen Kriterien erfÅllt sind, wie Debitor, Menge oder Enddatum.;
                                  ENU=Set up different discounts for the selected item. An item discount is automatically granted on invoice lines when the specified criteria are met, such as customer, quantity, or ending date.];
                       RunObject=Page 7004;
                       RunPageView=SORTING(Type,Code);
@@ -296,7 +296,7 @@ OBJECT Page 50001 Item List DataGrid
                       Scope=Repeater }
       { 133     ;2   ;Action    ;
                       Name=PricesDiscountsOverview;
-                      CaptionML=[DEU=≈°bersicht ¬Åber Sonderpreise und -rabatte;
+                      CaptionML=[DEU=öbersicht Åber Sonderpreise und -rabatte;
                                  ENU=Special Prices & Discounts Overview];
                       Image=PriceWorksheet;
                       PromotedCategory=Category6;
@@ -315,12 +315,12 @@ OBJECT Page 50001 Item List DataGrid
                       Image=PriceWorksheet;
                       PromotedCategory=Category6 }
       { 117     ;1   ;ActionGroup;
-                      CaptionML=[DEU=Periodische Aktivit‚Äûten;
+                      CaptionML=[DEU=Periodische AktivitÑten;
                                  ENU=Periodic Activities] }
       { 1907108104;2 ;Action    ;
                       CaptionML=[DEU=Lagerreg. fakt. Einst. Preise;
                                  ENU=Adjust Cost - Item Entries];
-                      ToolTipML=[DEU=Reguliert Lagerwerte in Wertposten, sodass Sie f¬År das Aktualisieren der Finanzbuchhaltung die richtigen regulierten Lagerwerte verwenden k‚Äùnnen und die Verkaufs- und Gewinnstatistiken auf dem neuesten Stand sind.;
+                      ToolTipML=[DEU=Reguliert Lagerwerte in Wertposten, sodass Sie fÅr das Aktualisieren der Finanzbuchhaltung die richtigen regulierten Lagerwerte verwenden kînnen und die Verkaufs- und Gewinnstatistiken auf dem neuesten Stand sind.;
                                  ENU=Adjust inventory values in value entries so that you use the correct adjusted cost for updating the general ledger and so that sales and profit statistics are up to date.];
                       ApplicationArea=#Basic,#Suite;
                       RunObject=Report 795;
@@ -329,7 +329,7 @@ OBJECT Page 50001 Item List DataGrid
       { 96      ;2   ;Action    ;
                       CaptionML=[DEU=Lagerreg. buchen;
                                  ENU=Post Inventory Cost to G/L];
-                      ToolTipML=[DEU=Buchen Sie die Mengen- und Wert‚Äûnderungen des Lagerbestands in den Artikelposten bzw. Wertposten, wenn Sie Lagerbestandstransaktionen wie Verkaufslieferungen oder Einkaufslieferungen buchen.;
+                      ToolTipML=[DEU=Buchen Sie die Mengen- und WertÑnderungen des Lagerbestands in den Artikelposten bzw. Wertposten, wenn Sie Lagerbestandstransaktionen wie Verkaufslieferungen oder Einkaufslieferungen buchen.;
                                  ENU=Post the quantity and value changes to the inventory in the item ledger entries and the value entries when you post inventory transactions, such as sales shipments or purchase receipts.];
                       ApplicationArea=#Basic,#Suite;
                       RunObject=Report 1002;
@@ -338,7 +338,7 @@ OBJECT Page 50001 Item List DataGrid
       { 98      ;2   ;Action    ;
                       CaptionML=[DEU=Inventur Buch.-Blatt;
                                  ENU=Physical Inventory Journal];
-                      ToolTipML=[DEU=W‚Äûhlen Sie aus, wie Sie eine aktuelle Erfassung Ihres Lagerbestand in unterschiedlichen Lagerorten erreichen m‚Äùchten.;
+                      ToolTipML=[DEU=WÑhlen Sie aus, wie Sie eine aktuelle Erfassung Ihres Lagerbestand in unterschiedlichen Lagerorten erreichen mîchten.;
                                  ENU=Select how you want to maintain an up-to-date record of your inventory at different locations.];
                       ApplicationArea=#Basic,#Suite;
                       RunObject=Page 392;
@@ -347,7 +347,7 @@ OBJECT Page 50001 Item List DataGrid
       { 119     ;2   ;Action    ;
                       CaptionML=[DEU=Neubewertung Buch.-Blatt;
                                  ENU=Revaluation Journal];
-                      ToolTipML=[DEU=Zeigen Sie den Lagerwert von Artikeln an, den Sie z.√øB. nach einer Inventur ‚Äûndern k‚Äùnnen, oder bearbeiten Sie ihn.;
+                      ToolTipML=[DEU=Zeigen Sie den Lagerwert von Artikeln an, den Sie z.ˇB. nach einer Inventur Ñndern kînnen, oder bearbeiten Sie ihn.;
                                  ENU=View or edit the inventory value of items, which you can change, such as after doing a physical inventory.];
                       ApplicationArea=#Basic,#Suite;
                       RunObject=Page 5803;
@@ -397,7 +397,7 @@ OBJECT Page 50001 Item List DataGrid
                       Name=CreateApprovalWorkflow;
                       CaptionML=[DEU=Genehmigungsworkflow erstellen;
                                  ENU=Create Approval Workflow];
-                      ToolTipML=[DEU=Richten Sie einen Genehmigungsworkflow f¬År das Erstellen oder ≈Ωndern von Artikeln ein, in dem Sie einige Seiten zur Anleitung durchgehen.;
+                      ToolTipML=[DEU=Richten Sie einen Genehmigungsworkflow fÅr das Erstellen oder éndern von Artikeln ein, in dem Sie einige Seiten zur Anleitung durchgehen.;
                                  ENU=Set up an approval workflow for creating or changing items, by going through a few pages that will guide you.];
                       ApplicationArea=#Suite;
                       Enabled=NOT EnabledApprovalWorkflowsExist;
@@ -410,7 +410,7 @@ OBJECT Page 50001 Item List DataGrid
                       Name=ManageApprovalWorkflow;
                       CaptionML=[DEU=Genehmigungsworkflow verwalten;
                                  ENU=Manage Approval Workflow];
-                      ToolTipML=[DEU=Zeigen Sie vorhandene Genehmigungsworkflows f¬År das Erstellen oder ≈Ωndern von Artikeln an, oder bearbeiten Sie sie.;
+                      ToolTipML=[DEU=Zeigen Sie vorhandene Genehmigungsworkflows fÅr das Erstellen oder éndern von Artikeln an, oder bearbeiten Sie sie.;
                                  ENU=View or edit existing approval workflows for creating or changing items.];
                       ApplicationArea=#Suite;
                       Enabled=EnabledApprovalWorkflowsExist;
@@ -439,7 +439,7 @@ OBJECT Page 50001 Item List DataGrid
                                 }
       { 7380    ;2   ;Action    ;
                       AccessByPermission=TableData 7380=R;
-                      CaptionML=[DEU=&Inventurh‚Äûufigkeit berechnen;
+                      CaptionML=[DEU=&InventurhÑufigkeit berechnen;
                                  ENU=C&alculate Counting Period];
                       Image=CalculateCalendar;
                       OnAction=VAR
@@ -511,7 +511,7 @@ OBJECT Page 50001 Item List DataGrid
                       RunObject=Report 99000757;
                       Image=Report }
       { 1907778006;2 ;Action    ;
-                      CaptionML=[DEU=Strukturst¬Åckliste;
+                      CaptionML=[DEU=StrukturstÅckliste;
                                  ENU=Quantity Explosion of BOM];
                       RunObject=Report 99000753;
                       Image=Report }
@@ -535,7 +535,7 @@ OBJECT Page 50001 Item List DataGrid
                       RunObject=Report 99000756;
                       Image=Report }
       { 1900812706;3 ;Action    ;
-                      CaptionML=[DEU=Kosten der Strukturst¬Åckliste;
+                      CaptionML=[DEU=Kosten der StrukturstÅckliste;
                                  ENU=Rolled-up Cost Shares];
                       RunObject=Report 99000754;
                       Image=Report }
@@ -553,7 +553,7 @@ OBJECT Page 50001 Item List DataGrid
                       RunObject=Report 701;
                       Image=Report }
       { 1906212206;2 ;Action    ;
-                      CaptionML=[DEU=Lager - Verf¬Ågbarkeitsplan;
+                      CaptionML=[DEU=Lager - VerfÅgbarkeitsplan;
                                  ENU=Inventory - Availability Plan];
                       RunObject=Report 707;
                       Image=ItemAvailability }
@@ -575,7 +575,7 @@ OBJECT Page 50001 Item List DataGrid
       { 1905753506;2 ;Action    ;
                       CaptionML=[DEU=Ersatzartikel;
                                  ENU=Item Substitutions];
-                      ToolTipML=[DEU=Zeigt oder bearbeitet eingerichtete Ersatzartikel, die gegen den Artikel ausgetauscht werden, falls er nicht verf¬Ågbar ist.;
+                      ToolTipML=[DEU=Zeigt oder bearbeitet eingerichtete Ersatzartikel, die gegen den Artikel ausgetauscht werden, falls er nicht verfÅgbar ist.;
                                  ENU=View or edit any substitute items that are set up to be traded instead of the item in case it is not available.];
                       ApplicationArea=#Suite;
                       RunObject=Report 5701;
@@ -583,7 +583,7 @@ OBJECT Page 50001 Item List DataGrid
       { 1905572506;2 ;Action    ;
                       CaptionML=[DEU=VK-Preisliste;
                                  ENU=Price List];
-                      ToolTipML=[DEU=Zeigen Sie eine Liste Ihrer Artikel und deren Preise an, drucken oder speichern Sie sie, um sie beispielsweise an Debitoren zu senden. Sie k‚Äùnnen die Liste f¬År spezifische Debitoren, Kampagnen, W‚Äûhrungen oder andere Kriterien erstellen.;
+                      ToolTipML=[DEU=Zeigen Sie eine Liste Ihrer Artikel und deren Preise an, drucken oder speichern Sie sie, um sie beispielsweise an Debitoren zu senden. Sie kînnen die Liste fÅr spezifische Debitoren, Kampagnen, WÑhrungen oder andere Kriterien erstellen.;
                                  ENU=View, print, or save a list of your items and their prices, for example, to send to customers. You can create the list for specific customers, campaigns, currencies, or other criteria.];
                       ApplicationArea=#Basic,#Suite;
                       RunObject=Report 715;
@@ -598,9 +598,9 @@ OBJECT Page 50001 Item List DataGrid
                       RunObject=Report 716;
                       Image=Report }
       { 1901091106;2 ;Action    ;
-                      CaptionML=[DEU=Lager - Verf¬Ågbarkeit;
+                      CaptionML=[DEU=Lager - VerfÅgbarkeit;
                                  ENU=Inventory Availability];
-                      ToolTipML=[DEU=Zeigen Sie eine Zusammenfassung der historischen Lagertransaktionen mit ausgew‚Äûhlten Artikeln an, drucken oder speichern Sie sie, um beispielsweise zu entscheiden, wann die Artikel gekauft werden sollen. Der Bericht gibt Folgendes an: Menge in Verkaufsauftr‚Äûgen, Menge in Einkaufsbestellungen, Bestellr¬Åckstand bei Kreditoren, Minimalbestand und ob eine Wiederbestellung vorliegt.;
+                      ToolTipML=[DEU=Zeigen Sie eine Zusammenfassung der historischen Lagertransaktionen mit ausgewÑhlten Artikeln an, drucken oder speichern Sie sie, um beispielsweise zu entscheiden, wann die Artikel gekauft werden sollen. Der Bericht gibt Folgendes an: Menge in VerkaufsauftrÑgen, Menge in Einkaufsbestellungen, BestellrÅckstand bei Kreditoren, Minimalbestand und ob eine Wiederbestellung vorliegt.;
                                  ENU=View, print, or save a summary of historical inventory transactions with selected items, for example, to decide when to purchase the items. The report specifies quantity on sales order, quantity on purchase order, back orders from vendors, minimum inventory, and whether there are reorders.];
                       RunObject=Report 705;
                       Image=Report }
@@ -654,7 +654,7 @@ OBJECT Page 50001 Item List DataGrid
       { 1900111206;3 ;Action    ;
                       CaptionML=[DEU=Artikellagerzeit - Menge;
                                  ENU=Item Age Composition - Qty.];
-                      ToolTipML=[DEU=Zeigen Sie einen ≈°berblick ¬Åber die aktuelle Lagerzeit von ausgew‚Äûhlten Artikeln in Ihrem Lager an, drucken oder speichern Sie sie.;
+                      ToolTipML=[DEU=Zeigen Sie einen öberblick Åber die aktuelle Lagerzeit von ausgewÑhlten Artikeln in Ihrem Lager an, drucken oder speichern Sie sie.;
                                  ENU=View, print, or save an overview of the current age composition of selected items in your inventory.];
                       ApplicationArea=#Basic,#Suite;
                       RunObject=Report 5807;
@@ -672,15 +672,15 @@ OBJECT Page 50001 Item List DataGrid
       { 1900762706;3 ;Action    ;
                       CaptionML=[DEU=Lager - Verkaufsstatistik;
                                  ENU=Inventory - Sales Statistics];
-                      ToolTipML=[DEU=Zeigen Sie eine Zusammenfassung der Verk‚Äûufe der ausgew‚Äûhlten Artikel pro Debitor an, um beispielsweise den Deckungsbeitrag f¬År einzelne Artikel oder Trends bei Einnahmen und Deckungsbeitrag zu analysieren. Der Bericht gibt Einstandspreis, Verkaufspreis, Verkaufsmenge, Verk‚Äûufe in MW, Deckungsbeitrag in Prozent und Deckungsbeitrag an.;
+                      ToolTipML=[DEU=Zeigen Sie eine Zusammenfassung der VerkÑufe der ausgewÑhlten Artikel pro Debitor an, um beispielsweise den Deckungsbeitrag fÅr einzelne Artikel oder Trends bei Einnahmen und Deckungsbeitrag zu analysieren. Der Bericht gibt Einstandspreis, Verkaufspreis, Verkaufsmenge, VerkÑufe in MW, Deckungsbeitrag in Prozent und Deckungsbeitrag an.;
                                  ENU=View, print, or save a summary of selected items' sales per customer, for example, to analyze the profit on individual items or trends in revenues and profit. The report specifies direct unit cost, unit price, sales quantity, sales in LCY, profit percentage, and profit.];
                       ApplicationArea=#Suite;
                       RunObject=Report 712;
                       Image=Report }
       { 1904034006;3 ;Action    ;
-                      CaptionML=[DEU=Lager - Debitorenverk‚Äûufe;
+                      CaptionML=[DEU=Lager - DebitorenverkÑufe;
                                  ENU=Inventory - Customer Sales];
-                      ToolTipML=[DEU=Zeigen Sie eine Liste der Debitoren an, drucken oder speichern Sie sie, die ausgew‚Äûhlte Artikel innerhalb einer ausgew‚Äûhlten Periode gekauft haben, um beispielsweise Kaufmuster der Kunden zu analysieren. Der Bericht gibt Menge, Betrag, Rabatt, Deckungsbeitrag in Prozent und Deckungsbeitrag an.;
+                      ToolTipML=[DEU=Zeigen Sie eine Liste der Debitoren an, drucken oder speichern Sie sie, die ausgewÑhlte Artikel innerhalb einer ausgewÑhlten Periode gekauft haben, um beispielsweise Kaufmuster der Kunden zu analysieren. Der Bericht gibt Menge, Betrag, Rabatt, Deckungsbeitrag in Prozent und Deckungsbeitrag an.;
                                  ENU=View, print, or save a list of customers that have purchased selected items within a selected period, for example, to analyze customers' purchasing patterns. The report specifies quantity, amount, discount, profit percentage, and profit.];
                       ApplicationArea=#Suite;
                       RunObject=Report 713;
@@ -700,7 +700,7 @@ OBJECT Page 50001 Item List DataGrid
       { 1906316306;3 ;Action    ;
                       CaptionML=[DEU=Lagerwert berechnen;
                                  ENU=Inventory Valuation];
-                      ToolTipML=[DEU=Zeigen Sie eine Liste der Werte des Lagerbestands f¬År jeden Lagerartikel an, drucken oder speichern Sie sie.;
+                      ToolTipML=[DEU=Zeigen Sie eine Liste der Werte des Lagerbestands fÅr jeden Lagerartikel an, drucken oder speichern Sie sie.;
                                  ENU=View, print, or save a list of the values of the on-hand quantity of each inventory item.];
                       ApplicationArea=#Basic,#Suite;
                       RunObject=Report 1001;
@@ -708,7 +708,7 @@ OBJECT Page 50001 Item List DataGrid
       { 1901254106;3 ;Action    ;
                       CaptionML=[DEU=Status;
                                  ENU=Status];
-                      ToolTipML=[DEU=Zeigen Sie den Status teilweise erf¬Ållter oder nicht erf¬Ållter Auftr‚Äûge an, drucken oder speichern Sie ihn, sodass Sie bestimmen k‚Äùnnen, wie sich die Erf¬Ållung dieser Auftr‚Äûge auf den Lagerbestand auswirkt.;
+                      ToolTipML=[DEU=Zeigen Sie den Status teilweise erfÅllter oder nicht erfÅllter AuftrÑge an, drucken oder speichern Sie ihn, sodass Sie bestimmen kînnen, wie sich die ErfÅllung dieser AuftrÑge auf den Lagerbestand auswirkt.;
                                  ENU=View, print, or save the status of partially filled or unfilled orders so you can determine what effect filling these orders may have on your inventory.];
                       ApplicationArea=#Basic,#Suite;
                       RunObject=Report 706;
@@ -716,12 +716,12 @@ OBJECT Page 50001 Item List DataGrid
       { 1903496006;3 ;Action    ;
                       CaptionML=[DEU=Artikellagerzeit - Wert;
                                  ENU=Item Age Composition - Value];
-                      ToolTipML=[DEU=Zeigen Sie einen ≈°berblick ¬Åber die aktuelle Lagerzeit von ausgew‚Äûhlten Artikeln in Ihrem Lager an, drucken oder speichern Sie sie.;
+                      ToolTipML=[DEU=Zeigen Sie einen öberblick Åber die aktuelle Lagerzeit von ausgewÑhlten Artikeln in Ihrem Lager an, drucken oder speichern Sie sie.;
                                  ENU=View, print, or save an overview of the current age composition of selected items in your inventory.];
                       RunObject=Report 5808;
                       Image=Report }
       { 129     ;1   ;ActionGroup;
-                      CaptionML=[DEU=Auftr‚Äûge;
+                      CaptionML=[DEU=AuftrÑge;
                                  ENU=Orders] }
       { 1903262806;2 ;Action    ;
                       CaptionML=[DEU=Lager - Auftragsbestand;
@@ -734,7 +734,7 @@ OBJECT Page 50001 Item List DataGrid
                       RunObject=Report 709;
                       Image=Report }
       { 1906231806;2 ;Action    ;
-                      CaptionML=[DEU=Lager - Kreditoreneink‚Äûufe;
+                      CaptionML=[DEU=Lager - KreditoreneinkÑufe;
                                  ENU=Inventory - Vendor Purchases];
                       RunObject=Report 714;
                       Image=Report }
@@ -746,7 +746,7 @@ OBJECT Page 50001 Item List DataGrid
                       Image=Report;
                       PromotedCategory=Report }
       { 1900210306;2 ;Action    ;
-                      CaptionML=[DEU=Lager - Verkaufsr¬Åckst‚Äûnde;
+                      CaptionML=[DEU=Lager - VerkaufsrÅckstÑnde;
                                  ENU=Inventory - Sales Back Orders];
                       RunObject=Report 718;
                       Promoted=Yes;
@@ -762,7 +762,7 @@ OBJECT Page 50001 Item List DataGrid
                       AccessByPermission=TableData 454=R;
                       CaptionML=[DEU=Genehmigungen;
                                  ENU=Approvals];
-                      ToolTipML=[DEU=Zeigt eine Liste der Datens‚Äûtze an, die noch genehmigt werden m¬Åssen. Beispielsweise wird angezeigt, wer die Genehmigung des Datensatzes angefordert hat, wann er gesendet wurde und bis wann er genehmigt sein muss.;
+                      ToolTipML=[DEU=Zeigt eine Liste der DatensÑtze an, die noch genehmigt werden mÅssen. Beispielsweise wird angezeigt, wer die Genehmigung des Datensatzes angefordert hat, wann er gesendet wurde und bis wann er genehmigt sein muss.;
                                  ENU=View a list of the records that are waiting to be approved. For example, you can see who requested the record to be approved, when it was sent, and when it is due to be approved.];
                       ApplicationArea=#Suite;
                       Promoted=Yes;
@@ -774,7 +774,7 @@ OBJECT Page 50001 Item List DataGrid
                                END;
                                 }
       { 10      ;1   ;ActionGroup;
-                      CaptionML=[DEU=Verf¬Ågbarkeit;
+                      CaptionML=[DEU=VerfÅgbarkeit;
                                  ENU=Availability];
                       Image=Item }
       { 73      ;2   ;Action    ;
@@ -789,7 +789,7 @@ OBJECT Page 50001 Item List DataGrid
                                END;
                                 }
       { 79      ;2   ;ActionGroup;
-                      CaptionML=[DEU=Artikelverf¬Å&gbarkeit nach;
+                      CaptionML=[DEU=ArtikelverfÅ&gbarkeit nach;
                                  ENU=&Item Availability by];
                       Image=ItemAvailability }
       { 5       ;3   ;Action    ;
@@ -835,7 +835,7 @@ OBJECT Page 50001 Item List DataGrid
                                   Variant Filter=FIELD(Variant Filter);
                       Image=Warehouse }
       { 13      ;3   ;Action    ;
-                      CaptionML=[DEU=St¬Åcklistenebene;
+                      CaptionML=[DEU=StÅcklistenebene;
                                  ENU=BOM Level];
                       Image=BOMLevel;
                       OnAction=BEGIN
@@ -859,7 +859,7 @@ OBJECT Page 50001 Item List DataGrid
                       Name=CRMGoToProduct;
                       CaptionML=[DEU=Produkt;
                                  ENU=Product];
-                      ToolTipML=[DEU=‚Ñ¢ffnen Sie das gekoppelte Microsoft Dynamics CRM-Produkt.;
+                      ToolTipML=[DEU=ôffnen Sie das gekoppelte Microsoft Dynamics CRM-Produkt.;
                                  ENU=Open the coupled Microsoft Dynamics CRM product.];
                       ApplicationArea=#All;
                       Image=CoupledItem;
@@ -899,7 +899,7 @@ OBJECT Page 50001 Item List DataGrid
                       CaptionML=[@@@=Coupling is a noun;
                                  DEU=Kopplung;
                                  ENU=Coupling];
-                      ToolTipML=[DEU=Erstellt, ‚Äûndert oder l‚Äùscht eine Kopplung zwischen dem Microsoft Dynamics NAV-Datensatz und einem Microsoft Dynamics CRM-Datensatz.;
+                      ToolTipML=[DEU=Erstellt, Ñndert oder lîscht eine Kopplung zwischen dem Microsoft Dynamics NAV-Datensatz und einem Microsoft Dynamics CRM-Datensatz.;
                                  ENU=Create, change, or delete a coupling between the Microsoft Dynamics NAV record and a Microsoft Dynamics CRM record.];
                       Image=LinkAccount }
       { 68      ;3   ;Action    ;
@@ -907,7 +907,7 @@ OBJECT Page 50001 Item List DataGrid
                       AccessByPermission=TableData 5331=IM;
                       CaptionML=[DEU=Kopplung einrichten;
                                  ENU=Set Up Coupling];
-                      ToolTipML=[DEU=Erstellen oder ‚Äûndern Sie die Kopplung mit einem Microsoft Dynamics CRM-Produkt.;
+                      ToolTipML=[DEU=Erstellen oder Ñndern Sie die Kopplung mit einem Microsoft Dynamics CRM-Produkt.;
                                  ENU=Create or modify the coupling to a Microsoft Dynamics CRM product.];
                       ApplicationArea=#All;
                       Image=LinkAccount;
@@ -920,9 +920,9 @@ OBJECT Page 50001 Item List DataGrid
       { 66      ;3   ;Action    ;
                       Name=DeleteCRMCoupling;
                       AccessByPermission=TableData 5331=IM;
-                      CaptionML=[DEU=Kopplung l‚Äùschen;
+                      CaptionML=[DEU=Kopplung lîschen;
                                  ENU=Delete Coupling];
-                      ToolTipML=[DEU=L‚Äùschen Sie die Kopplung mit einem Microsoft Dynamics CRM-Produkt.;
+                      ToolTipML=[DEU=Lîschen Sie die Kopplung mit einem Microsoft Dynamics CRM-Produkt.;
                                  ENU=Delete the coupling to a Microsoft Dynamics CRM product.];
                       ApplicationArea=#All;
                       Enabled=CRMIsCoupledToRecord;
@@ -987,7 +987,7 @@ OBJECT Page 50001 Item List DataGrid
                       Image=AssemblyBOM }
       { 48      ;3   ;Action    ;
                       Name=<Action32>;
-                      CaptionML=[DEU=Montagest¬Åckliste;
+                      CaptionML=[DEU=MontagestÅckliste;
                                  ENU=Assembly BOM];
                       RunObject=Page 36;
                       RunPageLink=Parent Item No.=FIELD(No.);
@@ -1002,7 +1002,7 @@ OBJECT Page 50001 Item List DataGrid
                       Image=Track }
       { 46      ;3   ;Action    ;
                       AccessByPermission=TableData 90=R;
-                      CaptionML=[DEU=St¬Åckl. Einst.-Preis &berechnen;
+                      CaptionML=[DEU=StÅckl. Einst.-Preis &berechnen;
                                  ENU=Calc. Stan&dard Cost];
                       Image=CalculateCost;
                       OnAction=BEGIN
@@ -1023,7 +1023,7 @@ OBJECT Page 50001 Item List DataGrid
                                  ENU=Production];
                       Image=Production }
       { 32      ;3   ;Action    ;
-                      CaptionML=[DEU=Fertigungsst¬Åckliste;
+                      CaptionML=[DEU=FertigungsstÅckliste;
                                  ENU=Production BOM];
                       RunObject=Page 99000786;
                       RunPageLink=No.=FIELD(Production BOM No.);
@@ -1042,7 +1042,7 @@ OBJECT Page 50001 Item List DataGrid
                                 }
       { 24      ;3   ;Action    ;
                       AccessByPermission=TableData 99000771=R;
-                      CaptionML=[DEU=St¬Åckl. Einst.-Preis &berechnen;
+                      CaptionML=[DEU=StÅckl. Einst.-Preis &berechnen;
                                  ENU=Calc. Stan&dard Cost];
                       Image=CalculateCost;
                       OnAction=BEGIN
@@ -1149,13 +1149,13 @@ OBJECT Page 50001 Item List DataGrid
                                   Code=FIELD(No.);
                       Image=LineDiscount }
       { 124     ;2   ;Action    ;
-                      CaptionML=[DEU=&Vorauszahlungsprozents‚Äûtze;
+                      CaptionML=[DEU=&VorauszahlungsprozentsÑtze;
                                  ENU=Prepa&yment Percentages];
                       RunObject=Page 664;
                       RunPageLink=Item No.=FIELD(No.);
                       Image=PrepaymentPercentages }
       { 37      ;2   ;Action    ;
-                      CaptionML=[DEU=Auftr‚Äûge;
+                      CaptionML=[DEU=AuftrÑge;
                                  ENU=Orders];
                       RunObject=Page 48;
                       RunPageView=SORTING(Document Type,Type,No.);
@@ -1196,7 +1196,7 @@ OBJECT Page 50001 Item List DataGrid
                       RunPageLink=Item No.=FIELD(No.);
                       Image=LineDiscount }
       { 125     ;2   ;Action    ;
-                      CaptionML=[DEU=&Vorauszahlungsprozents‚Äûtze;
+                      CaptionML=[DEU=&VorauszahlungsprozentsÑtze;
                                  ENU=Prepa&yment Percentages];
                       RunObject=Page 665;
                       RunPageLink=Item No.=FIELD(No.);
@@ -1255,7 +1255,7 @@ OBJECT Page 50001 Item List DataGrid
                       Image=ServiceItem }
       { 11      ;2   ;Action    ;
                       AccessByPermission=TableData 5900=R;
-                      CaptionML=[DEU=L‚Äùsungsanleitung;
+                      CaptionML=[DEU=Lîsungsanleitung;
                                  ENU=Troubleshooting];
                       Image=Troubleshoot;
                       OnAction=VAR
@@ -1265,7 +1265,7 @@ OBJECT Page 50001 Item List DataGrid
                                END;
                                 }
       { 105     ;2   ;Action    ;
-                      CaptionML=[DEU=L‚Äùsungsanleitung Einrichtung;
+                      CaptionML=[DEU=Lîsungsanleitung Einrichtung;
                                  ENU=Troubleshooting Setup];
                       RunObject=Page 5993;
                       RunPageLink=Type=CONST(Item),
@@ -1282,7 +1282,7 @@ OBJECT Page 50001 Item List DataGrid
       { 108     ;3   ;Action    ;
                       CaptionML=[DEU=&Ressourcenqualifikationen;
                                  ENU=Resource &Skills];
-                      ToolTipML=[DEU=Zeigt die Zuweisung von Qualifikationen zu Ressourcen, Artikeln, Serviceartikelgruppen und Serviceartikeln an. Sie k‚Äùnnen Qualifikationscodes verwenden, um den Serviceartikeln oder Artikeln, f¬År deren Wartung spezielle Qualifikationen erforderlich sind, qualifizierte Ressourcen zuzuordnen.;
+                      ToolTipML=[DEU=Zeigt die Zuweisung von Qualifikationen zu Ressourcen, Artikeln, Serviceartikelgruppen und Serviceartikeln an. Sie kînnen Qualifikationscodes verwenden, um den Serviceartikeln oder Artikeln, fÅr deren Wartung spezielle Qualifikationen erforderlich sind, qualifizierte Ressourcen zuzuordnen.;
                                  ENU=View the assignment of skills to resources, items, service item groups, and service items. You can use skill codes to allocate skilled resources to service items or items that need special skills for servicing.];
                       ApplicationArea=#Jobs;
                       RunObject=Page 6019;
@@ -1293,7 +1293,7 @@ OBJECT Page 50001 Item List DataGrid
                       AccessByPermission=TableData 5900=R;
                       CaptionML=[DEU=&Qualifizierte Ressourcen;
                                  ENU=Skilled R&esources];
-                      ToolTipML=[DEU=Zeigt eine ≈°bersicht aller Ressourcen mit Informationen dar¬Åber an, ob sie ¬Åber die erforderlichen Qualifikationen verf¬Ågen, um die bestimmte Serviceartikelgruppe, den Artikel oder den Serviceartikel zu bearbeiten.;
+                      ToolTipML=[DEU=Zeigt eine öbersicht aller Ressourcen mit Informationen darÅber an, ob sie Åber die erforderlichen Qualifikationen verfÅgen, um die bestimmte Serviceartikelgruppe, den Artikel oder den Serviceartikel zu bearbeiten.;
                                  ENU=View a list of all registered resources with information about whether they have the skills required to service the particular service item group, item, or service item.];
                       ApplicationArea=#Jobs;
                       Image=ResourceSkills;
@@ -1330,13 +1330,13 @@ OBJECT Page 50001 Item List DataGrid
                 SourceExpr=Description }
 
     { 106 ;2   ;Field     ;
-                ToolTipML=[DEU=Gibt an, ob die Artikelkarte einen physischen Artikel (Inventory) oder Service (Service) repr‚Äûsentiert.;
+                ToolTipML=[DEU=Gibt an, ob die Artikelkarte einen physischen Artikel (Inventory) oder Service (Service) reprÑsentiert.;
                            ENU=Specifies if the item card represents a physical item (Inventory) or a service (Service).];
                 ApplicationArea=#Basic,#Suite;
                 SourceExpr=Type }
 
     { 113 ;2   ;Field     ;
-                ToolTipML=[DEU=Gibt an, wie viele Einheiten (z.√øB. St¬Åck, Schachteln oder Dosen) eines Artikels am Lager verf¬Ågbar sind.;
+                ToolTipML=[DEU=Gibt an, wie viele Einheiten (z.ˇB. StÅck, Schachteln oder Dosen) eines Artikels am Lager verfÅgbar sind.;
                            ENU=Specifies how many units, such as pieces, boxes, or cans, of the item are in inventory.];
                 ApplicationArea=#Basic,#Suite;
                 SourceExpr=Inventory;
@@ -1347,7 +1347,7 @@ OBJECT Page 50001 Item List DataGrid
                 Visible=FALSE }
 
     { 97  ;2   ;Field     ;
-                ToolTipML=[DEU=Gibt an, dass ein Ersatzartikel f¬År diesen Artikel vorhanden ist.;
+                ToolTipML=[DEU=Gibt an, dass ein Ersatzartikel fÅr diesen Artikel vorhanden ist.;
                            ENU=Specifies that a substitute exists for this item.];
                 ApplicationArea=#Suite;
                 SourceExpr="Substitutes Exist" }
@@ -1366,7 +1366,7 @@ OBJECT Page 50001 Item List DataGrid
                 SourceExpr="Routing No." }
 
     { 6   ;2   ;Field     ;
-                ToolTipML=[DEU=Gibt die Einheit an, in der der Artikel im Lager gef¬Åhrt wird.;
+                ToolTipML=[DEU=Gibt die Einheit an, in der der Artikel im Lager gefÅhrt wird.;
                            ENU=Specifies the unit in which the item is held in inventory.];
                 ApplicationArea=#Basic,#Suite;
                 SourceExpr="Base Unit of Measure" }
@@ -1434,7 +1434,7 @@ OBJECT Page 50001 Item List DataGrid
                 Visible=FALSE }
 
     { 69  ;2   ;Field     ;
-                ToolTipML=[DEU=Gibt einen Code f¬År die Zollposition des Artikels an.;
+                ToolTipML=[DEU=Gibt einen Code fÅr die Zollposition des Artikels an.;
                            ENU=Specifies a code for the item's tariff number.];
                 ApplicationArea=#Basic,#Suite;
                 SourceExpr="Tariff No.";
@@ -1612,7 +1612,7 @@ OBJECT Page 50001 Item List DataGrid
       ApplicationAreaSetup@1015 : Record 9178;
       CalculateStdCost@1005 : Codeunit 5812;
       ItemAvailFormsMgt@1000 : Codeunit 353;
-      Text11500@1140000 : TextConst 'DEU=M‚Äùchten Sie den neuen Artikel bearbeiten?;ENU=Do you want to edit the new item?';
+      Text11500@1140000 : TextConst 'DEU=Mîchten Sie den neuen Artikel bearbeiten?;ENU=Do you want to edit the new item?';
       ApprovalsMgmt@1008 : Codeunit 1535;
       SkilledResourceList@1001 : Page 6023;
       IsFoundationEnabled@1016 : Boolean;
@@ -1703,6 +1703,8 @@ OBJECT Page 50001 Item List DataGrid
               Style := Column.HeaderCell.Style;
               Style.ForeColor := Color.Brown;
             END;
+          FIELDCAPTION(Inventory):
+            Column.DividerWidth := 2;  // creates a border line to the right
         END;
       END;
 
@@ -2986,3 +2988,4 @@ OBJECT Page 50001 Item List DataGrid
     END.
   }
 }
+
