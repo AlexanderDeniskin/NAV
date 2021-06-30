@@ -3,7 +3,7 @@
 This tool allows to export data from NAV to Excel with extended formatting:
 - Change font name, size and color
 - Create borders
-- Make horizonal and vertical alignment
+- Make horizontal and vertical alignment
 - Add comments to cells
 - Add images
 - Group rows and columns
