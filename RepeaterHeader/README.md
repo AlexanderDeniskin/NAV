@@ -1,5 +1,6 @@
 # How to change font in repeater header
 This example shows how to change font in a table header in Nav 2017.
+
 ![ItemList](Img/ItemList.png)
 1. Add to the page a field with `Microsoft.Dynamics.Nav.Client.PageReady` addin.
 2. Add global variables:
