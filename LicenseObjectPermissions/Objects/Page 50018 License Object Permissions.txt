@@ -1,0 +1,297 @@
+OBJECT Page 50018 License Object Permissions
+{
+  OBJECT-PROPERTIES
+  {
+    Date=14.02.22;
+    Time=12:02:00;
+    Modified=Yes;
+    Version List=ASD;
+  }
+  PROPERTIES
+  {
+    CaptionML=ENU=License Object Permissions;
+    InsertAllowed=No;
+    DeleteAllowed=No;
+    ModifyAllowed=Yes;
+    SourceTable=Table2000000043;
+    PageType=List;
+    SourceTableTemporary=Yes;
+    OnOpenPage=BEGIN
+                 FillData;
+               END;
+
+    OnAfterGetRecord=VAR
+                       Object@1000000001 : Record 2000000001;
+                     BEGIN
+                       ObjectName := '';
+                       ObjectVersion := '';
+                       IF Object.GET("Object Type", '', "Object Number") THEN BEGIN
+                         ObjectName := Object.Name;
+                         ObjectVersion := Object."Version List";
+                       END;
+                       GetStyle();
+                     END;
+
+    ActionList=ACTIONS
+    {
+      { 1000000004;  ;ActionContainer;
+                      ActionContainerType=RelatedInformation }
+      { 1000000005;1 ;Action    ;
+                      Name=LicensingGuide;
+                      CaptionML=ENU=Microsoft Dynamics NAV 2017 Licensing Guide;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=Web;
+                      PromotedCategory=Process;
+                      PromotedOnly=Yes;
+                      OnAction=BEGIN
+                                 HYPERLINK('https://www.microsoft.com/en-us/download/details.aspx?id=54248');
+                               END;
+                                }
+    }
+  }
+  CONTROLS
+  {
+    { 1101495000;0;Container;
+                ContainerType=ContentArea }
+
+    { 1000000001;1;Group  ;
+                GroupType=Group }
+
+    { 1101495010;2;Field  ;
+                CaptionML=ENU=Range Type;
+                OptionCaptionML=ENU=All Objects,Free Objects,Out Of License;
+                SourceExpr=RangeType;
+                OnValidate=BEGIN
+                             ApplyRangeType();
+                             CurrPage.UPDATE(FALSE);
+                           END;
+                            }
+
+    { 1101495001;1;Group  ;
+                Name=Group;
+                Editable=FALSE;
+                GroupType=Repeater }
+
+    { 1101495002;2;Field  ;
+                SourceExpr="Object Type";
+                StyleExpr=StyleText }
+
+    { 1101495003;2;Field  ;
+                CaptionML=ENU=Object ID;
+                SourceExpr="Object Number";
+                StyleExpr=StyleText }
+
+    { 1000000000;2;Field  ;
+                CaptionML=ENU=Object Name;
+                SourceExpr=ObjectName;
+                StyleExpr=StyleText }
+
+    { 1000000002;2;Field  ;
+                CaptionML=ENU=Version List;
+                SourceExpr=ObjectVersion;
+                StyleExpr=StyleText }
+
+    { 1101495004;2;Field  ;
+                SourceExpr="Read Permission";
+                StyleExpr=StyleText }
+
+    { 1101495005;2;Field  ;
+                SourceExpr="Insert Permission";
+                StyleExpr=StyleText }
+
+    { 1101495006;2;Field  ;
+                SourceExpr="Modify Permission";
+                StyleExpr=StyleText }
+
+    { 1101495007;2;Field  ;
+                SourceExpr="Delete Permission";
+                StyleExpr=StyleText }
+
+    { 1101495008;2;Field  ;
+                SourceExpr="Execute Permission";
+                StyleExpr=StyleText }
+
+    { 1101495009;2;Field  ;
+                ToolTipML=ENU=Included - table is granted and does not count towards maximum of 3.
+                          
+                          Excluded - table is restricted to write (e.g. G/L Entry).
+                          
+                          Optional - means all the rest;
+                SourceExpr="Limited Usage Permission";
+                StyleExpr=StyleText }
+
+    { 1000000003;2;Field  ;
+                CaptionML=ENU=Scope;
+                SourceExpr=Scope;
+                StyleExpr=StyleText }
+
+  }
+  CODE
+  {
+    VAR
+      AllObjRangeTmp@1101495000 : TEMPORARY Record 2000000043;
+      FreeObjRangeTmp@1101495001 : TEMPORARY Record 2000000043;
+      OutOfLicRangeTmp@1101495002 : TEMPORARY Record 2000000043;
+      RangeType@1101495003 : 'AllObjects,FreeObjects,OutOfLicense';
+      ObjectName@1000000000 : Text;
+      ObjectVersion@1000000002 : Text;
+      Scope@1000000003 : ' ,Free,Out of License';
+      StyleText@1000000001 : Text;
+
+    LOCAL PROCEDURE FillData@1101495000();
+    VAR
+      LicensePermission@1101495000 : Record 2000000043;
+      LimitedUsage@1000000000 : Record 2000000043;
+      PermissionRange@1101495007 : Record 2000000044;
+      Object@1101495001 : Record 2000000001;
+      ObjectID@1101495002 : Integer;
+      Window@1101495003 : Dialog;
+      K@1101495004 : Integer;
+      L@1101495005 : Integer;
+      N@1101495006 : Integer;
+    BEGIN
+      AllObjRangeTmp.RESET;
+      AllObjRangeTmp.DELETEALL;
+
+      FreeObjRangeTmp.RESET;
+      FreeObjRangeTmp.DELETEALL;
+
+      OutOfLicRangeTmp.RESET;
+      OutOfLicRangeTmp.DELETEALL;
+
+      LicensePermission.RESET;
+      LicensePermission.FILTERGROUP(-1);
+      LicensePermission.SETRANGE("Insert Permission",LicensePermission."Insert Permission"::Yes);
+      LicensePermission.SETRANGE("Modify Permission",LicensePermission."Modify Permission"::Yes);
+      LicensePermission.SETRANGE("Delete Permission",LicensePermission."Delete Permission"::Yes);
+      LicensePermission.SETRANGE("Execute Permission",LicensePermission."Execute Permission"::Yes);
+      LicensePermission.FILTERGROUP(0);
+
+      PermissionRange.RESET;
+      PermissionRange.SETFILTER("Object Type",
+        '%1|%2|%3|%4|%5|%6|%7',
+        PermissionRange."Object Type"::Table,
+        PermissionRange."Object Type"::Report,
+        PermissionRange."Object Type"::Codeunit,
+        PermissionRange."Object Type"::XMLport,
+        PermissionRange."Object Type"::MenuSuite,
+        PermissionRange."Object Type"::Page,
+        PermissionRange."Object Type"::Query);
+      PermissionRange.FILTERGROUP(-1);
+      PermissionRange.SETRANGE("Read Permission", PermissionRange."Read Permission"::Yes);
+      PermissionRange.SETRANGE("Execute Permission", PermissionRange."Execute Permission"::Yes);
+      PermissionRange.FILTERGROUP(0);
+
+      K := 0;
+      L := 0;
+      N := PermissionRange.COUNT + 2;
+      Window.OPEN('@1@@@@@@@@@@@@@@@@@@@@');
+
+      IF PermissionRange.FINDSET THEN
+        REPEAT
+
+          K += 1;
+          L := ROUND(K/N*10000,1,'=');
+          Window.UPDATE(1,L);
+
+          LicensePermission.SETRANGE("Object Type",PermissionRange."Object Type");
+          LicensePermission.SETRANGE("Object Number", PermissionRange.From, PermissionRange."To");
+          IF LicensePermission.FINDSET THEN
+            REPEAT
+              CLEAR(LimitedUsage);
+              IF LicensePermission."Object Type" = LicensePermission."Object Type"::Table THEN
+                IF NOT LimitedUsage.GET(LimitedUsage."Object Type"::LimitedUsageTableData, LicensePermission."Object Number") THEN
+                  CLEAR(LimitedUsage);
+
+              CLEAR(AllObjRangeTmp);
+              IF Object.GET(LicensePermission."Object Type",'',LicensePermission."Object Number") THEN BEGIN
+                AllObjRangeTmp := LicensePermission;
+                AllObjRangeTmp."Limited Usage Permission" := LimitedUsage."Limited Usage Permission";
+                AllObjRangeTmp.INSERT;
+              END ELSE
+                IF LicensePermission."Insert Permission" = LicensePermission."Insert Permission"::Yes THEN BEGIN
+                  AllObjRangeTmp := LicensePermission;
+                  AllObjRangeTmp."Limited Usage Permission" := LimitedUsage."Limited Usage Permission";
+                  AllObjRangeTmp.INSERT;
+
+                  FreeObjRangeTmp := AllObjRangeTmp;
+                  FreeObjRangeTmp.INSERT;
+                END;
+            UNTIL LicensePermission.NEXT = 0;
+
+      UNTIL PermissionRange.NEXT = 0;
+
+
+      Object.RESET;
+      PermissionRange.COPYFILTER("Object Type", Object.Type);
+      IF Object.FINDSET THEN BEGIN
+        Window.UPDATE(1,9900);
+        REPEAT
+          IF NOT AllObjRangeTmp.GET(Object.Type, Object.ID) THEN BEGIN
+            CLEAR(AllObjRangeTmp);
+            AllObjRangeTmp."Object Type" := Object.Type;
+            AllObjRangeTmp."Object Number" := Object.ID;
+            AllObjRangeTmp.INSERT;
+
+            OutOfLicRangeTmp := AllObjRangeTmp;
+            OutOfLicRangeTmp.INSERT;
+          END;
+        UNTIL Object.NEXT = 0;
+        Window.UPDATE(1,10000);
+      END;
+      Window.CLOSE;
+
+      ApplyRangeType();
+    END;
+
+    LOCAL PROCEDURE ApplyRangeType@1101495004();
+    VAR
+      RecCopy@1000000000 : Record 2000000043;
+    BEGIN
+      RecCopy.COPY(Rec, FALSE);
+
+      CASE RangeType OF
+        RangeType::AllObjects:
+          COPY(AllObjRangeTmp,TRUE);
+        RangeType::FreeObjects:
+          COPY(FreeObjRangeTmp,TRUE);
+        RangeType::OutOfLicense:
+          COPY(OutOfLicRangeTmp,TRUE);
+      END;
+
+      RESET;
+      Rec := RecCopy;
+      Rec.COPYFILTERS(RecCopy);
+      IF NOT FIND('=') THEN
+        IF FIND('-') THEN;
+    END;
+
+    LOCAL PROCEDURE GetStyle@1000000000();
+    BEGIN
+      StyleText := 'Standard';
+      Scope := Scope::" ";
+
+      IF FreeObjRangeTmp.GET("Object Type", "Object Number") THEN BEGIN
+        Scope := Scope::Free;
+        IF ("Insert Permission" = "Insert Permission"::Yes) AND
+           ("Modify Permission" = "Modify Permission"::Yes) AND
+           ("Delete Permission" = "Delete Permission"::Yes) AND
+           ("Execute Permission" = "Execute Permission"::Yes)
+        THEN
+          StyleText := 'Favorable'
+        ELSE
+          StyleText := 'Ambiguous';
+      END;
+
+      IF OutOfLicRangeTmp.GET("Object Type", "Object Number") THEN BEGIN
+        Scope := Scope::"Out of License";
+        StyleText := 'Attention';
+      END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
