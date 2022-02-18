@@ -1,0 +1,438 @@
+OBJECT Page 50024 Find Related Entries
+{
+  OBJECT-PROPERTIES
+  {
+    Date=18.02.22;
+    Time=09:07:13;
+    Modified=Yes;
+    Version List=ASD;
+  }
+  PROPERTIES
+  {
+    CaptionML=[DEU=Entsprechenden Eintrag Suchen;
+               ENU=Find Related Entries];
+    SourceTable=Table265;
+    PageType=Worksheet;
+    SourceTableTemporary=Yes;
+    OnAfterGetRecord=VAR
+                       Field@1000000000 : Record 2000000041;
+                     BEGIN
+                       RelatedFieldName := '';
+
+                       IF Field.GET("Table ID", "No. of Records 2") THEN
+                         RelatedFieldName := Field."Field Caption";
+
+                       ShowEnable := "No. of Records" > 0;
+                     END;
+
+    ActionList=ACTIONS
+    {
+      { 1000000012;0 ;ActionContainer;
+                      ActionContainerType=ActionItems }
+      { 1000000011;1 ;ActionGroup;
+                      Name=Process;
+                      CaptionML=[DEU=Vorgang;
+                                 ENU=Process] }
+      { 1000000010;2 ;Action    ;
+                      Name=Show;
+                      CaptionML=[DEU=Zugeh”rige Po&sten anzeigen;
+                                 ENU=&Show Related Entries];
+                      ToolTipML=[DEU=Zeigen Sie die zugeh”rigen Posten der gew„hlten Art an.;
+                                 ENU=Show the related entries of the type that you have chosen.];
+                      ApplicationArea=#Basic,#Suite;
+                      Promoted=Yes;
+                      Enabled=ShowEnable;
+                      PromotedIsBig=Yes;
+                      Image=ViewDocumentLine;
+                      PromotedCategory=Process;
+                      PromotedOnly=Yes;
+                      RunPageMode=View;
+                      OnAction=BEGIN
+                                 ShowRecords;
+                               END;
+                                }
+      { 1000000009;2 ;Action    ;
+                      Name=Find;
+                      CaptionML=[DEU=&Suchen;
+                                 ENU=Fi&nd];
+                      ToolTipML=[DEU=Wenden Sie einen Filter zur Suche auf dieser Seite an.;
+                                 ENU=Apply a filter to search on this page.];
+                      ApplicationArea=#Basic,#Suite;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=Find;
+                      PromotedCategory=Process;
+                      PromotedOnly=Yes;
+                      OnAction=BEGIN
+                                 FindEntries;
+                                 CurrPage.UPDATE(FALSE);
+                               END;
+                                }
+    }
+  }
+  CONTROLS
+  {
+    { 1000000000;0;Container;
+                ContainerType=ContentArea }
+
+    { 1000000008;1;Group  ;
+                Name=Document;
+                CaptionML=[DEU=Quelldatensatz;
+                           ENU=Source Record];
+                GroupType=Group }
+
+    { 1000000014;2;Group  ;
+                GroupType=Group }
+
+    { 1000000007;3;Field  ;
+                CaptionML=[DEU=Tabellenname;
+                           ENU=Table Name];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr=SourceTableName;
+                OnValidate=VAR
+                             Object@1000000001 : Record 2000000001;
+                             IntValue@1000000000 : Integer;
+                             RecRef@1000000002 : RecordRef;
+                             KeyRef@1000000003 : KeyRef;
+                           BEGIN
+                             SourceTableNo := 0;
+                             CLEAR(SourceRecordID);
+                             SourceRecordIDText := '';
+
+                             RESET;
+                             DELETEALL;
+
+                             IF SourceTableName = '' THEN
+                               EXIT;
+
+                             IF EVALUATE(IntValue, SourceTableName) THEN BEGIN
+                               SourceTableNo := IntValue;
+                               IF SourceTableNo <> 0 THEN BEGIN
+                                 Object.RESET;
+                                 Object.SETRANGE(Type, Object.Type::Table);
+                                 Object.SETRANGE(ID, SourceTableNo);
+                                 Object.FINDFIRST;
+                                 SourceTableName := Object.Name;
+                               END;
+                             END ELSE BEGIN
+                               Object.RESET;
+                               Object.SETRANGE(Type, Object.Type::Table);
+                               Object.SETRANGE(Name, SourceTableName);
+                               IF NOT Object.FINDFIRST THEN BEGIN
+                                 Object.SETFILTER(Name, SourceTableName + '*');
+                                 Object.FINDFIRST;
+                               END;
+                               SourceTableNo := Object.ID;
+                               SourceTableName := Object.Name;
+                             END;
+
+                             IF SourceTableNo <> 0 THEN BEGIN
+                               RecRef.OPEN(SourceTableNo, TRUE);
+                               KeyRef := RecRef.KEYINDEX(1);
+                               IF KeyRef.FIELDCOUNT > 1 THEN
+                                 ERROR('This function works only for tables in wich primary key contains only one field.');
+                               RecRef.CLOSE;
+                             END;
+
+                           END;
+                            }
+
+    { 1000000006;3;Field  ;
+                CaptionML=[DEU=Buchungsdatum;
+                           ENU=Record ID];
+                ApplicationArea=#Basic,#Suite;
+                SourceExpr=SourceRecordIDText;
+                OnValidate=BEGIN
+                             RESET;
+                             DELETEALL;
+                           END;
+
+                OnLookup=VAR
+                           RecVariant@1000000000 : Variant;
+                           RecRef@1000000001 : RecordRef;
+                           FieldRef@1000000002 : FieldRef;
+                           KeyRef@1000000003 : KeyRef;
+                         BEGIN
+                           IF SourceTableNo = 0 THEN
+                             EXIT(FALSE);
+
+                           RecRef.OPEN(SourceTableNo);
+                           RecVariant := RecRef;
+                           IF PAGE.RUNMODAL(0, RecVariant) <> ACTION::LookupOK THEN
+                             EXIT(FALSE);
+
+                           RecRef := RecVariant;
+                           KeyRef := RecRef.KEYINDEX(1);
+                           FieldRef := KeyRef.FIELDINDEX(1);
+                           Text := FORMAT(FieldRef.VALUE);
+                           EXIT(TRUE);
+                         END;
+                          }
+
+    { 1000000015;2;Field  ;
+                CaptionML=ENU=Hide Empty;
+                SourceExpr=HideEmpty;
+                OnValidate=BEGIN
+                             IF HideEmpty THEN
+                               SETFILTER("No. of Records", '>0')
+                             ELSE
+                               SETRANGE("No. of Records");
+
+                             CurrPage.UPDATE(FALSE);
+                           END;
+                            }
+
+    { 1000000001;1;Group  ;
+                Name=Group;
+                Editable=FALSE;
+                GroupType=Repeater }
+
+    { 1000000002;2;Field  ;
+                SourceExpr="Table ID" }
+
+    { 1000000003;2;Field  ;
+                SourceExpr="Table Name" }
+
+    { 1000000013;2;Field  ;
+                CaptionML=[DEU=Feldname;
+                           ENU=Field Name];
+                SourceExpr=RelatedFieldName }
+
+    { 1000000005;2;Field  ;
+                SourceExpr="No. of Records";
+                OnDrillDown=BEGIN
+                              ShowRecords;
+                            END;
+                             }
+
+  }
+  CODE
+  {
+    VAR
+      TableFilterDict@1000000008 : DotNet "'mscorlib'.System.Collections.Generic.Dictionary`2";
+      SourceTableNo@1000000002 : Integer;
+      SourceTableName@1000000000 : Text;
+      SourceRecordID@1000000001 : RecordID;
+      SourceRecordIDText@1000000003 : Text;
+      RelatedFieldName@1000000005 : Text;
+      ShowEnable@1000000004 : Boolean;
+      HideEmpty@1000000006 : Boolean;
+      NextEntryNo@1000000007 : Integer;
+
+    LOCAL PROCEDURE FindEntries@1000000002();
+    VAR
+      TableMetadata@1000000011 : Record 2000000136;
+      Field@1000000000 : Record 2000000041;
+      SourceField@1000000009 : Record 2000000041;
+      XMLDoc@1000000010 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlDocument";
+      NextEntryNo@1000000001 : Integer;
+      RecRef@1000000002 : RecordRef;
+      FieldRef@1000000003 : FieldRef;
+      SourceRecRef@1000000019 : RecordRef;
+      SourceFieldRef@1000000018 : FieldRef;
+      SourceKeyRef@1000000020 : KeyRef;
+      Window@1000000004 : Dialog;
+      K@1000000005 : Integer;
+      L@1000000006 : Integer;
+      N@1000000007 : Integer;
+    BEGIN
+      RESET;
+      DELETEALL;
+
+      NextEntryNo := 0;
+
+      TableFilterDict := TableFilterDict.Dictionary();
+
+      IF (SourceTableNo = 0) OR (SourceRecordIDText = '') THEN
+        EXIT;
+
+      SourceRecRef.OPEN(SourceTableNo, TRUE);
+      SourceKeyRef := SourceRecRef.KEYINDEX(1);
+      SourceFieldRef := SourceKeyRef.FIELDINDEX(1);
+      EVALUATE(SourceFieldRef, SourceRecordIDText);
+      SourceField.GET(SourceTableNo,SourceFieldRef.NUMBER);
+
+      TableMetadata.RESET;
+      TableMetadata.SETRANGE(TableType, TableMetadata.TableType::Normal);
+
+      L := 0;
+      N := TableMetadata.COUNT;
+      Window.OPEN('@1@@@@@@@@@@@@@@@@@@', L);
+
+      IF TableMetadata.FINDSET THEN
+        REPEAT
+          K += 1;
+
+          Field.RESET;
+          Field.SETRANGE(TableNo, TableMetadata.ID);
+          Field.SETRANGE(Class, Field.Class::Normal);
+          Field.SETRANGE(Enabled, TRUE);
+          //Field.SETRANGE(Type,SourceField.Type);
+          Field.SETFILTER(RelationTableNo, '0|%1', SourceTableNo);
+          IF Field.FINDSET THEN BEGIN
+
+            L := ROUND(K / N * 10000,1,'=');
+            Window.UPDATE;
+
+            IF LoadObjectMetadata(TableMetadata.ID, XMLDoc) THEN BEGIN
+              IF OpenRecordRef(TableMetadata.ID, RecRef) THEN
+                REPEAT
+                  RecRef.RESET;
+                  IF Field.RelationTableNo = 0 THEN
+                    AddRelationFromXML(RecRef,Field,SourceTableNo,SourceFieldRef, XMLDoc)
+                  ELSE BEGIN
+                    FieldRef := RecRef.FIELD(Field."No.");
+                    FieldRef.SETRANGE(SourceFieldRef.VALUE);
+                    AddLine(RecRef,Field."No.");
+                  END;
+                UNTIL Field.NEXT = 0;
+              RecRef.CLOSE;
+            END;
+          END;
+        UNTIL TableMetadata.NEXT = 0;
+
+      RESET;
+      SETCURRENTKEY("Table ID", "No. of Records 2", "Entry No.");
+
+      IF HideEmpty THEN
+        SETFILTER("No. of Records", '>0')
+      ELSE
+        SETRANGE("No. of Records");
+
+      Window.CLOSE;
+    END;
+
+    LOCAL PROCEDURE AddLine@1000000001(VAR RecRef@1000000002 : RecordRef;InFieldNo@1000000000 : Integer);
+    BEGIN
+      NextEntryNo += 1;
+
+      INIT;
+      "Entry No." := NextEntryNo;
+      "Table ID" := RecRef.NUMBER;
+      "No. of Records 2" := InFieldNo;
+      "Table Name" := RecRef.CAPTION;
+      "No. of Records" := RecRef.COUNT;
+      INSERT;
+
+      TableFilterDict.Add("Entry No.", RecRef.GETVIEW);
+    END;
+
+    LOCAL PROCEDURE ShowRecords@1000000003();
+    VAR
+      TableMetadata@1000000003 : Record 2000000136;
+      RecRef@1000000001 : RecordRef;
+      VariantRec@1000000002 : Variant;
+    BEGIN
+      IF "Table ID" = 0 THEN
+        EXIT;
+
+      IF ISNULL(TableFilterDict) THEN
+        EXIT;
+
+      IF NOT TableFilterDict.ContainsKey("Entry No.") THEN
+        EXIT;
+
+      TableMetadata.GET("Table ID");
+      IF (TableMetadata.DrillDownPageId = 0) AND (TableMetadata.LookupPageID = 0) THEN
+        EXIT;
+
+      RecRef.OPEN("Table ID");
+      RecRef.SETVIEW(TableFilterDict.Item("Entry No."));
+
+      VariantRec := RecRef;
+
+      IF TableMetadata.DrillDownPageId <> 0 THEN
+        PAGE.RUN(TableMetadata.DrillDownPageId, VariantRec)
+      ELSE IF TableMetadata.LookupPageID <> 0 THEN
+        PAGE.RUN(TableMetadata.LookupPageID, VariantRec);
+    END;
+
+    [TryFunction]
+    LOCAL PROCEDURE OpenRecordRef@1000000000(TableID@1000000001 : Integer;VAR RecRef@1000000000 : RecordRef);
+    BEGIN
+      RecRef.OPEN(TableID);
+      IF NOT RecRef.READPERMISSION THEN BEGIN
+        RecRef.CLOSE;
+        ERROR('');
+      END;
+    END;
+
+    [TryFunction]
+    PROCEDURE LoadObjectMetadata@1000000008(TableID@1000000001 : Integer;VAR XMLDoc@1000000004 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlDocument");
+    VAR
+      ObjectMetadata@1000000000 : Record 2000000071;
+      String@1000000007 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.String";
+      InStrm@1000000003 : InStream;
+      Content@1000000005 : Text;
+      ContentLine@1000000006 : Text;
+    BEGIN
+      ObjectMetadata.GET(ObjectMetadata."Object Type"::Table, TableID);
+      IF NOT ObjectMetadata.Metadata.HASVALUE THEN
+        ERROR('%1 %2 has no available metadata.', ObjectMetadata."Object Type", ObjectMetadata."Object ID");
+
+      ObjectMetadata.CALCFIELDS(Metadata);
+      ObjectMetadata.Metadata.CREATEINSTREAM(InStrm, TEXTENCODING::UTF8);
+
+      InStrm.READTEXT(Content);
+      WHILE NOT InStrm.EOS DO BEGIN
+        InStrm.READTEXT(ContentLine);
+        Content += ContentLine;
+      END;
+
+      String := Content;
+      String := String.Replace('xmlns="urn:schemas-microsoft-com:dynamics:NAV:MetaObjects"','');
+
+      XMLDoc := XMLDoc.XmlDocument;
+      XMLDoc.LoadXml(String);
+    END;
+
+    LOCAL PROCEDURE AddRelationFromXML@1000000007(VAR RecRef@1000000014 : RecordRef;VAR Field@1000000001 : Record 2000000041;RelatedTableNo@1000000012 : Integer;VAR SourceFieldRef@1000000016 : FieldRef;VAR XMLDoc@1000000013 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlDocument");
+    VAR
+      XMLDOMMgt@1000000007 : Codeunit 6224;
+      XMLNodeField@1000000011 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNode";
+      FoundXMLNode@1000000003 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNode";
+      RelationsNodes@1000000005 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNodeList";
+      ConditionsNodes@1000000004 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNodeList";
+      ConditionNode@1000000002 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNode";
+      RecRefCheck@1000000000 : RecordRef;
+      FieldRef@1000000010 : FieldRef;
+      FieldID@1000000006 : Integer;
+      ConditionValue@1000000008 : Text;
+      ConditionType@1000000009 : Text;
+    BEGIN
+      XMLNodeField := XMLDoc.SelectSingleNode(STRSUBSTNO('.//Field[@ID=%1]',Field."No."));
+      IF ISNULL(XMLNodeField) THEN
+        EXIT;
+
+      RelationsNodes := XMLNodeField.SelectNodes(STRSUBSTNO('TableRelations[@TableID=%1]',RelatedTableNo));
+      IF ISNULL(RelationsNodes) THEN
+        EXIT;
+      IF RelationsNodes.Count = 0 THEN
+        EXIT;
+
+      FOREACH FoundXMLNode IN RelationsNodes DO BEGIN
+        RecRef.RESET;
+        ConditionsNodes := FoundXMLNode.SelectNodes('Conditions');
+        FOREACH ConditionNode IN ConditionsNodes DO BEGIN
+
+          EVALUATE(FieldID, XMLDOMMgt.GetAttributeValue(ConditionNode, 'FieldID'));
+          ConditionType := XMLDOMMgt.GetAttributeValue(ConditionNode, 'ConditionType');
+          ConditionValue := XMLDOMMgt.GetAttributeValue(ConditionNode, 'ConditionValue');
+
+          FieldRef := RecRef.FIELD(FieldID);
+          IF ConditionType = 'CONST' THEN BEGIN
+            EVALUATE(FieldRef, ConditionValue);
+            FieldRef.SETRANGE(FieldRef.VALUE);
+          END ELSE
+            FieldRef.SETFILTER(ConditionValue);
+        END;
+        FieldRef := RecRef.FIELD(Field."No.");
+        FieldRef.SETRANGE(SourceFieldRef.VALUE);
+        AddLine(RecRef,Field."No.");
+      END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
