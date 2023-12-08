@@ -2,8 +2,8 @@ OBJECT Table 50000 Excel Buffer Extended
 {
   OBJECT-PROPERTIES
   {
-    Date=29.04.20;
-    Time=15:55:47;
+    Date=08.12.23;
+    Time=08:30:12;
     Modified=Yes;
     Version List=;
   }
@@ -141,6 +141,10 @@ OBJECT Table 50000 Excel Buffer Extended
     { 56  ;   ;Text Rotation       ;Integer       ;CaptionML=ENU=Text Rotation }
     { 57  ;   ;Wrap Text           ;Boolean       ;CaptionML=ENU=Wrap Text }
     { 58  ;   ;Justify Last Line   ;Boolean       ;CaptionML=ENU=Justify Last Line }
+    { 70  ;   ;Unlocked            ;Boolean       ;DataClassification=ToBeClassified;
+                                                   CaptionML=ENU=Unlocked }
+    { 71  ;   ;Formula Hidden      ;Boolean       ;DataClassification=ToBeClassified;
+                                                   CaptionML=ENU=Formula Hidden }
     { 100 ;   ;Width               ;Integer       ;CaptionML=ENU=Width }
     { 101 ;   ;Height              ;Integer       ;CaptionML=ENU=Height }
     { 102 ;   ;Hidden              ;Boolean       ;CaptionML=ENU=Hidden }
@@ -171,8 +175,8 @@ OBJECT Table 50000 Excel Buffer Extended
   {
     VAR
       Text000@1000 : TextConst '@@@="{Locked=""Excel""}";DEU=Excel wurde nicht gefunden.;ENU=Excel not found.';
-      Text001@1001 : TextConst 'DEU=Sie m걌sen einen Dateinamen angeben.;ENU=You must enter a file name.';
-      Text002@1002 : TextConst '@@@="{Locked=""Excel""}";DEU=Sie m걌sen einen Exceltabellennamen angeben.;ENU=You must enter an Excel worksheet name.';
+      Text001@1001 : TextConst 'DEU=Sie m혖ssen einen Dateinamen angeben.;ENU=You must enter a file name.';
+      Text002@1002 : TextConst '@@@="{Locked=""Excel""}";DEU=Sie m혖ssen einen Exceltabellennamen angeben.;ENU=You must enter an Excel worksheet name.';
       Text003@1003 : TextConst 'DEU=Die Datei %1 ist nicht vorhanden.;ENU=The file %1 does not exist.';
       Text004@1004 : TextConst '@@@="{Locked=""Excel""}";DEU=Die Exceltabelle %1 ist nicht vorhanden.;ENU=The Excel worksheet %1 does not exist.';
       Text005@1005 : TextConst '@@@="{Locked=""Excel""}";DEU=Excel-Arbeitsbl. erstellen...\\;ENU=Creating Excel worksheet...\\';
@@ -194,7 +198,6 @@ OBJECT Table 50000 Excel Buffer Extended
       TempDefaultsExcelBuf@1000000028 : TEMPORARY Record 50000;
       FileManagement@1045 : Codeunit 419;
       XMLDOMManagement@1000000001 : Codeunit 6224;
-      WrkShtHelper@1000000014 : DotNet "'Microsoft.Dynamics.Nav.OpenXml, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Nav.OpenXml.Spreadsheet.WorksheetHelper";
       XlWrkBkWriter@1022 : DotNet "'Microsoft.Dynamics.Nav.OpenXml, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Nav.OpenXml.Spreadsheet.WorkbookWriter";
       XlWrkBkReader@1023 : DotNet "'Microsoft.Dynamics.Nav.OpenXml, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Nav.OpenXml.Spreadsheet.WorkbookReader";
       XlWrkShtWriter@1024 : DotNet "'Microsoft.Dynamics.Nav.OpenXml, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Nav.OpenXml.Spreadsheet.WorksheetWriter";
@@ -212,6 +215,7 @@ OBJECT Table 50000 Excel Buffer Extended
       OpenXmlStringValue@1101495002 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.StringValue";
       OpenXmlUInt32Value@1101495001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.UInt32Value";
       OpenXmlBoolValue@1101495000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.BooleanValue";
+      XlSheetProtection@1000000014 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.SheetProtection";
       ActiveSheetName@1049 : Text[250];
       RangeStartXlRow@1034 : Text[30];
       RangeStartXlCol@1033 : Text[30];
@@ -220,7 +224,7 @@ OBJECT Table 50000 Excel Buffer Extended
       FileNameServer@1046 : Text;
       FriendlyName@1025 : Text;
       ClientPath@1000000032 : Text;
-      TabColor@1000000015 : Text[20];
+      TabColorText@1000000015 : Text[20];
       CurrentRow@1029 : Integer;
       CurrentCol@1030 : Integer;
       FirstCustomStyleID@1000000003 : Integer;
@@ -231,7 +235,7 @@ OBJECT Table 50000 Excel Buffer Extended
       Text035@1040 : TextConst 'DEU=Der Vorgang wurde abgebrochen.;ENU=The operation was canceled.';
       Text036@1042 : TextConst '@@@="{Locked=""Excel""}";DEU=Die Excel-Tabelle ist nicht vorhanden.;ENU=The Excel workbook does not exist.';
       Text037@1047 : TextConst '@@@="{Locked=""Excel""}";DEU=Die Excel-Tabelle konnte nicht erstellt werden.;ENU=Could not create the Excel workbook.';
-      Text038@1048 : TextConst 'DEU=Die globale Variable ''%1'' ist nicht f걊 den Test enthalten.;ENU=Global variable %1 is not included for test.';
+      Text038@1048 : TextConst 'DEU=Die globale Variable ''%1'' ist nicht f혖r den Test enthalten.;ENU=Global variable %1 is not included for test.';
       Text039@1050 : TextConst 'DEU=Die Zellenart wurde nicht definiert.;ENU=Cell type has not been set.';
       Text040@1008 : TextConst '@@@="{Locked=""Excel""}";DEU=Excel-Datei exportieren;ENU=Export Excel File';
       SavingDocumentMsg@1010 : TextConst 'DEU=Das folgende Dokument wird gespeichert: %1.;ENU=Saving the following document: %1.';
@@ -262,12 +266,12 @@ OBJECT Table 50000 Excel Buffer Extended
       CurrSheetID@1000000029 : Integer;
       ActiveSheetID@1000000030 : Integer;
       PathDoesNotExistErr@1000000031 : TextConst 'DEU=Der Pfad "%1" ist nicht vorhanden.;ENU=The path %1 does not exist.';
-      InvalidValueErr@1000000033 : TextConst 'DEU=Der Parameter ''%1'' hat einen ung걄tigen Wert.;ENU=The parameter ''%1'' has invalid value %2.';
-      InvalidColumnCodeErr@1000000034 : TextConst 'DEU=%1 ist ung걄tiger Spaltencode.;ENU=%1 is invalid Column Code.';
-      InvalidCellAddrErr@1000000035 : TextConst 'DEU=%1 ist ung걄tiger Zellenadresse.;ENU=%1 is invalid cell address.';
-      InvalidRangeErr@1000000036 : TextConst 'DEU=%1 ist ung걄tiger Bereich.;ENU=%1 is invalid range.';
+      InvalidValueErr@1000000033 : TextConst 'DEU=Der Parameter ''%1'' hat einen ung혖ltigen Wert.;ENU=The parameter ''%1'' has invalid value %2.';
+      InvalidColumnCodeErr@1000000034 : TextConst 'DEU=%1 ist ung혖ltiger Spaltencode.;ENU=%1 is invalid Column Code.';
+      InvalidCellAddrErr@1000000035 : TextConst 'DEU=%1 ist ung혖ltiger Zellenadresse.;ENU=%1 is invalid cell address.';
+      InvalidRangeErr@1000000036 : TextConst 'DEU=%1 ist ung혖ltiger Bereich.;ENU=%1 is invalid range.';
       PivotFieldDoesntExistErr@1000000038 : TextConst 'DEU=Pivot Field %1 ist nicht vorhanden.;ENU=Pivot Field %1 does not exist.';
-      NoSubtotalFuncErr@1000000039 : TextConst 'DEU=Sie m걌sen die subtotal funktion f걊 das Feld %1 angeben.;ENU=You must specify subtotal function for %1 field.';
+      NoSubtotalFuncErr@1000000039 : TextConst 'DEU=Sie m혖ssen die subtotal funktion f혖r das Feld %1 angeben.;ENU=You must specify subtotal function for %1 field.';
 
     PROCEDURE CreateBook@1(FileName@1001 : Text;SheetName@1000 : Text[250]);
     BEGIN
@@ -398,6 +402,7 @@ OBJECT Table 50000 Excel Buffer Extended
       CurrSheetID += 1;
 
       WriteColumnsProperties;
+      WriteSheetProtection;
       WriteSheetViews;
       WriteSheetProperties;
       WriteAutoFilter;
@@ -1374,6 +1379,7 @@ OBJECT Table 50000 Excel Buffer Extended
       END;
 
       IF SourceValue.ISTEXT OR SourceValue.ISCODE THEN BEGIN
+        SourceValue := DELCHR(SourceValue,'=','$');
         IF EVALUATE(FromRow, SourceValue) THEN BEGIN
           ToRow := FromRow;
           EXIT;
@@ -1437,7 +1443,7 @@ OBJECT Table 50000 Excel Buffer Extended
       IF CellAddress = '' THEN
         EXIT;
 
-      CellAddress := UPPERCASE(CellAddress);
+      CellAddress := UPPERCASE(DELCHR(CellAddress,'=','$'));
 
       FOR I := 1 TO STRLEN(CellAddress) DO BEGIN
         IF CellAddress[I] IN ['1'..'9'] THEN BEGIN
@@ -1466,14 +1472,12 @@ OBJECT Table 50000 Excel Buffer Extended
 
     PROCEDURE SetTabColor@1000000022(NewTabColor@1000000000 : Text[20]);
     BEGIN
-      TabColor := NewTabColor;
+      TabColorText := NewTabColor;
     END;
 
     PROCEDURE SetProperties@1000000024(Properties@1000000010 : Text);
     VAR
       Field@1000000006 : Record 2000000041;
-      ConfigValidateMngt@1000000000 : Codeunit 8617;
-      String@1000000008 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.String";
       RecRef@1000000007 : RecordRef;
       FieldRef@1000000005 : FieldRef;
       Pos@1000000001 : Integer;
@@ -1521,7 +1525,7 @@ OBJECT Table 50000 Excel Buffer Extended
 
           IF (Field.Type = Field.Type::Boolean) AND (FieldValue = '') THEN
             FieldValue := 'True';
-          ConfigValidateMngt.EvaluateTextToFieldRef(FieldValue,FieldRef,FALSE);
+          EVALUATE(FieldRef,FieldValue);
         END;
       END;
 
@@ -1567,6 +1571,25 @@ OBJECT Table 50000 Excel Buffer Extended
     PROCEDURE SetCurrSheetActive@1000000042();
     BEGIN
       ActiveSheetID := CurrSheetID + 1;
+    END;
+
+    PROCEDURE ProtectSheet@1000000061(HashValue@1000000001 : Text;SaltValue@1000000002 : Text;SpinCount@1000000003 : Integer);
+    VAR
+      Base64BinaryValue@1000000013 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Base64BinaryValue";
+    BEGIN
+      XlSheetProtection := XlSheetProtection.SheetProtection();
+      XlSheetProtection.Sheet := OpenXmlBoolValue.FromBoolean(TRUE);
+      XlSheetProtection.Objects := OpenXmlBoolValue.FromBoolean(TRUE);
+      XlSheetProtection.Scenarios := OpenXmlBoolValue.FromBoolean(TRUE);
+      XlSheetProtection.Sheet := OpenXmlBoolValue.FromBoolean(TRUE);
+      XlSheetProtection.AutoFilter := OpenXmlBoolValue.FromBoolean(FALSE);
+
+      IF HashValue <> '' THEN BEGIN
+        XlSheetProtection.AlgorithmName := OpenXmlStringValue.FromString('SHA-512');
+        XlSheetProtection.HashValue := Base64BinaryValue.FromString(HashValue);
+        XlSheetProtection.SaltValue := Base64BinaryValue.FromString(SaltValue);
+        XlSheetProtection.SpinCount := OpenXmlUInt32Value.FromUInt32(SpinCount);
+      END;
     END;
 
     LOCAL PROCEDURE GetCellDecorator@33(ExcelBuffer@1119429013 : Record 50000;VAR Decorator@1119429001 : DotNet "'Microsoft.Dynamics.Nav.OpenXml, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Microsoft.Dynamics.Nav.OpenXml.Spreadsheet.CellDecorator");
@@ -1724,14 +1747,13 @@ OBJECT Table 50000 Excel Buffer Extended
 
       XlAutoFilter := XlAutoFilter.AutoFilter;
       XlAutoFilter.Reference := OpenXmlStringValue.StringValue(AutoFilterRange);
-      WrkShtHelper.AppendElementToOpenXmlElement(XlWrkShtWriter.Worksheet, XlAutoFilter);
+      AppendOpenXmlElement(XlWrkShtWriter.Worksheet, XlAutoFilter);
 
       AutoFilterRange := '';
     END;
 
     LOCAL PROCEDURE WriteMergedCells@1119429009();
     VAR
-      XlWorkSheet@1119429004 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Worksheet";
       XlMergeCells@1119429003 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.MergeCells";
       XlMergeCell@1119429002 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.MergeCell";
       I@1119429000 : Integer;
@@ -1741,16 +1763,13 @@ OBJECT Table 50000 Excel Buffer Extended
       IF MergedCellsList.Count = 0 THEN
         EXIT;
 
-      XlWorkSheet := XlWrkShtWriter.Worksheet;
-
       XlMergeCells := XlMergeCells.MergeCells();
       FOR I := 1 TO MergedCellsList.Count DO BEGIN
         XlMergeCell := XlMergeCell.MergeCell();
         XlMergeCell.Reference := OpenXmlStringValue.FromString(MergedCellsList.Item(I-1));
-        WrkShtHelper.AppendElementToOpenXmlElement(XlMergeCells, XlMergeCell);
+        AppendOpenXmlElement(XlMergeCells, XlMergeCell);
       END;
-      WrkShtHelper.AppendElementToOpenXmlElement(XlWorkSheet, XlMergeCells);
-      XlWorkSheet.Save;
+      AppendOpenXmlElement(XlWrkShtWriter.Worksheet, XlMergeCells);
 
       MergedCellsList.Clear;
     END;
@@ -1846,7 +1865,7 @@ OBJECT Table 50000 Excel Buffer Extended
              (TempColumnsExcelBuf.Hidden) OR
              (TempColumnsExcelBuf."Outline Level" > 0)
           THEN BEGIN
-            WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlColumns, OpenXmlColumn);
+            AppendOpenXmlElement(OpenXmlColumns, OpenXmlColumn);
             UseCustomColumns := TRUE;
           END;
 
@@ -1926,15 +1945,15 @@ OBJECT Table 50000 Excel Buffer Extended
       OpenXmlTabColor@1000000004 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.TabColor";
       OpenXmlHexBinValue@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.HexBinaryValue";
     BEGIN
-      IF SummaryColumnsToLeft OR SummaryRowsAbove OR (TabColor <> '') OR (FitToPageMode <> FitToPageMode::NoScale) THEN BEGIN
+      IF SummaryColumnsToLeft OR SummaryRowsAbove OR (TabColorText <> '') OR (FitToPageMode <> FitToPageMode::NoScale) THEN BEGIN
 
         IF ISNULL(XlWrkShtWriter.Worksheet.SheetProperties) THEN
           XlWrkShtWriter.Worksheet.SheetProperties := OpenXmlSheetProperties.SheetProperties;
         OpenXmlSheetProperties := XlWrkShtWriter.Worksheet.SheetProperties;
 
-        IF TabColor <> '' THEN BEGIN
+        IF TabColorText <> '' THEN BEGIN
           OpenXmlSheetProperties.TabColor := OpenXmlTabColor.TabColor();
-          OpenXmlSheetProperties.TabColor.Rgb := OpenXmlHexBinValue.FromString(TabColor);
+          OpenXmlSheetProperties.TabColor.Rgb := OpenXmlHexBinValue.FromString(TabColorText);
         END;
 
         IF SummaryColumnsToLeft OR SummaryRowsAbove THEN BEGIN
@@ -1945,7 +1964,7 @@ OBJECT Table 50000 Excel Buffer Extended
           IF SummaryRowsAbove THEN
             OpenXmlOutlineProperties.SummaryBelow := OpenXmlBoolValue.BooleanValue(FALSE);
 
-          WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlSheetProperties, OpenXmlOutlineProperties);
+          AppendOpenXmlElement(OpenXmlSheetProperties, OpenXmlOutlineProperties);
         END;
 
         IF FitToPageMode <> FitToPageMode::NoScale THEN BEGIN
@@ -1954,7 +1973,7 @@ OBJECT Table 50000 Excel Buffer Extended
           OpenXmlSheetProperties.PageSetupProperties.FitToPage := OpenXmlBoolValue.BooleanValue(TRUE);
         END;
       END;
-      TabColor := '';
+      TabColorText := '';
       SummaryColumnsToLeft := FALSE;
       SummaryRowsAbove := FALSE;
       IF FitToPageMode = FitToPageMode::Sheet THEN
@@ -2009,27 +2028,27 @@ OBJECT Table 50000 Excel Buffer Extended
         OpenXmlPane.VerticalSplit := OpenXmlDoubleValue.FromDouble(FreezePaneRowNo-1);
       IF FreezePaneColNo > 1 THEN
         OpenXmlPane.HorizontalSplit := OpenXmlDoubleValue.FromDouble(FreezePaneColNo-1);
-      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlSheetView, OpenXmlPane);
+      AppendOpenXmlElement(OpenXmlSheetView, OpenXmlPane);
 
       IF FreezePaneColNo > 1 THEN BEGIN
         OpenXmlSelection := OpenXmlSelection.Selection();
         OpenXmlSelection.SetAttribute(OpenXmlAttribute.OpenXmlAttribute('pane', '', 'topRight'));  //OpenXmlSelection.Pane := OpenXmlPaneValues.TopRight;
-        WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlSheetView, OpenXmlSelection);
+        AppendOpenXmlElement(OpenXmlSheetView, OpenXmlSelection);
       END;
 
       IF FreezePaneRowNo > 1 THEN BEGIN
         OpenXmlSelection := OpenXmlSelection.Selection();
         OpenXmlSelection.SetAttribute(OpenXmlAttribute.OpenXmlAttribute('pane', '', 'bottomLeft'));  //OpenXmlSelection.Pane := OpenXmlPaneValues.BottomLeft;
-        WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlSheetView, OpenXmlSelection);
+        AppendOpenXmlElement(OpenXmlSheetView, OpenXmlSelection);
       END;
 
       IF (FreezePaneRowNo > 1) AND (FreezePaneColNo > 1) THEN BEGIN
         OpenXmlSelection := OpenXmlSelection.Selection();
         OpenXmlSelection.SetAttribute(OpenXmlAttribute.OpenXmlAttribute('pane', '', 'bottomRight'));  //OpenXmlSelection.Pane := OpenXmlPaneValues.BottomRight;
-        WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlSheetView, OpenXmlSelection);
+        AppendOpenXmlElement(OpenXmlSheetView, OpenXmlSelection);
       END;
 
-      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlWorksheet.SheetViews, OpenXmlSheetView);
+      AppendOpenXmlElement(OpenXmlWorksheet.SheetViews, OpenXmlSheetView);
 
       FreezePaneColNo := 0;
       FreezePaneRowNo := 0;
@@ -2065,7 +2084,7 @@ OBJECT Table 50000 Excel Buffer Extended
         OpenXmlPageMargins.Footer := OpenXmlDoubleValue.FromDouble(FooterMargin);
 
         IF NeedAppend THEN
-          WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlWorksheet, OpenXmlPageMargins);
+          AppendOpenXmlElement(OpenXmlWorksheet, OpenXmlPageMargins);
       END;
       CustomPageMargins := FALSE;
 
@@ -2091,6 +2110,28 @@ OBJECT Table 50000 Excel Buffer Extended
         END;
       END;
       FitToPageMode := FitToPageMode::NoScale;
+    END;
+
+    LOCAL PROCEDURE WriteSheetProtection@1000000065();
+    VAR
+      OpenXmlWorksheet@1000000000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Worksheet";
+      OpenXmlElement@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.OpenXmlElement";
+    BEGIN
+      IF ISNULL(XlSheetProtection) THEN
+        EXIT;
+
+      OpenXmlWorksheet := XlWrkShtWriter.Worksheet;
+
+      SkipAutoFit := TRUE;
+      FOREACH OpenXmlElement IN OpenXmlWorksheet.ChildElements DO
+        IF OpenXmlElement.GetType.Equals(GETDOTNETTYPE(XlSheetProtection)) THEN BEGIN
+          OpenXmlElement := XlSheetProtection.CloneNode(TRUE);
+          CLEAR(XlSheetProtection);
+          EXIT;
+        END;
+
+      AppendOpenXmlElement(OpenXmlWorksheet, XlSheetProtection);
+      CLEAR(XlSheetProtection);
     END;
 
     LOCAL PROCEDURE InitDrawingsPart@1000000010(VAR OpenXmlDrawingsPart@1000000009 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Packaging.DrawingsPart";VAR OpenXmlWorkSheetDrawing@1000000008 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Drawing.Spreadsheet.WorksheetDrawing");
@@ -2121,7 +2162,7 @@ OBJECT Table 50000 Excel Buffer Extended
         OpenXmlDrawing := OpenXmlDrawing.Drawing;
         OpenXmlDrawing.Id := OpenXmlStringValue.StringValue;
         OpenXmlDrawing.Id.Value := OpenXmlWorkSheetPart.GetIdOfPart(OpenXmlDrawingsPart);
-        WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlWorksheet, OpenXmlDrawing);
+        AppendOpenXmlElement(OpenXmlWorksheet, OpenXmlDrawing);
       END;
 
       IF ISNULL(OpenXmlDrawingsPart.WorksheetDrawing) THEN
@@ -2247,9 +2288,9 @@ OBJECT Table 50000 Excel Buffer Extended
 
                 OpenXmlStretch := OpenXmlStretch.Stretch;
                 OpenXmlStretch.FillRectangle := OpenXmlFillRect.FillRectangle;
-                WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlBlipFill,OpenXmlStretch);
+                AppendOpenXmlElement(OpenXmlBlipFill,OpenXmlStretch);
 
-              WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPicture, OpenXmlBlipFill);
+              AppendOpenXmlElement(OpenXmlPicture, OpenXmlBlipFill);
 
               OpenXmlShapeProp := OpenXmlShapeProp.ShapeProperties;
               OpenXmlShapeProp.Transform2D := OpenXmlTransform2D.Transform2D();
@@ -2263,16 +2304,16 @@ OBJECT Table 50000 Excel Buffer Extended
 
                 OpenXmlPresetGeom := OpenXmlPresetGeom.PresetGeometry;
                 OpenXmlPresetGeom.SetAttribute(OpenXmlAttribute.OpenXmlAttribute('prst', '', 'rect')); //OpenXmlPresetGeom.Preset := ShapeTypeValue.Rectangle;
-                WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlShapeProp, OpenXmlPresetGeom);
+                AppendOpenXmlElement(OpenXmlShapeProp, OpenXmlPresetGeom);
 
-              WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPicture, OpenXmlShapeProp);
+              AppendOpenXmlElement(OpenXmlPicture, OpenXmlShapeProp);
 
-            WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlOneCellAnchor,OpenXmlPicture);
+            AppendOpenXmlElement(OpenXmlOneCellAnchor,OpenXmlPicture);
 
             OpenXmlClientData := OpenXmlClientData.ClientData;
-            WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlOneCellAnchor, OpenXmlClientData);
+            AppendOpenXmlElement(OpenXmlOneCellAnchor, OpenXmlClientData);
 
-          WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlWorkSheetDrawing,OpenXmlOneCellAnchor);
+          AppendOpenXmlElement(OpenXmlWorkSheetDrawing,OpenXmlOneCellAnchor);
         UNTIL TempImageExcelBuf.NEXT = 0;
       END;
       TempImageExcelBuf.DELETEALL;
@@ -2332,7 +2373,9 @@ OBJECT Table 50000 Excel Buffer Extended
          (ExcelBuffer."Shrink To Fit" = FALSE) AND
          (ExcelBuffer."Text Rotation" = 0) AND
          (ExcelBuffer."Wrap Text" = FALSE) AND
-         (ExcelBuffer."Justify Last Line" = FALSE)
+         (ExcelBuffer."Justify Last Line" = FALSE) AND
+         (ExcelBuffer.Unlocked = FALSE) AND
+         (ExcelBuffer."Formula Hidden" = FALSE)
       THEN
         EXIT(FALSE);
 
@@ -2369,6 +2412,7 @@ OBJECT Table 50000 Excel Buffer Extended
     VAR
       XmlNewCellFormat@1000000000 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlElement";
       XmlAlignmentNode@1000000005 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlElement";
+      XmlProtectionNode@1000000001 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlElement";
       XmlNamespaceManager@1000000004 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNamespaceManager";
       xPath@1000000009 : Text;
       AttrValue@1000000010 : Text;
@@ -2410,6 +2454,12 @@ OBJECT Table 50000 Excel Buffer Extended
         XMLDOMManagement.AddAttribute(XmlAlignmentNode,'justifyLastLine',FORMAT(ExcelBuffer."Justify Last Line",0,9));
 
       XMLDOMManagement.AddAttribute(XmlNewCellFormat,'applyAlignment','1');
+
+      IF ExcelBuffer.Unlocked OR ExcelBuffer."Formula Hidden" THEN BEGIN
+        XMLDOMManagement.AddElementWithPrefix(XmlNewCellFormat,'protection','','x','http://schemas.openxmlformats.org/spreadsheetml/2006/main', XmlProtectionNode);
+        XMLDOMManagement.AddAttribute(XmlProtectionNode,'hidden',FORMAT(ExcelBuffer."Formula Hidden",0,9));
+        XMLDOMManagement.AddAttribute(XmlProtectionNode,'locked',FORMAT(NOT ExcelBuffer.Unlocked,0,9));
+      END;
 
       NewStyleID := FindExistingStyle(XmlCellFormatsDoc.DocumentElement, LOWERCASE(XmlNewCellFormat.OuterXml));
       IF NewStyleID > 0 THEN
@@ -2503,19 +2553,19 @@ OBJECT Table 50000 Excel Buffer Extended
       RunPropCharSet := RunPropCharSet.RunPropertyCharSet;
       RunPropCharSet.Val := Int32Value.FromInt32(1);
 
-      //WrkShtHelper.AppendElementToOpenXmlElement(RunProperties,Bold);
-      WrkShtHelper.AppendElementToOpenXmlElement(RunProperties,FontSize);
-      WrkShtHelper.AppendElementToOpenXmlElement(RunProperties,Color);
-      WrkShtHelper.AppendElementToOpenXmlElement(RunProperties,RunFont);
-      WrkShtHelper.AppendElementToOpenXmlElement(RunProperties,RunPropCharSet);
+      //AppendOpenXmlElement(RunProperties,Bold);
+      AppendOpenXmlElement(RunProperties,FontSize);
+      AppendOpenXmlElement(RunProperties,Color);
+      AppendOpenXmlElement(RunProperties,RunFont);
+      AppendOpenXmlElement(RunProperties,RunPropCharSet);
 
       SpreadsheetText := XlWrkShtWriter.AddText(CommentValue);
       SpreadsheetText.Text := CommentValue;
 
-      WrkShtHelper.AppendElementToOpenXmlElement(Run,RunProperties);
-      WrkShtHelper.AppendElementToOpenXmlElement(Run,SpreadsheetText);
+      AppendOpenXmlElement(Run,RunProperties);
+      AppendOpenXmlElement(Run,SpreadsheetText);
 
-      WrkShtHelper.AppendElementToOpenXmlElement(CommentText,Run);
+      AppendOpenXmlElement(CommentText,Run);
       Comment.CommentText := CommentText;
 
       XlWrkShtWriter.AppendComment(CommentList,Comment);
@@ -2559,10 +2609,10 @@ OBJECT Table 50000 Excel Buffer Extended
       Authors@1000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.Authors";
     BEGIN
       Authors := Authors.Authors;
-      WrkShtHelper.AppendElementToOpenXmlElement(Comments,Authors);
+      AppendOpenXmlElement(Comments,Authors);
       Author := Author.Author;
       Author.Text := AuthorText;
-      WrkShtHelper.AppendElementToOpenXmlElement(Authors,Author);
+      AppendOpenXmlElement(Authors,Author);
     END;
 
     LOCAL PROCEDURE FinishVmlDrawingPart@1000000021();
@@ -2586,7 +2636,7 @@ OBJECT Table 50000 Excel Buffer Extended
       VmlPartId := XlWrkShtWriter.Worksheet.WorksheetPart.GetIdOfPart(VmlDrawingPart);
       LegacyDrawing := LegacyDrawing.LegacyDrawing;
       LegacyDrawing.Id := OpenXmlStringValue.FromString(VmlPartId);
-      WrkShtHelper.AppendElementToOpenXmlElement(XlWrkShtWriter.Worksheet.WorksheetPart.Worksheet,LegacyDrawing);
+      AppendOpenXmlElement(XlWrkShtWriter.Worksheet.WorksheetPart.Worksheet,LegacyDrawing);
 
       CLEAR(StringBld);
       CLEAR(VmlDrawingPart);
@@ -2638,7 +2688,7 @@ OBJECT Table 50000 Excel Buffer Extended
             OpenXmlWorkbookView.FirstSheet := OpenXmlUInt32Value.FromUInt32(ActiveSheetID - 1)
           ELSE
             OpenXmlWorkbookView.FirstSheet := OpenXmlUInt32Value.FromUInt32(ActiveSheetID - 3);
-        WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlBookViews, OpenXmlWorkbookView)
+        AppendOpenXmlElement(OpenXmlBookViews, OpenXmlWorkbookView)
       END;
       OpenXmlWorkbook.Save;
     END;
@@ -2664,7 +2714,7 @@ OBJECT Table 50000 Excel Buffer Extended
         OpenXmlDefinedName.Text := STRSUBSTNO('''%1''!%2',XlWrkShtWriter.Name, Range);
         IF Scope = Scope::CurrentSheet THEN
           OpenXmlDefinedName.LocalSheetId := OpenXmlUInt32Value.FromUInt32(CurrSheetID);
-        WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlDefinedNames, OpenXmlDefinedName);
+        AppendOpenXmlElement(OpenXmlDefinedNames, OpenXmlDefinedName);
       END;
       XlWrkBkWriter.Workbook.Save;
     END;
@@ -2721,11 +2771,11 @@ OBJECT Table 50000 Excel Buffer Extended
       OpenXmlLocation.FirstHeaderRow := OpenXmlUInt32Value.FromUInt32(1);
       OpenXmlLocation.FirstDataRow := OpenXmlUInt32Value.FromUInt32(1);
       OpenXmlLocation.FirstDataColumn := OpenXmlUInt32Value.FromUInt32(0);
-      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotTblDefinition, OpenXmlLocation);
+      AppendOpenXmlElement(OpenXmlPivotTblDefinition, OpenXmlLocation);
 
       OpenXmlPivotFields := OpenXmlPivotFields.PivotFields;
       OpenXmlPivotFields.Count := OpenXmlUInt32Value.FromUInt32(0);
-      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotTblDefinition, OpenXmlPivotFields);
+      AppendOpenXmlElement(OpenXmlPivotTblDefinition, OpenXmlPivotFields);
 
       OpenXmlPivotTableStyle := OpenXmlPivotTableStyle.PivotTableStyle;
       OpenXmlPivotTableStyle.Name := OpenXmlStringValue.FromString('PivotStyleLight16'); //'PivotStyleMedium9'
@@ -2734,10 +2784,10 @@ OBJECT Table 50000 Excel Buffer Extended
       OpenXmlPivotTableStyle.ShowRowStripes := OpenXmlBoolValue.BooleanValue(FALSE);
       OpenXmlPivotTableStyle.ShowColumnStripes := OpenXmlBoolValue.BooleanValue(FALSE);
       OpenXmlPivotTableStyle.ShowLastColumn := OpenXmlBoolValue.BooleanValue(TRUE);
-      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotTblDefinition, OpenXmlPivotTableStyle);
+      AppendOpenXmlElement(OpenXmlPivotTblDefinition, OpenXmlPivotTableStyle);
 
       OpenXmlPivotTblDefExtList := OpenXmlPivotTblDefExtList.PivotTableDefinitionExtensionList;
-      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotTblDefinition, OpenXmlPivotTblDefExtList);
+      AppendOpenXmlElement(OpenXmlPivotTblDefinition, OpenXmlPivotTblDefExtList);
 
       PivotTablePart.PivotTableDefinition := OpenXmlPivotTblDefinition;
     END;
@@ -2777,12 +2827,12 @@ OBJECT Table 50000 Excel Buffer Extended
 
       OpenXmlCacheSource := OpenXmlCacheSource.CacheSource;
       OpenXmlCacheSource.SetAttribute(OpenXmlAttribute.OpenXmlAttribute('type','','worksheet'));
-      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotCacheDefinition, OpenXmlCacheSource);
+      AppendOpenXmlElement(OpenXmlPivotCacheDefinition, OpenXmlCacheSource);
 
       OpenXmlWorksheetSource := OpenXmlWorksheetSource.WorksheetSource;
       OpenXmlWorksheetSource.Reference := OpenXmlStringValue.FromString(SourceRange);
       OpenXmlWorksheetSource.Sheet := OpenXmlStringValue.FromString(SourceSheetName);
-      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlCacheSource, OpenXmlWorksheetSource);
+      AppendOpenXmlElement(OpenXmlCacheSource, OpenXmlWorksheetSource);
 
       InitPivotTableFields(SourceSheetName,SourceRange);
 
@@ -2803,7 +2853,7 @@ OBJECT Table 50000 Excel Buffer Extended
       OpenXmlPivotCache := OpenXmlPivotCache.PivotCache();
       OpenXmlPivotCache.CacheId := PivotTablePart.PivotTableDefinition.CacheId; // OpenXmlUInt32Value.FromUInt32(10);
       OpenXmlPivotCache.Id := OpenXmlStringValue.StringValue(OpenXmlWorkbookPart.GetIdOfPart(OpenXmlPivotTblCacheDefPart));
-      WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotCaches, OpenXmlPivotCache);
+      AppendOpenXmlElement(OpenXmlPivotCaches, OpenXmlPivotCache);
     END;
 
     LOCAL PROCEDURE InitPivotTableFields@1000000062(SourceSheetName@1000000003 : Text;SourceRange@1000000002 : Text);
@@ -2828,18 +2878,18 @@ OBJECT Table 50000 Excel Buffer Extended
         REPEAT
           OpenXmlPivotField := OpenXmlPivotField.PivotField();
           OpenXmlPivotField.ShowAll := OpenXmlBoolValue.BooleanValue(FALSE);
-          WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotFields, OpenXmlPivotField);
+          AppendOpenXmlElement(OpenXmlPivotFields, OpenXmlPivotField);
 
           OpenXmlCacheField := OpenXmlCacheField.CacheField;
           OpenXmlCacheField.Name := OpenXmlStringValue.FromString(xlBufferSource."Cell Value as Text");
           OpenXmlCacheField.NumberFormatId := OpenXmlUInt32Value.FromUInt32(0);
           OpenXmlCacheField.SharedItems := OpenXmlSharedItems.SharedItems;
-          WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlCacheFields, OpenXmlCacheField);
+          AppendOpenXmlElement(OpenXmlCacheFields, OpenXmlCacheField);
         UNTIL xlBufferSource.NEXT = 0;
 
       OpenXmlPivotFields.Count := OpenXmlUInt32Value.FromUInt32(OpenXmlPivotFields.ChildElements.Count);
       OpenXmlCacheFields.Count := OpenXmlUInt32Value.FromUInt32(OpenXmlCacheFields.ChildElements.Count);
-      WrkShtHelper.AppendElementToOpenXmlElement(PivotTablePart.PivotTableCacheDefinitionPart.PivotCacheDefinition, OpenXmlCacheFields);
+      AppendOpenXmlElement(PivotTablePart.PivotTableCacheDefinitionPart.PivotCacheDefinition, OpenXmlCacheFields);
     END;
 
     LOCAL PROCEDURE InitPivotTableCacheRecordsPart@1000000064(VAR OpenXmlPivotTblCacheRecsPart@1000000000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Packaging.PivotTableCacheRecordsPart");
@@ -2923,7 +2973,7 @@ OBJECT Table 50000 Excel Buffer Extended
         RowItems := OpenXmlPivotTblDefinition.RowItems;
         RowItems.Count := OpenXmlUInt32Value.FromUInt32(1);
         RowItem := RowItem.RowItem;
-        WrkShtHelper.AppendElementToOpenXmlElement(RowItems, RowItem);
+        AppendOpenXmlElement(RowItems, RowItem);
       END ELSE
         RowItems := OpenXmlPivotTblDefinition.RowItems;
 
@@ -2933,7 +2983,7 @@ OBJECT Table 50000 Excel Buffer Extended
         ColumnItems := OpenXmlPivotTblDefinition.ColumnItems;
         ColumnItems.Count := OpenXmlUInt32Value.FromUInt32(1);
         RowItem := RowItem.RowItem;
-        WrkShtHelper.AppendElementToOpenXmlElement(ColumnItems, RowItem);
+        AppendOpenXmlElement(ColumnItems, RowItem);
       END ELSE
         ColumnItems := OpenXmlPivotTblDefinition.ColumnItems;
 
@@ -2944,19 +2994,19 @@ OBJECT Table 50000 Excel Buffer Extended
         RowFields := OpenXmlPivotTblDefinition.RowFields;
         Field := Field.Field;
         Field.Index := OpenXmlInt32Value.FromInt32(FieldID);
-        WrkShtHelper.AppendElementToOpenXmlElement(RowFields, Field);
+        AppendOpenXmlElement(RowFields, Field);
         RowFields.Count := OpenXmlUInt32Value.FromUInt32(RowFields.ChildElements.Count);
 
         IF RowItems.ChildElements.Count = 1 THEN BEGIN
           RowItem := RowItems.ChildElements.Item(0);
           MemberPropertyIndex := MemberPropertyIndex.MemberPropertyIndex;
-          WrkShtHelper.AppendElementToOpenXmlElement(RowItem, MemberPropertyIndex);
+          AppendOpenXmlElement(RowItem, MemberPropertyIndex);
 
           RowItem := RowItem.RowItem;
           RowItem.SetAttribute(OpenXmlAttribute.OpenXmlAttribute('t','','grand'));
           MemberPropertyIndex := MemberPropertyIndex.MemberPropertyIndex;
-          WrkShtHelper.AppendElementToOpenXmlElement(RowItem, MemberPropertyIndex);
-          WrkShtHelper.AppendElementToOpenXmlElement(RowItems, RowItem);
+          AppendOpenXmlElement(RowItem, MemberPropertyIndex);
+          AppendOpenXmlElement(RowItems, RowItem);
           RowItems.Count := OpenXmlUInt32Value.FromUInt32(2);
         END;
       END;
@@ -2967,19 +3017,19 @@ OBJECT Table 50000 Excel Buffer Extended
         ColumnFields := OpenXmlPivotTblDefinition.ColumnFields;
         Field := Field.Field;
         Field.Index := OpenXmlInt32Value.FromInt32(FieldID);
-        WrkShtHelper.AppendElementToOpenXmlElement(ColumnFields, Field);
+        AppendOpenXmlElement(ColumnFields, Field);
         ColumnFields.Count := OpenXmlUInt32Value.FromUInt32(ColumnFields.ChildElements.Count);
 
         IF ColumnItems.ChildElements.Count = 1 THEN BEGIN
           RowItem := ColumnItems.ChildElements.Item(0);
           MemberPropertyIndex := MemberPropertyIndex.MemberPropertyIndex;
-          WrkShtHelper.AppendElementToOpenXmlElement(RowItem, MemberPropertyIndex);
+          AppendOpenXmlElement(RowItem, MemberPropertyIndex);
 
           RowItem := RowItem.RowItem;
           RowItem.SetAttribute(OpenXmlAttribute.OpenXmlAttribute('t','','grand'));
           MemberPropertyIndex := MemberPropertyIndex.MemberPropertyIndex;
-          WrkShtHelper.AppendElementToOpenXmlElement(RowItem, MemberPropertyIndex);
-          WrkShtHelper.AppendElementToOpenXmlElement(ColumnItems, RowItem);
+          AppendOpenXmlElement(RowItem, MemberPropertyIndex);
+          AppendOpenXmlElement(ColumnItems, RowItem);
           ColumnItems.Count := OpenXmlUInt32Value.FromUInt32(2);
         END;
       END;
@@ -2997,15 +3047,15 @@ OBJECT Table 50000 Excel Buffer Extended
         PageField := PageField.PageField;
         PageField.Field := OpenXmlInt32Value.FromInt32(FieldID);
         PageField.Hierarchy := OpenXmlInt32Value.FromInt32(-1);
-        WrkShtHelper.AppendElementToOpenXmlElement(PageFields, PageField);
+        AppendOpenXmlElement(PageFields, PageField);
 
         IF NOT OpenXmlPivotField.HasChildren THEN BEGIN
           Items := Items.Items;
           Items.Count := OpenXmlUInt32Value.FromUInt32(1);
           Item := Item.Item;
           Item.SetAttribute(OpenXmlAttribute.OpenXmlAttribute('t','','default'));
-          WrkShtHelper.AppendElementToOpenXmlElement(Items, Item);
-          WrkShtHelper.AppendElementToOpenXmlElement(OpenXmlPivotField, Items);
+          AppendOpenXmlElement(Items, Item);
+          AppendOpenXmlElement(OpenXmlPivotField, Items);
         END;
         PageFields.Count := OpenXmlUInt32Value.FromUInt32(PageFields.ChildElements.Count);
       END;
@@ -3024,7 +3074,7 @@ OBJECT Table 50000 Excel Buffer Extended
         DataField.BaseField := OpenXmlInt32Value.FromInt32(0);
         DataField.BaseItem := OpenXmlUInt32Value.FromUInt32(0);
 
-        WrkShtHelper.AppendElementToOpenXmlElement(DataFields, DataField);
+        AppendOpenXmlElement(DataFields, DataField);
         DataFields.Count := OpenXmlUInt32Value.FromUInt32(DataFields.ChildElements.Count);
       END;
 
@@ -3073,6 +3123,16 @@ OBJECT Table 50000 Excel Buffer Extended
       END;
 
       ERROR(PivotFieldDoesntExistErr, FieldName);
+    END;
+
+    LOCAL PROCEDURE AppendOpenXmlElement@1000000047(ParentOpenXmlElement@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.OpenXmlElement";ChildOpenXmlElement@1000000000 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.OpenXmlElement");
+    VAR
+      ArrOfValues@1000000002 : DotNet "'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Array";
+    BEGIN
+      ArrOfValues := ArrOfValues.CreateInstance(GETDOTNETTYPE(ChildOpenXmlElement), 1);
+      ArrOfValues.SetValue(ChildOpenXmlElement,0);
+
+      ParentOpenXmlElement.Append(ArrOfValues);
     END;
 
     LOCAL PROCEDURE AddNewPart@1101495001(VAR ParentOpenXmlPart@1101495006 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Packaging.OpenXmlPart";VAR ChildOpenXmlPart@1101495002 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Packaging.OpenXmlPart");
@@ -3322,4 +3382,3 @@ OBJECT Table 50000 Excel Buffer Extended
     END.
   }
 }
-
