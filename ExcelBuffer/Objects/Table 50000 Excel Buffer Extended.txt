@@ -2,8 +2,8 @@ OBJECT Table 50000 Excel Buffer Extended
 {
   OBJECT-PROPERTIES
   {
-    Date=08.12.23;
-    Time=08:30:12;
+    Date=14.12.23;
+    Time=13:15:54;
     Modified=Yes;
     Version List=;
   }
@@ -390,6 +390,7 @@ OBJECT Table 50000 Excel Buffer Extended
       InfoRecNo@1012 : Integer;
       TotalRecNo@1011 : Integer;
       LastUpdate@1004 : DateTime;
+      CreateCustomStyles@1000000000 : Boolean;
     BEGIN
       LastUpdate := CURRENTDATETIME;
       IF NOT HideDialog THEN
@@ -425,6 +426,10 @@ OBJECT Table 50000 Excel Buffer Extended
             WriteCellFormula(Rec);
           IF Comment <> '' THEN
             SetCellComment("Column No.", "Row No.", Comment);
+          IF HasCustomStyle THEN BEGIN
+            CreateCustomStyles := TRUE;
+            TotalRecNo += 1;
+          END;
         UNTIL NEXT = 0;
 
       IF ReportHeader <> '' THEN
@@ -437,7 +442,8 @@ OBJECT Table 50000 Excel Buffer Extended
         STRSUBSTNO('%1%3%4%3%5 %2',GetExcelReference(2),GetExcelReference(3),CRLF,UserID2,PageTxt));
 
       WriteRowsProperties;
-      WriteAlignment;
+      IF CreateCustomStyles THEN
+        WriteAlignment(ExcelBufferDialogMgt,LastUpdate,RecNo,TotalRecNo);
       WriteImages;
       FinishVmlDrawingPart;
 
@@ -2319,88 +2325,109 @@ OBJECT Table 50000 Excel Buffer Extended
       TempImageExcelBuf.DELETEALL;
     END;
 
-    LOCAL PROCEDURE WriteAlignment@1000000001();
+    PROCEDURE HasCustomStyle@1000000069() : Boolean;
+    BEGIN
+      IF NOT ("Horizontal Alignment" IN
+                ["Horizontal Alignment"::Left,
+                 "Horizontal Alignment"::Right,
+                 "Horizontal Alignment"::Distributed])
+      THEN
+        Indent := 0;
+
+      IF NOT ("Text Rotation" IN [0..180]) THEN
+        "Text Rotation" := 0;
+
+      IF "Wrap Text" THEN
+        "Shrink To Fit" := FALSE;
+
+      IF ("Horizontal Alignment" = "Horizontal Alignment"::Automatic) AND
+         ("Vertical Alignment" = "Vertical Alignment"::Automatic) AND
+         (Indent = 0) AND
+         ("Reading Order" = "Reading Order"::Context) AND
+         ("Relative Indent" = 0) AND
+         ("Shrink To Fit" = FALSE) AND
+         ("Text Rotation" = 0) AND
+         ("Wrap Text" = FALSE) AND
+         ("Justify Last Line" = FALSE) AND
+         (Unlocked = FALSE) AND
+         ("Formula Hidden" = FALSE)
+      THEN
+        EXIT(FALSE);
+
+      EXIT(TRUE);
+    END;
+
+    LOCAL PROCEDURE WriteAlignment@1000000071(ExcelBufferDialogMgt@1000000019 : Codeunit 5370;LastUpdate@1000000016 : DateTime;RecNo@1000000018 : Integer;TotalRecNo@1000000017 : Integer);
     VAR
-      OpenXmlCellFormats@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.CellFormats";
+      XmlRowNodeList@1000000008 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNodeList";
+      XmlRowNode@1000000009 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNode";
+      XmlCellNodeList@1000000011 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNodeList";
+      XmlCellNode@1000000010 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNode";
+      XmlNamespaceManager@1000000006 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNamespaceManager";
+      CellFormats@1000000001 : DotNet "'DocumentFormat.OpenXml, Version=2.5.5631.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.DocumentFormat.OpenXml.Spreadsheet.CellFormats";
       SheetChanged@1000000000 : Boolean;
     BEGIN
       FirstCustomStyleID := 0;
       SheetChanged := FALSE;
-      CLEAR(XmlWrkShtDoc);
       CLEAR(XmlCellFormatsDoc);
 
-      IF FINDSET THEN
-        REPEAT
-          SheetChanged := ChangeCellStyle(Rec) OR SheetChanged;
-        UNTIL NEXT = 0;
+      XmlWrkShtDoc := XmlWrkShtDoc.XmlDocument;
+      XmlWrkShtDoc.LoadXml(XlWrkShtWriter.Worksheet.OuterXml);
+      XMLDOMManagement.AddNamespaces(XmlNamespaceManager,XmlWrkShtDoc);
+
+      XmlRowNodeList := XmlWrkShtDoc.SelectNodes('/x:worksheet/x:sheetData/x:row',XmlNamespaceManager);
+
+      FOREACH XmlRowNode IN XmlRowNodeList DO BEGIN
+        XmlCellNodeList := XmlRowNode.SelectNodes('x:c',XmlNamespaceManager);
+        FOREACH XmlCellNode IN XmlCellNodeList DO BEGIN
+          IF ChangeCellStyle(XmlCellNode) THEN BEGIN
+            SheetChanged := TRUE;
+            RecNo += 1;
+            IF NOT HideDialog THEN
+              IF NOT UpdateProgressDialog(ExcelBufferDialogMgt,LastUpdate,RecNo,TotalRecNo) THEN BEGIN
+                QuitExcel;
+                ERROR(Text035)
+              END;
+          END;
+        END;
+      END;
 
       IF SheetChanged THEN BEGIN
         XlWrkShtWriter.Worksheet.InnerXml(XmlWrkShtDoc.DocumentElement.InnerXml);
-        OpenXmlCellFormats := XlWrkBkWriter.Workbook.WorkbookPart.WorkbookStylesPart.Stylesheet.CellFormats;
-        OpenXmlCellFormats.InnerXml(XmlCellFormatsDoc.DocumentElement.InnerXml);
-
-        OpenXmlCellFormats.Count := OpenXmlUInt32Value.FromUInt32(XmlCellFormatsDoc.DocumentElement.ChildNodes.Count);
+        CellFormats := XlWrkBkWriter.Workbook.WorkbookPart.WorkbookStylesPart.Stylesheet.CellFormats;
+        CellFormats.InnerXml(XmlCellFormatsDoc.DocumentElement.InnerXml);
+        CellFormats.Count := OpenXmlUInt32Value.FromUInt32(XmlCellFormatsDoc.DocumentElement.ChildNodes.Count);
       END;
       CLEAR(XmlWrkShtDoc);
     END;
 
-    LOCAL PROCEDURE ChangeCellStyle@1000000000(ExcelBuffer@1000000007 : Record 50000) : Boolean;
+    LOCAL PROCEDURE ChangeCellStyle@1000000070(VAR XmlCellNode@1000000000 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNode") : Boolean;
     VAR
-      XmlCellNode@1000000011 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlElement";
-      XmlNamespaceManager@1000000010 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNamespaceManager";
-      CurrStyleCode@1000000009 : Code[10];
-      CurrStyleID@1000000001 : Integer;
-      NewStyleID@1000000000 : Integer;
-      xPath@1000000002 : Text;
+      CurrStyleCode@1000000008 : Code[10];
+      CurrAddress@1000000007 : Text;
+      CurrStyleID@1000000006 : Integer;
+      NewStyleID@1000000005 : Integer;
+      FromRowNo@1000000004 : Integer;
+      ToRowNo@1000000003 : Integer;
+      FromColumnNo@1000000002 : Integer;
+      ToColumnNo@1000000001 : Integer;
     BEGIN
-      IF NOT (ExcelBuffer."Horizontal Alignment" IN [ExcelBuffer."Horizontal Alignment"::Left,
-                                                     ExcelBuffer."Horizontal Alignment"::Right,
-                                                     ExcelBuffer."Horizontal Alignment"::Distributed])
-      THEN
-        ExcelBuffer.Indent := 0;
-
-      IF NOT (ExcelBuffer."Text Rotation" IN [0..180]) THEN
-        ExcelBuffer."Text Rotation" := 0;
-
-      IF ExcelBuffer."Wrap Text" THEN
-        ExcelBuffer."Shrink To Fit" := FALSE;
-
-      IF (ExcelBuffer."Horizontal Alignment" = ExcelBuffer."Horizontal Alignment"::Automatic) AND
-         (ExcelBuffer."Vertical Alignment" = ExcelBuffer."Vertical Alignment"::Automatic) AND
-         (ExcelBuffer.Indent = 0) AND
-         (ExcelBuffer."Reading Order" = ExcelBuffer."Reading Order"::Context) AND
-         (ExcelBuffer."Relative Indent" = 0) AND
-         (ExcelBuffer."Shrink To Fit" = FALSE) AND
-         (ExcelBuffer."Text Rotation" = 0) AND
-         (ExcelBuffer."Wrap Text" = FALSE) AND
-         (ExcelBuffer."Justify Last Line" = FALSE) AND
-         (ExcelBuffer.Unlocked = FALSE) AND
-         (ExcelBuffer."Formula Hidden" = FALSE)
-      THEN
-        EXIT(FALSE);
-
-      IF ISNULL(XmlWrkShtDoc) THEN BEGIN
-        XmlWrkShtDoc := XmlWrkShtDoc.XmlDocument;
-        XmlWrkShtDoc.LoadXml(XlWrkShtWriter.Worksheet.OuterXml);
-      END;
-      XMLDOMManagement.AddNamespaces(XmlNamespaceManager,XmlWrkShtDoc);
-
-      xPath := STRSUBSTNO('/x:worksheet/x:sheetData/x:row[@r=''%1'']/x:c[@r=''%2%1'']', ExcelBuffer."Row No.", ExcelBuffer.xlColID);
-      XmlCellNode := XmlWrkShtDoc.SelectSingleNode(xPath,XmlNamespaceManager);
-
-      IF ISNULL(XmlCellNode) THEN
-        EXIT(FALSE);
-
+      CurrAddress := XMLDOMManagement.GetAttributeValue(XmlCellNode,'r');
       CurrStyleCode := XMLDOMManagement.GetAttributeValue(XmlCellNode,'s');
 
-      IF CurrStyleCode = '' THEN
+      IF NOT GetIntegerRange(CurrAddress,FromRowNo,FromColumnNo,ToRowNo,ToColumnNo) THEN
+        EXIT(FALSE);
+
+      IF NOT GET(FromRowNo,FromColumnNo) THEN
+        EXIT(FALSE);
+
+      IF NOT HasCustomStyle THEN
         EXIT(FALSE);
 
       IF NOT EVALUATE(CurrStyleID,CurrStyleCode) THEN
         EXIT(FALSE);
 
-      NewStyleID := GetNewStyle(ExcelBuffer,CurrStyleID);
-
+      NewStyleID := GetNewStyle(Rec,CurrStyleID);
       IF NewStyleID = CurrStyleID THEN
         EXIT(FALSE);
 
@@ -3382,3 +3409,4 @@ OBJECT Table 50000 Excel Buffer Extended
     END.
   }
 }
+
