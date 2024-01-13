@@ -272,6 +272,7 @@ OBJECT Table 50000 Excel Buffer Extended
       InvalidRangeErr@1000000036 : TextConst 'DEU=%1 ist ungltiger Bereich.;ENU=%1 is invalid range.';
       PivotFieldDoesntExistErr@1000000038 : TextConst 'DEU=Pivot Field %1 ist nicht vorhanden.;ENU=Pivot Field %1 does not exist.';
       NoSubtotalFuncErr@1000000039 : TextConst 'DEU=Sie mssen die subtotal funktion fr das Feld %1 angeben.;ENU=You must specify subtotal function for %1 field.';
+      PaperSize@1011 : Integer;
 
     PROCEDURE CreateBook@1(FileName@1001 : Text;SheetName@1000 : Text[250]);
     BEGIN
@@ -2116,6 +2117,20 @@ OBJECT Table 50000 Excel Buffer Extended
         END;
       END;
       FitToPageMode := FitToPageMode::NoScale;
+
+
+      IF PaperSize <> 0 THEN BEGIN
+
+        OpenXmlWorksheet := XlWrkShtWriter.Worksheet;
+        FOREACH OpenXmlElement IN OpenXmlWorksheet.ChildElements DO
+          IF OpenXmlElement.GetType.Equals(GETDOTNETTYPE(OpenXmlPageSetup)) THEN
+            OpenXmlPageSetup := OpenXmlElement;
+
+        IF NOT ISNULL(OpenXmlPageSetup) THEN
+            OpenXmlPageSetup.PaperSize(OpenXmlUInt32Value.FromUInt32(PaperSize));
+      END;
+
+
     END;
 
     LOCAL PROCEDURE WriteSheetProtection@1000000065();
@@ -3355,6 +3370,11 @@ OBJECT Table 50000 Excel Buffer Extended
             EXIT(XlWrkBkWriter.Workbook.WorkbookPart.SharedStringTablePart.SharedStringTable.ChildElements.GetItem(IntValue).InnerText);
       END;
       EXIT(Value);
+    END;
+    PROCEDURE SetPaperSize@50(NewPaperSize@1000 : Integer);
+    BEGIN
+      PaperSize := NewPaperSize;
+      // (https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.pagesetup?view=openxml-2.8.1#:~:text=paperSize%20(Paper%20Size) )
     END;
 
     EVENT XmlWrkShtDoc@1000000000::NodeInserting@94(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Xml.XmlNodeChangedEventArgs");
